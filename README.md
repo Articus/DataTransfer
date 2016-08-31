@@ -1,4 +1,8 @@
 # Data Transfer
+
+[![Travis](https://img.shields.io/travis/Articus/DataTransfer.svg)]()
+[![Coveralls](https://coveralls.io/repos/github/Articus/DataTransfer/badge.svg?branch=master)]()
+
 This library provides a simple "validating hydrator", a service that "transfers" data from source to destination safely.
 
 In other words, if you have `A` and `B` - two objects of different classes this service can: 

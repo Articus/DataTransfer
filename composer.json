@@ -40,6 +40,6 @@
     }
   },
   "scripts": {
-    "test": "codecept run"
+    "test": "codecept run --coverage-xml"
   }
 }
