@@ -1,7 +1,8 @@
 # Data Transfer
 
-[![Travis](https://img.shields.io/travis/Articus/DataTransfer.svg)]()
-[![Coveralls](https://coveralls.io/repos/github/Articus/DataTransfer/badge.svg?branch=master)]()
+[![Travis](https://travis-ci.org/Articus/DataTransfer.svg?branch=master)](https://travis-ci.org/Articus/DataTransfer)
+[![Coveralls](https://coveralls.io/repos/github/Articus/DataTransfer/badge.svg?branch=master)](https://coveralls.io/github/Articus/DataTransfer?branch=master)
+[![Codacy](https://api.codacy.com/project/badge/Grade/2ec15ac8c40c4a709e7662e9c7124fad)](https://www.codacy.com/app/articusw/DataTransfer?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Articus/DataTransfer&amp;utm_campaign=Badge_Grade)
 
 This library provides a simple "validating hydrator", a service that "transfers" data from source to destination safely.
 
