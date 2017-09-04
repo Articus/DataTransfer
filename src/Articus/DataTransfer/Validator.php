@@ -72,15 +72,13 @@ class Validator
 		$messages = [];
 		foreach ($this->metadata->fields as $field)
 		{
-			if (array_key_exists($field, $array))
+			$value = array_key_exists($field, $array)? $array[$field] : null;
+			if (!(($value === null) && $this->metadata->nullables[$field]))
 			{
-				if (!(($array[$field] === null) && $this->metadata->nullables[$field]))
+				$validator = $this->getValidator($field);
+				if (!$validator->isValid($value))
 				{
-					$validator = $this->getValidator($field);
-					if (!$validator->isValid($array[$field]))
-					{
-						$messages[$field] = $validator->getMessages();
-					}
+					$messages[$field] = $validator->getMessages();
 				}
 			}
 		}

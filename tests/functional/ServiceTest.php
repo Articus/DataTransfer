@@ -129,6 +129,34 @@ class ServiceTest extends \Codeception\Test\Unit
 		$this->tester->assertEquals($originalObject, $object);
 
 		$data = [
+			'object' => [],
+			'nullableObject' => [],
+			'objectArray' => [[], []],
+			'nullableObjectArray' => [[], []],
+		];
+		$messages = $this->service->transfer($data, $object);
+
+		$this->assertArrayHasPath($messages, 'scalar.isEmpty');
+		$this->assertArrayHasPath($messages, 'scalarArray.isEmpty');
+		foreach (['nullableScalar', 'nullableScalarArray'] as $validKey)
+		{
+			$this->tester->assertArrayNotHasKey($validKey, $messages);
+		}
+		$this->assertArrayHasPath($messages, 'object.objectInvalidInner.property.isEmpty');
+		$this->tester->assertArrayNotHasKey('nullableProperty', $messages['object']['objectInvalidInner']);
+		$this->assertArrayHasPath($messages, 'nullableObject.objectInvalidInner.property.isEmpty');
+		$this->tester->assertArrayNotHasKey('nullableProperty', $messages['nullableObject']['objectInvalidInner']);
+		$this->assertArrayHasPath($messages, 'objectArray.collectionInvalidInner.0.objectInvalidInner.property.isEmpty');
+		$this->tester->assertArrayNotHasKey('nullableProperty', $messages['objectArray']['collectionInvalidInner'][0]['objectInvalidInner']);
+		$this->assertArrayHasPath($messages, 'objectArray.collectionInvalidInner.1.objectInvalidInner.property.isEmpty');
+		$this->tester->assertArrayNotHasKey('nullableProperty', $messages['objectArray']['collectionInvalidInner'][1]['objectInvalidInner']);
+		$this->assertArrayHasPath($messages, 'nullableObjectArray.collectionInvalidInner.0.objectInvalidInner.property.isEmpty');
+		$this->tester->assertArrayNotHasKey('nullableProperty', $messages['nullableObjectArray']['collectionInvalidInner'][0]['objectInvalidInner']);
+		$this->assertArrayHasPath($messages, 'nullableObjectArray.collectionInvalidInner.1.objectInvalidInner.property.isEmpty');
+		$this->tester->assertArrayNotHasKey('nullableProperty', $messages['nullableObjectArray']['collectionInvalidInner'][1]['objectInvalidInner']);
+		$this->tester->assertEquals($originalObject, $object);
+
+		$data = [
 			'scalar' => '',
 			'nullableScalar' => 'value',
 			'scalarArray' => ['0a', '', '0a', 'value', '0a'],
