@@ -35,222 +35,275 @@ it should be possible to integrate in any project that can provide `Interop\Cont
 First of all you need to declare metadata for classes that you would like to use with data transfer service. To do this 
 you need to decorate each class property that should be used for transferring with special annotation:
 
-    use Articus\DataTransfer\Annotation as DTA;
-    
-    class Sample
+```PHP
+<?php
+use Articus\DataTransfer\Annotation as DTA;
+
+class Sample
+{
+    /**
+     * Usual public property will be accessed directly
+     * @DTA\Data()
+     */
+    public $property;
+
+    /**
+     * Protected or private property will be accessed by conventional getter and setter if they exist
+     * @DTA\Data()
+     */
+    protected $propertyWithAccessors;
+    public function getPropertyWithAccessors()
     {
-        /**
-         * Usual public property will be accessed directly
-         * @DTA\Data()
-         */
-        public $property;
-    
-        /**
-         * Protected or private property will be accessed by conventional getter and setter if they exist
-         * @DTA\Data()
-         */
-        protected $propertyWithAccessors;
-        public function getPropertyWithAccessors()
-        {
-            return $this->propertyWithAccessors;
-        }
-        public function setPropertyWithAccessors($propertyWithAccessors)
-        {
-            $this->propertyWithAccessors = $propertyWithAccessors;
-        }
-    
-        /**
-         * And that is how you can set custom getter and setter names for protected or private property
-         * @DTA\Data(getter="customGetAccessor", setter="customSetAccessor")
-         */
-        protected $propertyWithCustomAccessors;
-        public function customGetAccessor()
-        {
-            return $this->propertyWithCustomAccessors;
-        }
-        public function customSetAccessor($propertyWithCustomAccessors)
-        {
-            $this->propertyWithCustomAccessors = $propertyWithCustomAccessors;
-        }
-    
-        /**
-         * If you property does not have setter (or getter) just set empty string
-         * @DTA\Data(setter="")
-         */
-        protected $propertyWithoutSetter;
-        public function getPropertyWithoutSetter()
-        {
-            return $this->propertyWithoutSetter;
-        }
+        return $this->propertyWithAccessors;
     }
+    public function setPropertyWithAccessors($propertyWithAccessors)
+    {
+        $this->propertyWithAccessors = $propertyWithAccessors;
+    }
+
+    /**
+     * And that is how you can set custom getter and setter names for protected or private property
+     * @DTA\Data(getter="customGetAccessor", setter="customSetAccessor")
+     */
+    protected $propertyWithCustomAccessors;
+    public function customGetAccessor()
+    {
+        return $this->propertyWithCustomAccessors;
+    }
+    public function customSetAccessor($propertyWithCustomAccessors)
+    {
+        $this->propertyWithCustomAccessors = $propertyWithCustomAccessors;
+    }
+
+    /**
+     * If you property does not have setter (or getter) just set empty string
+     * @DTA\Data(setter="")
+     */
+    protected $propertyWithoutSetter;
+    public function getPropertyWithoutSetter()
+    {
+        return $this->propertyWithoutSetter;
+    }
+}
+```
 
 If you need some special logic to extract and hydrate property value you can declare hydration strategy for this property
 (see Articus\DataTransfer\Strategy\StrategyInterface for details).
 
-    use Articus\DataTransfer\Annotation as DTA;
-    
-    class Sample
-    {
-        /**
-         * Library provides simple strategy for embedded objects
-         * @DTA\Data()
-         * @DTA\Strategy(name="Object", options={"type":MyClass::class})
-         * @var MyClass
-         */
-        public $object;
-    
-        /**
-         * ... and simple strategy for lists of embedded objects
-         * @DTA\Data()
-         * @DTA\Strategy(name="ObjectArray", options={"type":MyClass::class})
-         * @var MyClass[]
-         */
-        public $objectArray;
-    
-        /**
-         * You can also use your own startegy if it is registered in strategy plugin manager
-         * @DTA\Data()
-         * @DTA\Strategy(name=MyStrategy::class)
-         * @var mixed
-         */
-        public $custom;
-    }
+```PHP
+<?php
+use Articus\DataTransfer\Annotation as DTA;
+
+class Sample
+{
+    /**
+     * Library provides simple strategy for embedded objects
+     * @DTA\Data()
+     * @DTA\Strategy(name="Object", options={"type":MyClass::class})
+     * @var MyClass
+     */
+    public $object;
+
+    /**
+     * ... and simple strategy for lists of embedded objects
+     * @DTA\Data()
+     * @DTA\Strategy(name="ObjectArray", options={"type":MyClass::class})
+     * @var MyClass[]
+     */
+    public $objectArray;
+
+    /**
+     * You can also use your own startegy if it is registered in strategy plugin manager
+     * @DTA\Data()
+     * @DTA\Strategy(name=MyStrategy::class)
+     * @var mixed
+     */
+    public $custom;
+}
+```
 
 And as you may have guessed there is a special annotation to add validation constraints. 
 Any validator registered in validator plugin manager can be used.
  
-    use Articus\DataTransfer\Annotation as DTA;
-    
-    /**
-     * You can set validator for whole object value 
-     * @DTA\Validator(name=MyClassValidator::class)
-     */
-    class Sample
-    {
-        /**
-         * You can set validator for specific property
-         * @DTA\Data()
-         * @DTA\Validator(name="StringLength",options={"min": 1, "max": 5})
-         * @var string
-         */
-        public $string;
+```PHP
+<?php
+use Articus\DataTransfer\Annotation as DTA;
 
-        /**
-         * If you set several validators they will be tested one by one until first failure.
-         * Validators with higher prioriry will be executed earlier.
-         * @DTA\Data()
-         * @DTA\Validator(name="Hex")
-         * @DTA\Validator(name="StringLength",options={"min": 1}, priority=3)
-         * @DTA\Validator(name="StringLength",options={"max": 5}, priority=2)
-         * @var string
-         */
-        public $hexString;
-    
-        /**
-         * Even if there is no validators value will be tested not to be null. 
-         * Mark property "nullable" if you do not want that. 
-         * And if you set any validators for nullable property they will be executed only for not null value. 
-         * @DTA\Data(nullable=true)
-         * @DTA\Validator(name="StringLength",options={"min": 1, "max": 5})
-         * @var string
-         */
-        public $nullableString;
-    
-        /**
-         * Library provides simple validator for embedded objects
-         * @DTA\Data()
-         * @DTA\Strategy(name="Object", options={"type":MyClass::class})
-         * @DTA\Validator(name="Dictionary", options={"type":MyClass::class})
-         * @var MyClass
-         */
-        public $object;
-    
-        /**
-         * ... and simple validator for arrays
-         * @DTA\Data()
-         * @DTA\Validator(name="Collection",options={"validators":{
-         *     @DTA\Validator(name="StringLength",options={"min": 1, "max": 5}),
-         *     @DTA\Validator(name="Hex"),
-         * }})
-         */
-        public $stringArray;
-    } 
+/**
+ * You can set validator for whole object value 
+ * @DTA\Validator(name=MyClassValidator::class)
+ */
+class Sample
+{
+    /**
+     * You can set validator for specific property
+     * @DTA\Data()
+     * @DTA\Validator(name="StringLength",options={"min": 1, "max": 5})
+     * @var string
+     */
+    public $string;
+
+    /**
+     * If you set several validators they will be tested one by one until first failure.
+     * Validators with higher prioriry will be executed earlier.
+     * @DTA\Data()
+     * @DTA\Validator(name="Hex")
+     * @DTA\Validator(name="StringLength",options={"min": 1}, priority=3)
+     * @DTA\Validator(name="StringLength",options={"max": 5}, priority=2)
+     * @var string
+     */
+    public $hexString;
+
+    /**
+     * Even if there is no validators value will be tested not to be null. 
+     * Mark property "nullable" if you do not want that. 
+     * And if you set any validators for nullable property they will be executed only for not null value. 
+     * @DTA\Data(nullable=true)
+     * @DTA\Validator(name="StringLength",options={"min": 1, "max": 5})
+     * @var string
+     */
+    public $nullableString;
+
+    /**
+     * Library provides simple validator for embedded objects
+     * @DTA\Data()
+     * @DTA\Strategy(name="Object", options={"type":MyClass::class})
+     * @DTA\Validator(name="Dictionary", options={"type":MyClass::class})
+     * @var MyClass
+     */
+    public $object;
+
+    /**
+     * ... and simple validator for arrays
+     * @DTA\Data()
+     * @DTA\Validator(name="Collection",options={"validators":{
+     *     @DTA\Validator(name="StringLength",options={"min": 1, "max": 5}),
+     *     @DTA\Validator(name="Hex"),
+     * }})
+     */
+    public $stringArray;
+} 
+```
 
 ### Configuration
 After declaring metadata you need to add few lines to you configuration (example is in YAML just for readability):
 
-    # Register data transfer service in container 
-    dependencies:
-      factories:
-        Articus\DataTransfer\Service: Articus\DataTransfer\ServiceFactory
-      
-    # Configure data transfer service
-    data_transfer:
-      # Configure dedicated Zend Cache Storage for class metadata (see Zend\Cache\StorageFactory) 
-      metadata_cache:
-        adapter: filesystem
-        options:
-          cache_dir: data/DataTransfer
-          namespace: dt
-        plugins:
-          serializer:
-            serializer: phpserialize
-      # ... or use existing service inside container
-      #metadata_cache: MyMetadataCacheStorage
-      # Configure dedicated hydration strategy plugin manager (see Articus\DataTransfer\Strategy\PluginManager for details)
-      strategies:
-        invokables:
-          MySampleStrategy: My\SampleStrategy
-      # ... or use existing service inside container
-      #strategies: MyStrategyPluginManager
-      # Configure dedicated validator plugin manager (see Zend\Validator\ValidatorPluginManager)
-      validators:
-        factories:
-          Articus\DataTransfer\Validator\Dictionary: Articus\DataTransfer\Validator\Factory
-          Articus\DataTransfer\Validator\Collection: Articus\DataTransfer\Validator\Factory
-        aliases:
-          Dictionary: Articus\DataTransfer\Validator\Dictionary
-          Collection: Articus\DataTransfer\Validator\Collection
-      # ... or use existing service inside container
-      #validators: MyValidatorPluginManager
+```YAML
+# Register data transfer service in container 
+dependencies:
+  factories:
+    Articus\DataTransfer\Service: Articus\DataTransfer\ServiceFactory
+  
+# Configure data transfer service
+data_transfer:
+  # Configure dedicated Zend Cache Storage for class metadata (see Zend\Cache\StorageFactory) 
+  metadata_cache:
+    adapter: filesystem
+    options:
+      cache_dir: data/DataTransfer
+      namespace: dt
+    plugins:
+      serializer:
+        serializer: phpserialize
+  # ... or use existing service inside container
+  #metadata_cache: MyMetadataCacheStorage
+  # Configure dedicated hydration strategy plugin manager (see Articus\DataTransfer\Strategy\PluginManager for details)
+  strategies:
+    invokables:
+      MySampleStrategy: My\SampleStrategy
+  # ... or use existing service inside container
+  #strategies: MyStrategyPluginManager
+  # Configure dedicated validator plugin manager (see Zend\Validator\ValidatorPluginManager)
+  validators:
+    factories:
+      Articus\DataTransfer\Validator\Dictionary: Articus\DataTransfer\Validator\Factory
+      Articus\DataTransfer\Validator\Collection: Articus\DataTransfer\Validator\Factory
+    aliases:
+      Dictionary: Articus\DataTransfer\Validator\Dictionary
+      Collection: Articus\DataTransfer\Validator\Collection
+  # ... or use existing service inside container
+  #validators: MyValidatorPluginManager
+```
 
 ### Usage
 Finally you just need to get service from container and call `transfer` method:
 
-    use Articus\DataTransfer\Service;
+```PHP
+<?php
+use Articus\DataTransfer\Service;
 
-    $from = new MyClassA();
-    $to = new MyClassB();
-    $validationMessages = $container->get(Service::class)->transfer($from, $to);
-    if (empty($validationMessages))
-    {
-        //Transfer was successful
-    }
+$from = new MyClassA();
+$to = new MyClassB();
+$validationMessages = $container->get(Service::class)->transfer($from, $to);
+if (empty($validationMessages))
+{
+    //Transfer was successful
+}
+```
     
 Supply third argument if you want to map data between extraction and hydration:
 
-    use Articus\DataTransfer\Service;
+```PHP
+<?php
+use Articus\DataTransfer\Service;
 
-    $from = new MyClassA();
-    $to = new MyClassB();
-    $map = function(array $data)
-    {
-        unset($data['key']);
-        return $data;
-    };
-    $validationMessages = $container->get(Service::class)->transfer($from, $to, $map);
+$from = new MyClassA();
+$to = new MyClassB();
+$map = function(array $data)
+{
+    unset($data['key']);
+    return $data;
+};
+$validationMessages = $container->get(Service::class)->transfer($from, $to, $map);
+```
 
 Use arrays if you want only extraction or only hydration:
- 
-    use Articus\DataTransfer\Service;
 
-    $from = [];
-    $to = new MyClassB();
-    $validationMessages = $container->get(Service::class)->transfer($from, $to);
- 
-    $from = new MyClassA();
-    $to = [];
-    $validationMessages = $container->get(Service::class)->transfer($from, $to);
+```PHP
+<?php 
+use Articus\DataTransfer\Service;
+
+$from = [];
+$to = new MyClassB();
+$validationMessages = $container->get(Service::class)->transfer($from, $to);
+
+$from = new MyClassA();
+$to = [];
+$validationMessages = $container->get(Service::class)->transfer($from, $to);
+```
+
+### Subsets
+
+Sometimes you may want to assign several different variants of metadata for your class. To achieve that simply assign same **subset** for annotations that belong to same variant and pass name of the required **subset** during transfer:
+```PHP
+<?php
+use Articus\DataTransfer\Annotation as DTA;
+use Articus\DataTransfer\Service;
+/**
+ * DTO that can be filled from query parameters and from parsed JSON body.
+ * Query parameters are always strings and it is not possible to use same validators and same strategies for both sources.
+ */ 
+class FromQueryOrJson
+{
+    /**
+     * @DTA\Data(subset="query") 
+     * @DTA\Strategy(name="IntFromString", subset="query")
+     * @DTA\Validator(name="IsIntInString", subset="query")
+     * @DTA\Data(subset="json") 
+     * @DTA\Validator(name="IsInt", subset="json")
+     * @var int
+     */
+    public $test;
+}
+//Fill DTO from query
+$query = /* your favourite way to get request query parameters */;
+$dto = new FromQueryOrJson();
+$validationMessages = $container->get(Service::class)->transfer($query, $dto, null, '', 'query');
+//Fill DTO from parsed JSON
+$json = json_decode(/* your favorite way to get request body */);
+$dto = new FromQueryOrJson();
+$validationMessages = $container->get(Service::class)->transfer($json, $dto, null, '', 'json');
+```
     
 ## Enjoy!
 I really hope that this library will be useful for someone except me. 
