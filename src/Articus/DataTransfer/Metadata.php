@@ -4,9 +4,16 @@ namespace Articus\DataTransfer;
 class Metadata
 {
 	/**
+	 * FQN of the class this metadata belongs to
 	 * @var string
 	 */
 	public $className;
+
+	/**
+	 * Name of the class field subset this metadata belongs to
+	 * @var string
+	 */
+	public $subset = '';
 
 	/**
 	 * List of all fields that can participate in transferring

@@ -19,7 +19,7 @@ class ServiceFactoryTest extends \Codeception\Test\Unit
 	public function testServiceIsCreatedFromSimpleConfiguration()
 	{
 		$config = [
-			'data_transfer' => [
+			Service::class => [
 				'metadata_cache' => [
     				'adapter' => 'blackhole',
 				],
@@ -37,7 +37,7 @@ class ServiceFactoryTest extends \Codeception\Test\Unit
 	public function testServiceIsCreatedFromExternalConfiguration()
 	{
 		$config = [
-			'data_transfer' => [
+			Service::class => [
 				'metadata_cache' => 'MetadataCacheStorage',
 				'strategies' => 'StrategyPluginManager',
 				'validators' => 'ValidatorPluginManager',

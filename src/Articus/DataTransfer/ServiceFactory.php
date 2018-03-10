@@ -8,8 +8,40 @@ use Zend\Validator\ValidatorPluginManager;
 
 class ServiceFactory implements FactoryInterface
 {
-	//Root configuration key for service
-	const CONFIG_KEY = 'data_transfer';
+	/**
+	 * Key inside Config service
+	 * @var string
+	 */
+	protected $configKey;
+
+	/**
+	 * Factory constructor.
+	 */
+	public function __construct($configKey = Service::class)
+	{
+		$this->configKey = $configKey;
+	}
+
+	/**
+	 * Small hack to simplify configuration when you want to pass custom config key but do not want to create extra class or anonymous function.
+	 * So for example in your configuration YAML file you can use:
+	 * dependencies:
+	 *   factories:
+	 *     my_service: [My\Service\ConfigAwareFactory, my_service_config]
+	 * my_service_config:
+	 *   parameter: value
+	 */
+	public static function __callStatic($name, array $arguments)
+	{
+		if (count($arguments) < 3)
+		{
+			throw new \InvalidArgumentException(sprintf(
+				'To invoke %s with custom configuration key statically 3 arguments are required: container, service name and options.',
+				static::class
+			));
+		}
+		return (new static($name))->__invoke($arguments[0], $arguments[1], $arguments[2]);
+	}
 
 	/**
 	 * @inheritdoc
@@ -17,7 +49,7 @@ class ServiceFactory implements FactoryInterface
 	public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
 	{
 		$config = $container->get('config');
-		$options = new Options(isset($config[self::CONFIG_KEY])? $config[self::CONFIG_KEY] : []);
+		$options = new Options(isset($config[$this->configKey])? $config[$this->configKey] : []);
 
 		//Prepare metadata cache storage
 		$metadataCacheStorage = null;
@@ -65,6 +97,6 @@ class ServiceFactory implements FactoryInterface
 				break;
 		}
 
-		return new Service($metadataCacheStorage, $strategyPluginManager, $validatorPluginManager);
+		return new Service(new Metadata\Reader\Annotation($metadataCacheStorage), $strategyPluginManager, $validatorPluginManager);
 	}
 }

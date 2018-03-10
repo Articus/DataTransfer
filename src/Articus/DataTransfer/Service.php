@@ -1,6 +1,5 @@
 <?php
 namespace Articus\DataTransfer;
-use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Zend\Stdlib\ArrayUtils;
 use Zend\Validator\ValidatorPluginManager;
@@ -11,8 +10,8 @@ use Zend\Cache\Storage\StorageInterface as CacheStorage;
  */
 class Service
 {
-	/** @var CacheStorage */
-	protected $metadataCacheStorage;
+	/** @var Metadata\Reader\Annotation */
+	protected $metadataReader;
 	/** @var Strategy\PluginManager */
 	protected $strategyPluginManager;
 	/** @var ValidatorPluginManager */
@@ -20,13 +19,13 @@ class Service
 
 	/**
 	 * Internal hydrator cache
-	 * @var Hydrator[]
+	 * @var Hydrator[][]
 	 */
 	protected $hydrators = [];
 
 	/**
 	 * Internal validator cache
-	 * @var Validator[]
+	 * @var Validator[][]
 	 */
 	protected $validators = [];
 
@@ -37,13 +36,13 @@ class Service
 	 * @param ValidatorPluginManager $validatorPluginManager
 	 */
 	public function __construct(
-		CacheStorage $metadataCacheStorage,
+		Metadata\Reader\Annotation $metadataReader,
 		Strategy\PluginManager $strategyPluginManager,
 		ValidatorPluginManager $validatorPluginManager
 	)
 	{
-		//TODO check storage capabilities
-		$this->metadataCacheStorage = $metadataCacheStorage;
+		//TODO replace with interface if there will be any other readers
+		$this->metadataReader = $metadataReader;
 		$this->strategyPluginManager = $strategyPluginManager;
 		$this->validatorPluginManager = $validatorPluginManager;
 		AnnotationRegistry::registerFile(__DIR__ . '/Annotation/Data.php');
@@ -52,20 +51,20 @@ class Service
 	}
 
 	/**
-	 * @return CacheStorage
+	 * @return Metadata\Reader\Annotation
 	 */
-	public function getMetadataCacheStorage()
+	public function getMetadataReader()
 	{
-		return $this->metadataCacheStorage;
+		return $this->metadataReader;
 	}
 
 	/**
-	 * @param CacheStorage $metadataCacheStorage
+	 * @param Metadata\Reader\Annotation $metadataReader
 	 * @return self
 	 */
-	public function setMetadataCacheStorage(CacheStorage $metadataCacheStorage)
+	public function setMetadataReader(Metadata\Reader\Annotation $metadataReader)
 	{
-		$this->metadataCacheStorage = $metadataCacheStorage;
+		$this->metadataReader = $metadataReader;
 		return $this;
 	}
 
@@ -110,9 +109,11 @@ class Service
 	 * @param array|object $fromObjectOrArray
 	 * @param array|object $toObjectOrArray
 	 * @param Mapper\MapperInterface|callable $mapper
+	 * @param string $fromSubset
+	 * @param string $toSubset
 	 * @return array - validation messages if transfer failed
 	 */
-	public function transfer($fromObjectOrArray, &$toObjectOrArray, $mapper = null)
+	public function transfer($fromObjectOrArray, &$toObjectOrArray, $mapper = null, $fromSubset = '', $toSubset = '')
 	{
 		$result = [];
 		$data = null;
@@ -121,7 +122,7 @@ class Service
 		switch (true)
 		{
 			case is_object($fromObjectOrArray):
-				$fromMetadata = $this->getMetadata(get_class($fromObjectOrArray));
+				$fromMetadata = $this->metadataReader->getMetadata(get_class($fromObjectOrArray), $fromSubset);
 				$fromHydrator = $this->getHydrator($fromMetadata);
 				$data = $fromHydrator->extract($fromObjectOrArray);
 				break;
@@ -148,7 +149,7 @@ class Service
 		switch (true)
 		{
 			case is_object($toObjectOrArray):
-				$toMetadata = $this->getMetadata(get_class($toObjectOrArray));
+				$toMetadata = $this->metadataReader->getMetadata(get_class($toObjectOrArray), $toSubset);
 				$toHydrator = $this->getHydrator($toMetadata);
 				$validator = $this->getValidator($toMetadata);
 
@@ -169,193 +170,22 @@ class Service
 	}
 
 	/**
-	 * Returns metadata for specified object
-	 * @param string $className
-	 * @return Metadata
-	 */
-	public function getMetadata($className)
-	{
-		$metadataCacheKey = $this->getClassMetadataCacheKey($className);
-		$metadata = $this->metadataCacheStorage->getItem($metadataCacheKey);
-		if ($metadata === null)
-		{
-			$metadata = $this->readClassMetadata($className);
-			$this->metadataCacheStorage->addItem($metadataCacheKey, $metadata);
-		}
-		if (!($metadata instanceof Metadata))
-		{
-			throw new \LogicException(sprintf('Invalid metadata for class %s.', $className));
-		}
-		return $metadata;
-	}
-
-	/**
-	 * Return key for cache adapter to store class metadata
-	 * @param string $className
-	 * @return string
-	 */
-	protected function getClassMetadataCacheKey($className)
-	{
-		return str_replace('\\', '_', $className);
-	}
-
-	/**
-	 * Reads class metadata from annotations
-	 * @param string $className
-	 * @return Metadata
-	 */
-	protected function readClassMetadata($className)
-	{
-		$result = new Metadata();
-		$result->className = $className;
-
-		$reflection = new \ReflectionClass($className);
-		$reader = new AnnotationReader();
-
-		//Read class annotations
-		foreach ($reader->getClassAnnotations($reflection) as $annotation)
-		{
-			switch (true)
-			{
-				case ($annotation instanceof Annotation\Validator):
-					$result->validators[Validator::GLOBAL_VALIDATOR_KEY][] = $annotation;
-					break;
-			}
-		}
-
-		//Read property annotations
-		$propertyFilter = \ReflectionProperty::IS_PUBLIC | \ReflectionProperty::IS_PROTECTED | \ReflectionProperty::IS_PRIVATE;
-		foreach ($reflection->getProperties($propertyFilter) as $property)
-		{
-			$data = null;
-			$strategy = null;
-			$validators = [];
-			foreach ($reader->getPropertyAnnotations($property) as $annotation)
-			{
-				switch (true)
-				{
-					case ($annotation instanceof Annotation\Data):
-						$data = $annotation;
-						break;
-					case ($annotation instanceof Annotation\Strategy):
-						$strategy = $annotation;
-						break;
-					case ($annotation instanceof Annotation\Validator):
-						$validators[] = $annotation;
-						break;
-				}
-			}
-			if ($data !== null)
-			{
-				//Process field name
-				$field = (empty($data->field)? $property->getName() : $data->field);
-				if (in_array($field, $result->fields))
-				{
-					throw new \LogicException(
-						sprintf('Invalid metadata for %s: duplicate field %s.', $className, $field)
-					);
-				}
-				$result->fields[] = $field;
-				//Process direct access property
-				if ($property->isPublic())
-				{
-					$result->properties[$field] = $property->getName();
-				}
-				else
-				{
-					$methodNameBase = str_replace('_', '', ucwords($property->getName(), '_'));
-					if ($data->getter === null)
-					{
-						$data->getter = 'get'. $methodNameBase;
-					}
-					if ($data->setter === null)
-					{
-						$data->setter = 'set'. $methodNameBase;
-					}
-				}
-				//Process property getter
-				if (!empty($data->getter))
-				{
-					if (!$reflection->hasMethod($data->getter))
-					{
-						throw new \LogicException(
-							sprintf('Invalid metadata for %s: no getter %s.', $className, $data->getter)
-						);
-					}
-					$getter = $reflection->getMethod($data->getter);
-					if (!$getter->isPublic())
-					{
-						throw new \LogicException(
-							sprintf('Invalid metadata for %s: getter %s is not public.', $className, $data->getter)
-						);
-					}
-					if ($getter->getNumberOfRequiredParameters() > 0)
-					{
-						throw new \LogicException(
-							sprintf('Invalid metadata for %s: getter %s should not require parameters.', $className, $data->getter)
-						);
-					}
-					$result->getters[$field] = $getter->getName();
-				}
-				//Process property setter
-				if (!empty($data->setter))
-				{
-					if (!$reflection->hasMethod($data->setter))
-					{
-						throw new \LogicException(
-							sprintf('Invalid metadata for %s: no setter %s.', $className, $data->setter)
-						);
-					}
-					$setter = $reflection->getMethod($data->setter);
-					if (!$setter->isPublic())
-					{
-						throw new \LogicException(
-							sprintf('Invalid metadata for %s: setter %s is not public.', $className, $data->setter)
-						);
-					}
-					if ($setter->getNumberOfParameters() < 1)
-					{
-						throw new \LogicException(
-							sprintf('Invalid metadata for %s: setter %s should accept at least one parameter.', $className, $data->setter)
-						);
-					}
-					if ($setter->getNumberOfRequiredParameters() > 1)
-					{
-						throw new \LogicException(
-							sprintf('Invalid metadata for %s: setter %s requires too many parameters.', $className, $data->setter)
-						);
-					}
-					$result->setters[$field] = $setter->getName();
-				}
-				//Copy strategy
-				$result->strategies[$field] = $strategy;
-				//Process nullable flag
-				$result->nullables[$field] = $data->nullable;
-				//Copy validators
-				$result->validators[$field] = $validators;
-			}
-		}
-
-		return $result;
-	}
-
-	/**
 	 * Returns hydrator required by metadata
 	 * @param Metadata $metadata
 	 * @return Hydrator
 	 */
 	public function getHydrator(Metadata $metadata)
 	{
-		if (!isset($this->hydrators[$metadata->className]))
+		if (!isset($this->hydrators[$metadata->className][$metadata->subset]))
 		{
 			$hydrator = new Hydrator();
 			$hydrator
 				->setStrategyPluginManager($this->strategyPluginManager)
 				->setMetadata($metadata)
 			;
-			$this->hydrators[$metadata->className] = $hydrator;
+			$this->hydrators[$metadata->className][$metadata->subset] = $hydrator;
 		}
-		return $this->hydrators[$metadata->className];
+		return $this->hydrators[$metadata->className][$metadata->subset];
 	}
 
 	/**
@@ -365,16 +195,16 @@ class Service
 	 */
 	public function getValidator(Metadata $metadata)
 	{
-		if (!isset($this->validators[$metadata->className]))
+		if (!isset($this->validators[$metadata->className][$metadata->subset]))
 		{
 			$validator = new Validator();
 			$validator
 				->setValidatorPluginManager($this->validatorPluginManager)
 				->setMetadata($metadata)
 			;
-			$this->validators[$metadata->className] = $validator;
+			$this->validators[$metadata->className][$metadata->subset] = $validator;
 		}
-		return $this->validators[$metadata->className];
+		return $this->validators[$metadata->className][$metadata->subset];
 	}
 
 	/**
@@ -385,7 +215,7 @@ class Service
 	 */
 	static public function arrayTransfer(array $a, array $b)
 	{
-		if (ArrayUtils::isList($b))
+		if (ArrayUtils::isList($b, ArrayUtils::isList($a)))
 		{
 			$a = $b;
 		}

@@ -22,7 +22,7 @@ class ServiceTest extends \Codeception\Test\Unit
 	protected function _before()
 	{
 		$config = [
-			'data_transfer' => [
+			Service::class => [
 				'metadata_cache' => [
 					'adapter' => 'memory',
 				],
@@ -37,6 +37,12 @@ class ServiceTest extends \Codeception\Test\Unit
 					],
 					'invokables' => [
 						'ClassValidator' => Sample\ClassValidator::class,
+						'SubsetClassValidator' => Sample\SubsetClassValidator::class,
+					],
+				],
+				'strategies' => [
+					'invokables' => [
+						'PrefixStrategy' => Sample\PrefixStrategy::class,
 					],
 				],
 			],
@@ -231,6 +237,79 @@ class ServiceTest extends \Codeception\Test\Unit
 		$result = new Sample\ClassValidateData();
 		$result->b = 'test';
 		$this->tester->assertEquals($result, $object);
+	}
+
+	public function testDataTransferForSubsets()
+	{
+		$data = [];
+		$object = new Sample\SubsetData();
+		$exception = new \LogicException('No metadata for subset "test" in class Test\DataTransfer\Sample\SubsetData.');
+		$this->tester->expectException($exception, function() use (&$data, &$object)
+		{
+			$this->service->transfer($data, $object, null, '', 'test');
+		});
+		$this->tester->expectException($exception, function() use (&$data, &$object)
+		{
+			$this->service->transfer($object, $data, null, 'test', '');
+		});
+
+		$object = new Sample\SubsetData();
+		$object->a = 123;
+		$object->b = 321;
+		$object->ab = 123;
+		$data = [];
+		$messages = $this->service->transfer($object, $data, null, 'a');
+		$this->tester->assertIsEmpty($messages, 'Failed to transfer data.');
+		$result = ['a' => 'testA-123', 'ab' => 'testA-123'];
+		$this->tester->assertEquals($result, $data);
+
+		$object = new Sample\SubsetData();
+		$object->a = 123;
+		$object->b = 321;
+		$object->ab = 321;
+		$data = [];
+		$messages = $this->service->transfer($object, $data, null, 'b');
+		$this->tester->assertIsEmpty($messages, 'Failed to transfer data.');
+		$result = ['b' => 'testB-321', 'ab' => 'testB-321'];
+		$this->tester->assertEquals($result, $data);
+
+		$data = ['a' => 'testA-123', 'ab' => 'testA-123'];
+		$object = new Sample\SubsetData();
+		$messages = $this->service->transfer($data, $object, null, '', 'a');
+		$this->tester->assertIsEmpty($messages, 'Failed to transfer data.');
+		$result = new Sample\SubsetData();
+		$result->a = 123;
+		$result->ab = 123;
+		$this->tester->assertEquals($result, $object);
+
+		$data = ['b' => 'testB-321', 'ab' => 'testB-321'];
+		$object = new Sample\SubsetData();
+		$messages = $this->service->transfer($data, $object, null, '', 'b');
+		$this->tester->assertIsEmpty($messages, 'Failed to transfer data.');
+		$result = new Sample\SubsetData();
+		$result->b = 321;
+		$result->ab = 321;
+		$this->tester->assertEquals($result, $object);
+
+		$data = ['a' => null, 'ab' => 'wrong value'];
+		$object = new Sample\SubsetData();
+		$messages = $this->service->transfer($data, $object, null, '', 'a');
+		$result = [
+			'a' => ['isEmpty' => 'Value is required and can\'t be empty'],
+			'ab' => ['regexNotMatch' => 'The input does not match against pattern \'/^testA\\-\\d+$/\''],
+			'*' => ['invalidSubsetClass' => 'Properties "ab" and "a" should equal.'],
+		];
+		$this->tester->assertEquals($result, $messages);
+
+		$data = ['b' => null, 'ab' => 'wrong value'];
+		$object = new Sample\SubsetData();
+		$messages = $this->service->transfer($data, $object, null, '', 'b');
+		$result = [
+			'b' => ['isEmpty' => 'Value is required and can\'t be empty'],
+			'ab' => ['regexNotMatch' => 'The input does not match against pattern \'/^testB\\-\\d+$/\''],
+			'*' => ['invalidSubsetClass' => 'Properties "ab" and "b" should equal.'],
+		];
+		$this->tester->assertEquals($result, $messages);
 	}
 
 	protected function assertArrayHasPath($array, $path, $delimiter = '.')

@@ -16,6 +16,11 @@ class EmbeddedObject implements StrategyInterface
 	protected $type;
 
 	/**
+	 * @var string
+	 */
+	protected $subset;
+
+	/**
 	 * @param array $options
 	 */
 	public function __construct(array $options = null)
@@ -26,6 +31,7 @@ class EmbeddedObject implements StrategyInterface
 			throw new \InvalidArgumentException(sprintf('Invalid type "%s".', $type));
 		}
 		$this->type = $type;
+		$this->subset = isset($options['subset'])? (string) $options['subset'] : '';
 	}
 
 
@@ -49,7 +55,7 @@ class EmbeddedObject implements StrategyInterface
 
 	public function getHydrator()
 	{
-		$metadata = $this->dataTransferService->getMetadata($this->type);
+		$metadata = $this->dataTransferService->getMetadataReader()->getMetadata($this->type, $this->subset);
 		return $this->dataTransferService->getHydrator($metadata);
 	}
 

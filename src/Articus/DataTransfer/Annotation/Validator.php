@@ -26,4 +26,10 @@ class Validator
 	 * @var int
 	 */
 	public $priority = 1;
+
+	/**
+	 * Name of the object field subset with additional separate metadata that this annotation belongs to
+	 * @var string
+	 */
+	public $subset = '';
 }

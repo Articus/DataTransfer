@@ -32,6 +32,11 @@ class Dictionary extends AbstractValidator
 	protected $type;
 
 	/**
+	 * @var string
+	 */
+	protected $subset;
+
+	/**
 	 * @param array $options
 	 */
 	public function __construct(array $options = null)
@@ -42,6 +47,7 @@ class Dictionary extends AbstractValidator
 			throw new \InvalidArgumentException(sprintf('Invalid type "%s".', $type));
 		}
 		$this->type = $type;
+		$this->subset = isset($options['subset'])? (string) $options['subset'] : '';
 		parent::__construct();
 	}
 
@@ -65,7 +71,7 @@ class Dictionary extends AbstractValidator
 
 	public function getValidator()
 	{
-		$metadata = $this->dataTransferService->getMetadata($this->type);
+		$metadata = $this->dataTransferService->getMetadataReader()->getMetadata($this->type, $this->subset);
 		return $this->dataTransferService->getValidator($metadata);
 	}
 	

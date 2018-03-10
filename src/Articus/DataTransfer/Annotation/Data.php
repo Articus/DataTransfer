@@ -37,4 +37,10 @@ class Data
 	 * @var bool
 	 */
 	public $nullable = false;
+
+	/**
+	 * Name of the object field subset with additional separate metadata that this annotation belongs to
+	 * @var string
+	 */
+	public $subset = null;
 }
