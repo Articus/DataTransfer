@@ -195,7 +195,7 @@ dependencies:
     Articus\DataTransfer\Service: Articus\DataTransfer\ServiceFactory
   
 # Configure data transfer service
-data_transfer:
+Articus\DataTransfer\Service:
   # Configure dedicated Zend Cache Storage for class metadata (see Zend\Cache\StorageFactory) 
   metadata_cache:
     adapter: filesystem
