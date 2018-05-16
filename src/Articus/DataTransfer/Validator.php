@@ -116,7 +116,7 @@ class Validator
 			}
 			if (($field !== self::GLOBAL_VALIDATOR_KEY) && ($this->metadata->nullables[$field] === false))
 			{
-				$result->attachByName(NotEmpty::class, ['type' => NotEmpty::NULL], true, 10000);
+				$result->attachByName(NotEmpty::class, ['type' => NotEmpty::NULL | NotEmpty::OBJECT], true, 10000);
 			}
 			$this->validators[$field] = $result;
 		}
