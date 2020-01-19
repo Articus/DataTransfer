@@ -9,6 +9,10 @@ before_install:
   - phpenv config-rm xdebug.ini
 
 install:
+  - |
+    if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.1" ]]; then
+      cp ./composer.lock.7.1 ./composer.lock
+    fi
   - composer install --no-interaction --no-progress --no-suggest --classmap-authoritative
 
 script:

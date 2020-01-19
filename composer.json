@@ -32,7 +32,7 @@
     "doctrine/annotations": "^1.8",
     "zendframework/zend-cache": "^2.9",
     "zendframework/zend-validator": "^2.12",
-    "phpspec/phpspec": "^6.1",
+    "phpspec/phpspec": "^5.1|^6.1",
     "friends-of-phpspec/phpspec-code-coverage": "*",
     "kahlan/kahlan": "^4.6",
     "mockery/mockery": "^1.3"
