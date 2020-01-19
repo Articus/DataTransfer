@@ -1,11 +1,15 @@
 {
   "name": "articus/data-transfer",
-  "description": "Simple validating hydrator for Zend Expressive",
+  "description": "Library for merging source data to destination data only if destination data remains valid after that",
   "keywords": [
     "hydrator",
+    "hydration",
     "validator",
-    "zend",
-    "expressive"
+    "validation",
+    "extractor",
+    "extraction",
+    "data merge",
+    "data patch"
   ],
   "license": "MIT",
   "authors": [
@@ -13,21 +17,25 @@
       "name": "Arthur Mogliev"
     }
   ],
-  "version": "0.2",
+  "version": "0.3",
   "require": {
-    "php": "^5.6 || ^7.0",
-    "doctrine/annotations": "^1.2",
-    "zendframework/zend-hydrator": "^2.2",
-    "zendframework/zend-servicemanager": "^3.1",
-    "zendframework/zend-validator": "^2.8",
-    "zendframework/zend-cache": "^2.7"
+    "php": "^7.1",
+    "zendframework/zend-servicemanager": "^3.4"
   },
   "suggest": {
-    "zendframework/zend-serializer": "It will be required for most Zend Cache adapters to store metadata."
+    "doctrine/annotations": "It is required for Articus\\DataTransfer\\MetadataProvider\\Annotation (default metadata provider)",
+    "zendframework/zend-cache": "It is required for Articus\\DataTransfer\\MetadataProvider\\Annotation (default metadata provider)",
+    "zendframework/zend-serializer": "It is required for most Zend Cache adapters to store metadata.",
+    "zendframework/zend-validator": "It is required for Articus\\DataTransfer\\Validator\\Zend"
   },
   "require-dev": {
-    "codeception/base": "*",
-    "phpspec/prophecy": "*"
+    "doctrine/annotations": "^1.8",
+    "zendframework/zend-cache": "^2.9",
+    "zendframework/zend-validator": "^2.12",
+    "phpspec/phpspec": "^6.1",
+    "friends-of-phpspec/phpspec-code-coverage": "*",
+    "kahlan/kahlan": "^4.6",
+    "mockery/mockery": "^1.3"
   },
   "autoload": {
     "psr-4": {
@@ -36,10 +44,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Test\\DataTransfer\\Sample\\": "tests/_sample"
+      "spec\\": "spec/"
     }
-  },
-  "scripts": {
-    "test": "codecept run --coverage-xml"
   }
 }

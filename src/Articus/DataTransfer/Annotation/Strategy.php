@@ -1,29 +1,31 @@
 <?php
+declare(strict_types=1);
 
 namespace Articus\DataTransfer\Annotation;
 
 /**
- * Annotation for declaring hydrator strategy for field
+ * Annotation for declaring data transfer strategy for class or class field
  * @Annotation
- * @Target({"PROPERTY"})
+ * @Target({"CLASS", "PROPERTY"})
  */
 class Strategy
 {
 	/**
-	 * Name that should be passed to PluginManager::get
+	 * Name that should be passed to Strategy\PluginManager::get
+	 * @Required
 	 * @var string
 	 */
 	public $name;
 
 	/**
-	 * Options that should be passed to PluginManager::get
-	 * @var array
+	 * Options that should be passed to Strategy\PluginManager::get
+	 * @var array | null
 	 */
 	public $options = null;
 
 	/**
-	 * Name of the object field subset with additional separate metadata that this annotation belongs to
+	 * Name of the class metadata subset that annotation belongs to
 	 * @var string
 	 */
-	public $subset = null;
+	public $subset = '';
 }

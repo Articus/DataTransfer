@@ -1,39 +1,39 @@
 <?php
+declare(strict_types=1);
 
 namespace Articus\DataTransfer\Strategy;
+
 use Zend\ServiceManager\AbstractPluginManager;
+use Zend\ServiceManager\Factory\InvokableFactory;
 
 class PluginManager extends AbstractPluginManager
 {
-	/**
-	 * @inheritdoc
-	 */
 	protected $instanceOf = StrategyInterface::class;
 
-	/**
-	 * @inheritdoc
-	 */
 	protected $factories = [
-		EmbeddedObject::class => Factory::class,
-		EmbeddedObjectArray::class => Factory::class,
+		FieldData::class => Factory\FieldData::class,
+		NoArgObject::class => Factory\NoArgObject::class,
+		NoArgObjectList::class => Factory\NoArgObjectList::class,
+		Whatever::class => InvokableFactory::class,
 	];
 
-	/**
-	 * @inheritdoc
-	 */
 	protected $aliases = [
-		'Object' => EmbeddedObject::class,
-		'object' => EmbeddedObject::class,
-		'ObjectArray' => EmbeddedObjectArray::class,
-		'objectArray' => EmbeddedObjectArray::class,
+		'Object' => NoArgObject::class,
+		'object' => NoArgObject::class,
+		'ObjectArray' => NoArgObjectList::class,
+		'objectArray' => NoArgObjectList::class,
+	];
+
+	protected $shared = [
+		Whatever::class => true,
 	];
 
 	/**
-	 * Just for correct auto complete
-	 * @inheritdoc
+	 * Overwrite parent method just to add return type declaration
+	 * @inheritDoc
 	 * @return StrategyInterface
 	 */
-	public function get($name, array $options = null)
+	public function get($name, array $options = null): StrategyInterface
 	{
 		return parent::get($name, $options);
 	}

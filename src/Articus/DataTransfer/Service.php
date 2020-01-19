@@ -1,238 +1,203 @@
 <?php
 namespace Articus\DataTransfer;
-use Doctrine\Common\Annotations\AnnotationRegistry;
-use Zend\Stdlib\ArrayUtils;
-use Zend\Validator\ValidatorPluginManager;
-use Zend\Cache\Storage\StorageInterface as CacheStorage;
 
 /**
- * Validating
+ * Service that performs data transfer.
+ * Here "transfer" means merging source data to destination data only if destination data remains valid after that.
  */
 class Service
 {
-	/** @var Metadata\Reader\Annotation */
-	protected $metadataReader;
-	/** @var Strategy\PluginManager */
-	protected $strategyPluginManager;
-	/** @var ValidatorPluginManager */
-	protected $validatorPluginManager;
-
 	/**
-	 * Internal hydrator cache
-	 * @var Hydrator[][]
+	 * @var ClassMetadataProviderInterface
 	 */
-	protected $hydrators = [];
+	protected $metadataProvider;
 
 	/**
-	 * Internal validator cache
-	 * @var Validator[][]
+	 * @var Strategy\PluginManager
 	 */
-	protected $validators = [];
+	protected $strategyManager;
 
 	/**
-	 * Service constructor.
-	 * @param CacheStorage $metadataCacheStorage
-	 * @param Strategy\PluginManager $strategyPluginManager
-	 * @param ValidatorPluginManager $validatorPluginManager
+	 * @var Validator\PluginManager
+	 */
+	protected $validatorManager;
+
+	/**
+	 * @var Strategy\HydratorInterface
+	 */
+	protected $untypedDataHydrator;
+
+	/**
+	 * @param ClassMetadataProviderInterface $metadataProvider
+	 * @param Strategy\PluginManager $strategyManager
+	 * @param Validator\PluginManager $validatorManager
+	 * @param Strategy\HydratorInterface $untypedDataHydrator
 	 */
 	public function __construct(
-		Metadata\Reader\Annotation $metadataReader,
-		Strategy\PluginManager $strategyPluginManager,
-		ValidatorPluginManager $validatorPluginManager
+		ClassMetadataProviderInterface $metadataProvider,
+		Strategy\PluginManager $strategyManager,
+		Validator\PluginManager $validatorManager,
+		Strategy\HydratorInterface $untypedDataHydrator
 	)
 	{
-		//TODO replace with interface if there will be any other readers
-		$this->metadataReader = $metadataReader;
-		$this->strategyPluginManager = $strategyPluginManager;
-		$this->validatorPluginManager = $validatorPluginManager;
-		AnnotationRegistry::registerFile(__DIR__ . '/Annotation/Data.php');
-		AnnotationRegistry::registerFile(__DIR__ . '/Annotation/Strategy.php');
-		AnnotationRegistry::registerFile(__DIR__ . '/Annotation/Validator.php');
+		$this->metadataProvider = $metadataProvider;
+		$this->strategyManager = $strategyManager;
+		$this->validatorManager = $validatorManager;
+		$this->untypedDataHydrator = $untypedDataHydrator;
 	}
 
 	/**
-	 * @return Metadata\Reader\Annotation
+	 * Transfers data from source to destination using specified extractors, validator and hydrator
+	 * @param mixed $from source of data
+	 * @param Strategy\ExtractorInterface $fromExtractor a way to extract untyped data from source
+	 * @param mixed $to destination for data
+	 * @param Strategy\ExtractorInterface $toExtractor a way to extract untyped data from destination
+	 * @param Validator\ValidatorInterface $toValidator a way to validate untyped data for destination
+	 * @param Strategy\HydratorInterface $toHydrator a way to hydrate untyped data to destination
+	 * @return array list of violations found during data validation
 	 */
-	public function getMetadataReader()
-	{
-		return $this->metadataReader;
-	}
-
-	/**
-	 * @param Metadata\Reader\Annotation $metadataReader
-	 * @return self
-	 */
-	public function setMetadataReader(Metadata\Reader\Annotation $metadataReader)
-	{
-		$this->metadataReader = $metadataReader;
-		return $this;
-	}
-
-	/**
-	 * @return Strategy\PluginManager
-	 */
-	public function getStrategyPluginManager()
-	{
-		return $this->strategyPluginManager;
-	}
-
-	/**
-	 * @param Strategy\PluginManager $strategyPluginManager
-	 * @return self
-	 */
-	public function setStrategyPluginManager(Strategy\PluginManager $strategyPluginManager)
-	{
-		$this->strategyPluginManager = $strategyPluginManager;
-		return $this;
-	}
-
-	/**
-	 * @return ValidatorPluginManager
-	 */
-	public function getValidatorPluginManager()
-	{
-		return $this->validatorPluginManager;
-	}
-
-	/**
-	 * @param ValidatorPluginManager $validatorPluginManager
-	 * @return self
-	 */
-	public function setValidatorPluginManager(ValidatorPluginManager $validatorPluginManager)
-	{
-		$this->validatorPluginManager = $validatorPluginManager;
-		return $this;
-	}
-
-	/**
-	 * Transfers data from source to destination safely.
-	 * @param array|object $fromObjectOrArray
-	 * @param array|object $toObjectOrArray
-	 * @param Mapper\MapperInterface|callable $mapper
-	 * @param string $fromSubset
-	 * @param string $toSubset
-	 * @return array - validation messages if transfer failed
-	 */
-	public function transfer($fromObjectOrArray, &$toObjectOrArray, $mapper = null, $fromSubset = '', $toSubset = '')
+	public function transfer(
+		$from,
+		Strategy\ExtractorInterface $fromExtractor,
+		&$to,
+		Strategy\ExtractorInterface $toExtractor,
+		Validator\ValidatorInterface $toValidator,
+		Strategy\HydratorInterface $toHydrator
+	): array
 	{
 		$result = [];
-		$data = null;
-
-		//Extract data array
-		switch (true)
+		try
 		{
-			case is_object($fromObjectOrArray):
-				$fromMetadata = $this->metadataReader->getMetadata(get_class($fromObjectOrArray), $fromSubset);
-				$fromHydrator = $this->getHydrator($fromMetadata);
-				$data = $fromHydrator->extract($fromObjectOrArray);
-				break;
-			case is_array($fromObjectOrArray):
-				$data = &$fromObjectOrArray;
-				break;
-			default:
-				throw new \InvalidArgumentException('Data transfer is possible only from object or array.');
-		}
-
-		//Map data array
-		if (is_callable($mapper) || ($mapper instanceof Mapper\MapperInterface))
-		{
-			$data = $mapper($data);
-			if (!is_array($data))
+			$fromData = $fromExtractor->extract($from);
+			$toData = $toExtractor->extract($to);
+			$this->untypedDataHydrator->hydrate($fromData, $toData);
+			$result = $toValidator->validate($toData);
+			if (empty($result))
 			{
-				throw new \LogicException(
-					sprintf('Invalid mapping: expecting array result, not %s.', gettype($data))
-				);
+				$toHydrator->hydrate($fromData, $to);
 			}
 		}
-
-		//Validate and hydrate data array
-		switch (true)
+		catch (Exception\InvalidData $e)
 		{
-			case is_object($toObjectOrArray):
-				$toMetadata = $this->metadataReader->getMetadata(get_class($toObjectOrArray), $toSubset);
-				$toHydrator = $this->getHydrator($toMetadata);
-				$validator = $this->getValidator($toMetadata);
-
-				$result = $validator->validate(self::arrayTransfer($toHydrator->extract($toObjectOrArray), $data));
-				if (empty($result))
-				{
-					$toObjectOrArray = $toHydrator->hydrate($data, $toObjectOrArray);
-				}
-				break;
-			case is_array($toObjectOrArray):
-				$toObjectOrArray = self::arrayTransfer($toObjectOrArray, $data);
-				break;
-			default:
-				throw new \InvalidArgumentException('Data transfer is possible only to object or array.');
+			$result = $e->getViolations();
 		}
 
 		return $result;
 	}
 
 	/**
-	 * Returns hydrator required by metadata
-	 * @param Metadata $metadata
-	 * @return Hydrator
+	 * Transfers data from typed source to typed destination
+	 * @param object $from source of typed data
+	 * @param object $to destination for typed data
+	 * @param string $fromSubset name of the subset to filter data extracted from source
+	 * @param string $toSubset name of the subset to limit data hydrated to destination
+	 * @return array list of violations found during data validation
 	 */
-	public function getHydrator(Metadata $metadata)
+	public function transferTypedData($from, &$to, string $fromSubset = '', string $toSubset = ''): array
 	{
-		if (!isset($this->hydrators[$metadata->className][$metadata->subset]))
-		{
-			$hydrator = new Hydrator();
-			$hydrator
-				->setStrategyPluginManager($this->strategyPluginManager)
-				->setMetadata($metadata)
-			;
-			$this->hydrators[$metadata->className][$metadata->subset] = $hydrator;
-		}
-		return $this->hydrators[$metadata->className][$metadata->subset];
+		$fromStrategy = $this->getTypedDataStrategy($from, $fromSubset);
+		$toStrategy = $this->getTypedDataStrategy($to, $toSubset);
+		$toValidator = $this->getTypedDataValidator($to, $toSubset);
+
+		return $this->transfer($from, $fromStrategy, $to, $toStrategy, $toValidator, $toStrategy);
 	}
 
 	/**
-	 * Returns validator required by metadata
-	 * @param Metadata $metadata
-	 * @return Validator
+	 * Transfers data from typed source to untyped destination
+	 * @param object $typedData source of typed data
+	 * @param mixed $untypedData destination for untyped data
+	 * @param string $subset name of the subset to filter data extracted from source
+	 * @return array list of violations found during data validation
 	 */
-	public function getValidator(Metadata $metadata)
+	public function transferFromTypedData($typedData, &$untypedData, string $subset = ''): array
 	{
-		if (!isset($this->validators[$metadata->className][$metadata->subset]))
+		$strategy = $this->getTypedDataStrategy($typedData, $subset);
+
+		$result = [];
+		try
 		{
-			$validator = new Validator();
-			$validator
-				->setValidatorPluginManager($this->validatorPluginManager)
-				->setMetadata($metadata)
-			;
-			$this->validators[$metadata->className][$metadata->subset] = $validator;
+			$data = $strategy->extract($typedData);
+			$this->untypedDataHydrator->hydrate($data, $untypedData);
 		}
-		return $this->validators[$metadata->className][$metadata->subset];
+		catch (Exception\InvalidData $e)
+		{
+			$result = $e->getViolations();
+		}
+
+		return $result;
 	}
 
 	/**
-	 * Simple data transfer from one array to the other
-	 * @param array $a
-	 * @param array $b
-	 * @return array
+	 * Transfers data from untyped source to typed destination
+	 * @param mixed $untypedData source of untyped data
+	 * @param object $typedData destination for typed data
+	 * @param string $subset name of the subset to limit data hydrated to destination
+	 * @return array list of violations found during data validation
 	 */
-	static public function arrayTransfer(array $a, array $b)
+	public function transferToTypedData($untypedData, &$typedData, string $subset = ''): array
 	{
-		if (ArrayUtils::isList($b, ArrayUtils::isList($a)))
+		$strategy = $this->getTypedDataStrategy($typedData, $subset);
+		$validator = $this->getTypedDataValidator($typedData, $subset);
+
+		$result = [];
+		try
 		{
-			$a = $b;
-		}
-		else
-		{
-			foreach ($b as $key => $value)
+			$data = $strategy->extract($typedData);
+			$this->untypedDataHydrator->hydrate($untypedData, $data);
+			$result = $validator->validate($data);
+			if (empty($result))
 			{
-				if (array_key_exists($key, $a) && is_array($value) && is_array($a[$key]))
-				{
-					$a[$key] = self::arrayTransfer($a[$key], $value);
-				}
-				else
-				{
-					$a[$key] = $value;
-				}
+				$strategy->hydrate($untypedData, $typedData);
 			}
 		}
-		return $a;
+		catch (Exception\InvalidData $e)
+		{
+			$result = $e->getViolations();
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Extracts untyped data from typed source
+	 * @param object $typedData source of typed data
+	 * @param string $subset name of the subset to filter data extracted from source
+	 * @return mixed extracted untyped data
+	 * @throws Exception\InvalidData
+	 */
+	public function extractFromTypedData($typedData, string $subset = '')
+	{
+		$strategy = $this->getTypedDataStrategy($typedData, $subset);
+		return $strategy->extract($typedData);
+	}
+
+	/**
+	 * Returns strategy to transfer provided typed data according specific class metadata subset
+	 * @param object $typedData
+	 * @param string $subset
+	 * @return Strategy\StrategyInterface
+	 */
+	public function getTypedDataStrategy($typedData, string $subset = ''): Strategy\StrategyInterface
+	{
+		if (!\is_object($typedData))
+		{
+			throw new \LogicException(\sprintf('Typed data should be object, not %s.', \gettype($typedData)));
+		}
+		return $this->strategyManager->get(...$this->metadataProvider->getClassStrategy(\get_class($typedData), $subset));
+	}
+
+	/**
+	 * Returns validator for provided typed data according specific class metadata subset
+	 * @param object $typedData
+	 * @param string $subset
+	 * @return Validator\ValidatorInterface
+	 */
+	public function getTypedDataValidator($typedData, string $subset = ''): Validator\ValidatorInterface
+	{
+		if (!\is_object($typedData))
+		{
+			throw new \LogicException(\sprintf('Typed data should be object, not %s.', \gettype($typedData)));
+		}
+		return $this->validatorManager->get(...$this->metadataProvider->getClassValidator(\get_class($typedData), $subset));
 	}
 }

@@ -4,32 +4,22 @@
 [![Coveralls](https://coveralls.io/repos/github/Articus/DataTransfer/badge.svg?branch=master)](https://coveralls.io/github/Articus/DataTransfer?branch=master)
 [![Codacy](https://api.codacy.com/project/badge/Grade/2ec15ac8c40c4a709e7662e9c7124fad)](https://www.codacy.com/app/articusw/DataTransfer?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Articus/DataTransfer&amp;utm_campaign=Badge_Grade)
 
-This library provides a simple "validating hydrator", a service that "transfers" data from source to destination safely.
-
-In other words, if you have `A` and `B` - two objects of different classes this service can: 
-
-- extract data from `A` according specified metadata
-- map (or transform) this data according specified rules
-- hydrate mapped data to `B` if `B` remains valid after that
-
-And yes - you can skip first step if `A` is array and you can skip last step if `B` is array. 
+This library provides a "validating hydrator", a service that merges source data to destination data only if destination data remains valid after that. Source and destination can be anything - scalars, arrays, objects... So either you want to make a partial update of ORM entity with parsed JSON from HTTP-request or produce a plain DTO from this entity to send in AMQP-message this library can help you to do that in a neat convenient way. 
 
 ## Why?
 Personally I just needed something to easily update DTOs and Doctrine entities from untrusted sources 
-(like request parsed body, request headers, request query parameters and etc) 
-inside [Zend Framework](https://framework.zend.com/) application. Something like 
-[Symfony Serializer](http://symfony.com/doc/current/components/serializer.html) or 
-[JMS Serializer](http://jmsyst.com/libs/serializer) but for arrays and with Zend flavour. 
+(like request parsed body, request headers, request query parameters and etc). Something like [request body converter from FOSRestBundle](https://symfony.com/doc/master/bundles/FOSRestBundle/request_body_converter_listener.html) and [JMS Serializer](http://jmsyst.com/libs/serializer), but more flexible. 
 The initial prototype was extremely useful for building APIs and after using it in several production projects 
 I finally decided to make it a separate library. Hopefully, it will be useful for someone else.
      
 ## How to install?
 
-Just add `"articus/data-transfer": "*"` to your [composer.json](https://getcomposer.org/doc/04-schema.md#require).
+Just add `"articus/data-transfer": "*"` to your [composer.json](https://getcomposer.org/doc/04-schema.md#require) and check [packages suggested by the library](https://getcomposer.org/doc/04-schema.md#suggest) for extra dependencies of optional components you want to use.
 
 ## How to use?
-Library is supposed to be used with [Zend Expressive](http://zendframework.github.io/zend-expressive/) but 
-it should be possible to integrate in any project that can provide `Interop\Container\ContainerInterface`.
+
+Library is supposed to be used via [Zend Service Manager](https://docs.zendframework.com/zend-servicemanager/) but 
+it should be possible to integrate it in any project that can provide `Interop\Container\ContainerInterface`.
 
 ### Metadata
 First of all you need to declare metadata for classes that you would like to use with data transfer service. To do this 
@@ -88,7 +78,7 @@ class Sample
 ```
 
 If you need some special logic to extract and hydrate property value you can declare hydration strategy for this property
-(see Articus\DataTransfer\Strategy\StrategyInterface for details).
+(see `Articus\DataTransfer\Strategy\StrategyInterface` for details).
 
 ```PHP
 <?php
@@ -113,7 +103,7 @@ class Sample
     public $objectArray;
 
     /**
-     * You can also use your own startegy if it is registered in strategy plugin manager
+     * You can also use your own strategy if it is registered in strategy plugin manager
      * @DTA\Data()
      * @DTA\Strategy(name=MyStrategy::class)
      * @var mixed
@@ -123,7 +113,8 @@ class Sample
 ```
 
 And as you may have guessed there is a special annotation to add validation constraints. 
-Any validator registered in validator plugin manager can be used.
+Any validator registered in validator plugin manager can be used (see `Articus\DataTransfer\Validator\ValidatorInterface` for details).
+Library also provides `Articus\DataTransfer\Validator\Factory\Zend` - simple abstract factory to integrate validators from [Zend Validator](https://docs.zendframework.com/zend-validator/). 
  
 ```PHP
 <?php
@@ -144,8 +135,8 @@ class Sample
     public $string;
 
     /**
-     * If you set several validators they will be tested one by one until first failure.
-     * Validators with higher prioriry will be executed earlier.
+     * If you set several validators they will be tested one by one.
+     * Validators with higher priority will be executed earlier.
      * @DTA\Data()
      * @DTA\Validator(name="Hex")
      * @DTA\Validator(name="StringLength",options={"min": 1}, priority=3)
@@ -168,7 +159,7 @@ class Sample
      * Library provides simple validator for embedded objects
      * @DTA\Data()
      * @DTA\Strategy(name="Object", options={"type":MyClass::class})
-     * @DTA\Validator(name="Dictionary", options={"type":MyClass::class})
+     * @DTA\Validator(name="TypeCompliant", options={"type":MyClass::class})
      * @var MyClass
      */
     public $object;
@@ -189,15 +180,23 @@ class Sample
 After declaring metadata you need to add few lines to you configuration (example is in YAML just for readability):
 
 ```YAML
-# Register data transfer service in container 
+# Register required services in container 
 dependencies:
   factories:
-    Articus\DataTransfer\Service: Articus\DataTransfer\ServiceFactory
-  
-# Configure data transfer service
-Articus\DataTransfer\Service:
-  # Configure dedicated Zend Cache Storage for class metadata (see Zend\Cache\StorageFactory) 
-  metadata_cache:
+    Articus\DataTransfer\Service: Articus\DataTransfer\Factory
+    Articus\DataTransfer\MetadataProvider\Annotation: Articus\DataTransfer\MetadataProvider\Factory\Annotation
+    Articus\DataTransfer\Strategy\PluginManager: Articus\DataTransfer\Strategy\Factory\PluginManager
+    Articus\DataTransfer\Validator\PluginManager: Articus\DataTransfer\Validator\Factory\PluginManager
+    Zend\Validator\ValidatorPluginManager: Zend\Validator\ValidatorPluginManagerFactory
+  # Default metadata provider service allows to get metadata both for classes and for class fields so two aliases for single service 
+  aliases:
+    Articus\DataTransfer\ClassMetadataProviderInterface: Articus\DataTransfer\MetadataProvider\Annotation
+    Articus\DataTransfer\FieldMetadataProviderInterface: Articus\DataTransfer\MetadataProvider\Annotation
+
+# Configure metadata provider
+Articus\DataTransfer\MetadataProvider\Annotation:
+  # Configure dedicated Zend Cache Storage for class metadata (see Zend\Cache\StorageFactory)
+  cache:
     adapter: filesystem
     options:
       cache_dir: data/DataTransfer
@@ -206,70 +205,59 @@ Articus\DataTransfer\Service:
       serializer:
         serializer: phpserialize
   # ... or use existing service inside container
-  #metadata_cache: MyMetadataCacheStorage
-  # Configure dedicated hydration strategy plugin manager (see Articus\DataTransfer\Strategy\PluginManager for details)
-  strategies:
-    invokables:
-      MySampleStrategy: My\SampleStrategy
-  # ... or use existing service inside container
-  #strategies: MyStrategyPluginManager
-  # Configure dedicated validator plugin manager (see Zend\Validator\ValidatorPluginManager)
-  validators:
-    factories:
-      Articus\DataTransfer\Validator\Dictionary: Articus\DataTransfer\Validator\Factory
-      Articus\DataTransfer\Validator\Collection: Articus\DataTransfer\Validator\Factory
-    aliases:
-      Dictionary: Articus\DataTransfer\Validator\Dictionary
-      Collection: Articus\DataTransfer\Validator\Collection
-  # ... or use existing service inside container
-  #validators: MyValidatorPluginManager
+  #cache: MyMetadataCacheStorage
+
+# Configure hydration strategy plugin manager (see Articus\DataTransfer\Strategy\PluginManager for details)
+Articus\DataTransfer\Strategy\PluginManager:
+  invokables:
+    MySampleStrategy: My\SampleStrategy
+
+# Configure validator plugin manager (see Articus\DataTransfer\Validator\PluginManager for details)
+Articus\DataTransfer\Validator\PluginManager:
+  invokables:
+    MySampleValidator: My\SampleValidator
+  abstract_factories:
+    - Articus\DataTransfer\Validator\Factory\Zend
+  
 ```
 
 ### Usage
-Finally you just need to get service from container and call `transfer` method:
+Finally you just need to get service `Articus\DataTransfer\Service` from container and call appropriate  `transfer*` method.
 
+#### Transfer data between objects 
 ```PHP
 <?php
 use Articus\DataTransfer\Service;
 
 $from = new MyClassA();
 $to = new MyClassB();
-$validationMessages = $container->get(Service::class)->transfer($from, $to);
-if (empty($validationMessages))
+$violations = $container->get(Service::class)->transferTypedData($from, $to);
+if (empty($violations))
 {
     //Transfer was successful
 }
 ```
-    
-Supply third argument if you want to map data between extraction and hydration:
 
-```PHP
-<?php
-use Articus\DataTransfer\Service;
-
-$from = new MyClassA();
-$to = new MyClassB();
-$map = function(array $data)
-{
-    unset($data['key']);
-    return $data;
-};
-$validationMessages = $container->get(Service::class)->transfer($from, $to, $map);
-```
-
-Use arrays if you want only extraction or only hydration:
-
+#### Transfer data from array to object 
 ```PHP
 <?php 
 use Articus\DataTransfer\Service;
 
 $from = [];
 $to = new MyClassB();
-$validationMessages = $container->get(Service::class)->transfer($from, $to);
+$violations = $container->get(Service::class)->transferToTypedData($from, $to);
+```
+
+#### Transfer data from object to array 
+```PHP
+<?php 
+use Articus\DataTransfer\Service;
 
 $from = new MyClassA();
 $to = [];
-$validationMessages = $container->get(Service::class)->transfer($from, $to);
+$violations = $container->get(Service::class)->transferFromTypedData($from, $to);
+//Or if you want only to extract without merge  
+$to = $container->get(Service::class)->extractFromTypedData($from);
 ```
 
 ### Subsets
@@ -298,16 +286,15 @@ class FromQueryOrJson
 //Fill DTO from query
 $query = /* your favourite way to get request query parameters */;
 $dto = new FromQueryOrJson();
-$validationMessages = $container->get(Service::class)->transfer($query, $dto, null, '', 'query');
+$violations = $container->get(Service::class)->transferToTypedData($query, $dto, 'query');
 //Fill DTO from parsed JSON
 $json = json_decode(/* your favorite way to get request body */);
 $dto = new FromQueryOrJson();
-$validationMessages = $container->get(Service::class)->transfer($json, $dto, null, '', 'json');
+$violations = $container->get(Service::class)->transferToTypedData($json, $dto, 'json');
 ```
     
 ## Enjoy!
 I really hope that this library will be useful for someone except me. 
-Currently it is only the initial release. It is used for production purposes but it lacks lots of refinement, 
-especially in terms of tests and documentation. 
+It is used for production purposes but it lacks lots of refinement, especially in terms of tests and documentation. 
 
 If you have any suggestions, advices, questions or fixes feel free to submit issue or pull request.

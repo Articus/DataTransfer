@@ -1,2 +1,4 @@
-coverage_clover: tests/_output/coverage.xml
-json_path: tests/_output/coveralls-upload.json
+coverage_clover:
+  - spec_output/phpspec.coverage.xml
+  - spec_output/kahlan.coverage.xml
+json_path: spec_output/coveralls-upload.json

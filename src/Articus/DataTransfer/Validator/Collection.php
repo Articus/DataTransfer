@@ -1,133 +1,55 @@
 <?php
+declare(strict_types=1);
 
 namespace Articus\DataTransfer\Validator;
 
-use Articus\DataTransfer\Annotation;
-use Zend\Validator\AbstractValidator;
-use Zend\Validator\ValidatorChain;
-use Zend\Validator\ValidatorInterface;
-use Zend\Validator\ValidatorPluginManager;
-
 /**
- * Validator that checks if value is an array and applies specified validators for each item of it
+ * Validator that checks if data is a collection of valid items.
+ * "Collection" means something to iterate over - array, stdClass or Traversable.
+ * Null value is allowed.
  */
-class Collection extends AbstractValidator
+class Collection implements ValidatorInterface
 {
-	const INVALID = 'collectionInvalid';
-	const INVALID_INNER = 'collectionInvalidInner';
+	public const INVALID = 'collectionInvalid';
+	public const INVALID_INNER = 'collectionInvalidInner';
 
 	/**
-	 * Validation failure message template definitions
-	 *
-	 * @var array
+	 * @var ValidatorInterface
 	 */
-	protected $messageTemplates = [
-		self::INVALID => 'Invalid type given. Indexed array expected.',
-	];
+	protected $itemValidator;
 
 	/**
-	 * @var ValidatorPluginManager
+	 * @param ValidatorInterface $itemValidator
 	 */
-	protected $validatorPluginManager;
-
-	/**
-	 * @var array
-	 */
-	protected $validators;
-	/**
-	 * @var ValidatorChain
-	 */
-	protected $validatorChain;
-
-	/**
-	 * Collection constructor.
-	 * @param array|null $options
-	 */
-	public function __construct(array $options = null)
+	public function __construct(ValidatorInterface $itemValidator)
 	{
-		$validators = isset($options['validators'])? $options['validators'] : null;
-		if (empty($validators) || (!is_array($validators)))
+		$this->itemValidator = $itemValidator;
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function validate($data): array
+	{
+		$result = [];
+		if ($data !== null)
 		{
-			throw new \InvalidArgumentException('No item validators.');
-		}
-		$this->validators = $validators;
-		parent::__construct();
-	}
-
-	/**
-	 * @return ValidatorPluginManager
-	 */
-	public function getValidatorPluginManager()
-	{
-		return $this->validatorPluginManager;
-	}
-
-	/**
-	 * @param ValidatorPluginManager $validatorPluginManager
-	 * @return self
-	 */
-	public function setValidatorPluginManager($validatorPluginManager)
-	{
-		$this->validatorPluginManager = $validatorPluginManager;
-		return $this;
-	}
-
-
-	protected function getValidatorChain()
-	{
-		if ($this->validatorChain === null)
-		{
-			$validatorChain = new ValidatorChain();
-			$validatorChain->setPluginManager($this->validatorPluginManager);
-			foreach ($this->validators as $validator)
+			if (\is_iterable($data) || ($data instanceof \stdClass))
 			{
-				switch (true)
+				foreach ($data as $key => $item)
 				{
-					case ($validator instanceof Annotation\Validator):
-						$validatorChain->attachByName($validator->name, $validator->options, true, $validator->priority);
-						break;
-					case (is_array($validator) && isset($validator['name'])):
-						$options = isset($validator['options'])? $validator['options'] : null;
-						$priority = isset($validator['priority'])? $validator['priority'] : ValidatorChain::DEFAULT_PRIORITY;
-						$validatorChain->attachByName($validator['name'], $options, true, $priority);
-						break;
-					case ($validator instanceof ValidatorInterface):
-						$validatorChain->attach($validator, true);
-						break;
-					default:
-						throw new \InvalidArgumentException('Invalid item validator.');
+					$itemViolations = $this->itemValidator->validate($item);
+					if (!empty($itemViolations))
+					{
+						$result[self::INVALID_INNER][$key] = $itemViolations;
+					}
 				}
-			}
-			$this->validatorChain = $validatorChain;
-		}
-		return $this->validatorChain;
-	}
-
-	public function isValid($value)
-	{
-		$result = false;
-		$this->setValue($value);
-		if (!is_array($value))
-		{
-			$this->error(self::INVALID);
-		}
-		else
-		{
-			$messages = [];
-			foreach ($value as $index => $item)
-			{
-				if (!$this->getValidatorChain()->isValid($item))
-				{
-					$messages[$index] = $this->validatorChain->getMessages();
-				}
-			}
-			if (empty($messages))
-			{
-				$result = true;
 			}
 			else
 			{
-				$this->abstractOptions['messages'][self::INVALID_INNER] = $messages;
+				$result[self::INVALID] = \sprintf(
+					'Invalid data: expecting iterable collection, not %s.', \is_object($data) ? \get_class($data) : \gettype($data)
+				);
 			}
 		}
 		return $result;

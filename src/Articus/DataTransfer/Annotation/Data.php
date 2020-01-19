@@ -3,7 +3,7 @@
 namespace Articus\DataTransfer\Annotation;
 
 /**
- * Annotation for declaring object field that should be hydrated and extracted
+ * Annotation for declaring class field that should be hydrated and extracted
  * @Annotation
  * @Target({"PROPERTY"})
  */
@@ -11,24 +11,26 @@ class Data
 {
 	/**
 	 * Name of the field in array that will be used in hydration/extraction. 
-	 * If empty, property name is used
-	 * @var string
+	 * If null, property name is used.
+	 * @var string | null
 	 */
 	public $field = null;
 
 	/**
-	 * Name of the method that allow to get property value.
+	 * Name of the method that allows to get property value.
 	 * If null and property is public, direct access is used.
 	 * If null and property is not public, ("get" . <property name in camel case>) is used.
-	 * @var string
+	 * If empty string, there is no way to get property value.
+	 * @var string | null
 	 */
 	public $getter = null;
 
 	/**
-	 * Name of the method that allow to set property value.
+	 * Name of the method that allows to set property value.
 	 * If null and property is public, direct access is used.
 	 * If null and property is not public, ("set" . <property name in camel case>) is used.
-	 * @var string
+	 * If empty string, there is no way to set property value.
+	 * @var string | null
 	 */
 	public $setter = null;
 
@@ -39,8 +41,8 @@ class Data
 	public $nullable = false;
 
 	/**
-	 * Name of the object field subset with additional separate metadata that this annotation belongs to
+	 * Name of the class metadata subset that annotation belongs to
 	 * @var string
 	 */
-	public $subset = null;
+	public $subset = '';
 }

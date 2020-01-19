@@ -1,0 +1,13 @@
+bootstrap: spec/bootstrap.php
+formatter.name: pretty
+extensions:
+  FriendsOfPhpSpec\PhpSpec\CodeCoverage\CodeCoverageExtension:
+    format:
+      #- html
+      - text
+      - clover
+    output:
+      #html: spec_output/phpspec.coverage
+      clover: spec_output/phpspec.coverage.xml
+    whitelist:
+      - src

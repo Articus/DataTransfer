@@ -1,5 +1,0 @@
-class_name: FunctionalTester
-modules:
-    enabled:
-        - Asserts
-        - \Test\DataTransfer\Helper\Functional
