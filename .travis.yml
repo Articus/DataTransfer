@@ -17,7 +17,7 @@ install:
 
 script:
   - phpdbg -qrr ./vendor/phpspec/phpspec/bin/phpspec run
-  - phpdbg -qrr -dmemory_limit=192M ./vendor/kahlan/kahlan/bin/kahlan
+  - phpdbg -qrr -dmemory_limit=256M ./vendor/kahlan/kahlan/bin/kahlan
 
 after_success:
   - |
