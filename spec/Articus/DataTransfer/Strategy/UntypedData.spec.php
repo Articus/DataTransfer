@@ -38,6 +38,26 @@ use Articus\DataTransfer as DT;
 			$hydrator->hydrate($source, $destination);
 			\expect($destination)->toBe($newDestination);
 		});
+		\it('combines empty array with associative array', function ()
+		{
+			$source = [];
+			$destination = ['a' => 1, 'b' => 2];
+			$newDestination = ['a' => 1, 'b' => 2];
+
+			$hydrator = new DT\Strategy\UntypedData();
+			$hydrator->hydrate($source, $destination);
+			\expect($destination)->toBe($newDestination);
+		});
+		\it('combines associative array with empty array', function ()
+		{
+			$source = ['a' => 1, 'b' => 2];
+			$destination = [];
+			$newDestination = ['a' => 1, 'b' => 2];
+
+			$hydrator = new DT\Strategy\UntypedData();
+			$hydrator->hydrate($source, $destination);
+			\expect($destination)->toBe($newDestination);
+		});
 		\it('combines std class with std class', function ()
 		{
 			$source = new \stdClass();
@@ -57,7 +77,7 @@ use Articus\DataTransfer as DT;
 			\expect($destination)->toEqual($newDestination);
 			\expect($destination)->toBe($destinationReference);
 		});
-		\it('combines associative array with inner associative array recursively', function ()
+		\it('combines associative array with associative array recursively', function ()
 		{
 			$source = ['test' => ['a' => 1, 'b' => 2]];
 			$destination = ['test' => ['b' => 3, 'c' => 4]];

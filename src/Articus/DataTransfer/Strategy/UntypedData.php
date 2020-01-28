@@ -16,9 +16,9 @@ class UntypedData implements HydratorInterface
 	 */
 	public function hydrate($from, &$to): void
 	{
-		$isFromAssocArray = \is_array($from) && (\array_values($from) !== $from);
+		$isFromAssocArray = \is_array($from) && (empty($from) || (\array_values($from) !== $from));
 		$isFromStdClass = ($from instanceof \stdClass);
-		$isToAssocArray = \is_array($to) && (\array_values($to) !== $to);
+		$isToAssocArray = \is_array($to) && (empty($from) || (\array_values($to) !== $to));
 		$isToStdClass = ($to instanceof \stdClass);
 
 		if (($isFromAssocArray || $isFromStdClass) && ($isToAssocArray || $isToStdClass))
