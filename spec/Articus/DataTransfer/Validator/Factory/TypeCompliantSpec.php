@@ -29,8 +29,9 @@ class TypeCompliantSpec extends ObjectBehavior
 		$metadataProvider->getClassValidator($type, $subset)->shouldBeCalledOnce()->willReturn($validatorDeclaration);
 		$validatorManager->get(...$validatorDeclaration)->shouldBeCalledOnce()->willReturn($validator);
 
-		$this->__invoke($container, 'testName', $options)->shouldBeAnInstanceOf(DT\Validator\TypeCompliant::class);
-		//TODO check that constructor received expected arguments
+		$service = $this->__invoke($container, 'testName', $options);
+		$service->shouldBeAnInstanceOf(DT\Validator\TypeCompliant::class);
+		$service->shouldHaveProperty('typeValidator', $validator);
 	}
 
 	public function it_throws_on_no_type(ContainerInterface $container)

@@ -25,6 +25,6 @@ class ChainSpec extends ObjectBehavior
 
 		$service = $this->__invoke($container, 'testName', $options);
 		$service->shouldBeAnInstanceOf(DT\Validator\Chain::class);
-		//TODO check service protected properties?
+		$service->shouldHaveProperty('links', [[$validator1, $link1[2]], [$validator2, $link2[2]]]);
 	}
 }

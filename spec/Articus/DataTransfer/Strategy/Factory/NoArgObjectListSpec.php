@@ -34,7 +34,8 @@ class NoArgObjectListSpec extends ObjectBehavior
 
 		$service = $this->__invoke($container, 'testName', $options);
 		$service->shouldBeAnInstanceOf(DT\Strategy\NoArgObjectList::class);
-		//TODO check that constructor received expected arguments
+		$service->shouldHaveProperty('typeStrategy', $strategy);
+		$service->shouldHaveProperty('type', $className);
 	}
 
 	public function it_throws_on_no_type(ContainerInterface $container)

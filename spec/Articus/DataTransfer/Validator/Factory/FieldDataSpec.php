@@ -31,8 +31,9 @@ class FieldDataSpec extends ObjectBehavior
 		$metadataProvider->getFieldValidator($type, $subset, $fieldName)->shouldBeCalledOnce()->willReturn($validatorDeclaration);
 		$validatorManager->get(...$validatorDeclaration)->shouldBeCalledOnce()->willReturn($validator);
 
-		$this->__invoke($container, 'testName', $options)->shouldBeAnInstanceOf(DT\Validator\FieldData::class);
-		//TODO check that constructor received expected arguments
+		$service = $this->__invoke($container, 'testName', $options);
+		$service->shouldBeAnInstanceOf(DT\Validator\FieldData::class);
+		$service->shouldHaveProperty('fields', [[$fieldName, $validator]]);
 	}
 
 	public function it_throws_on_no_type(ContainerInterface $container)

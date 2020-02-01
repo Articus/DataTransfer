@@ -20,6 +20,10 @@ class FactorySpec extends ObjectBehavior
 		$container->get(DT\Strategy\PluginManager::class)->shouldBeCalledOnce()->willReturn($strategyManager);
 		$container->get(DT\Validator\PluginManager::class)->shouldBeCalledOnce()->willReturn($validatorManager);
 
-		$this->__invoke($container, 'test')->shouldBeAnInstanceOf(DT\Service::class);
+		$service = $this->__invoke($container, 'test');
+		$service->shouldBeAnInstanceOf(DT\Service::class);
+		$service->shouldHaveProperty('metadataProvider', $metadataProvider);
+		$service->shouldHaveProperty('strategyManager', $strategyManager);
+		$service->shouldHaveProperty('validatorManager', $validatorManager);
 	}
 }

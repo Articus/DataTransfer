@@ -68,4 +68,23 @@ class FieldDataSpec extends ObjectBehavior
 		$this->beConstructedWith(Example\DTO\Data::class, [], true);
 		$this->shouldThrow(\LogicException::class)->during('extract', [$source]);
 	}
+
+	public function it_rethrows_wrapped_invalid_data_exception(DT\Strategy\StrategyInterface $strategy)
+	{
+		$from = 'a';
+		$violations = ['test' => 123];
+		$innerError = new DT\Exception\InvalidData($violations);
+
+		$strategy->extract($from)->shouldBeCalledOnce()->willThrow($innerError);
+		$source = new Example\DTO\Data();
+		$source->test1 = $from;
+		$fieldName = 'test_field';
+		$fields = [
+			[$fieldName, ['test1', false], null, $strategy],
+		];
+		$error = new DT\Exception\InvalidData([DT\Validator\FieldData::INVALID_INNER => [$fieldName => $violations]], $innerError);
+
+		$this->beConstructedWith(Example\DTO\Data::class, $fields, false);
+		$this->shouldThrow($error)->during('extract', [$source]);
+	}
 }

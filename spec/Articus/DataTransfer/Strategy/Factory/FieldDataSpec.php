@@ -22,11 +22,11 @@ class FieldDataSpec extends ObjectBehavior
 	{
 		$className = Example\DTO\Data::class;
 		$subset = 'testSubset';
-		$useStdClass = true;
+		$extractStdClass = true;
 		$options = [
 			'type' => $className,
 			'subset' => $subset,
-			'use_std_class' => $useStdClass,
+			'extract_std_class' => $extractStdClass,
 		];
 		$fieldName = 'testField';
 		$fieldGetter = ['testGetter', true];
@@ -40,7 +40,9 @@ class FieldDataSpec extends ObjectBehavior
 
 		$service = $this->__invoke($container, 'testName', $options);
 		$service->shouldBeAnInstanceOf(DT\Strategy\FieldData::class);
-		//TODO check that constructor received expected arguments
+		$service->shouldHaveProperty('type', $className);
+		$service->shouldHaveProperty('typeFields', [[$fieldName, $fieldGetter, $fieldSetter, $strategy]]);
+		$service->shouldHaveProperty('extractStdClass', $extractStdClass);
 	}
 
 	public function it_throws_on_no_type(ContainerInterface $container)

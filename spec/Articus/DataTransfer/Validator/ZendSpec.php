@@ -8,6 +8,13 @@ use Zend\Validator\ValidatorInterface as ZendValidator;
 
 class ZendSpec extends ObjectBehavior
 {
+	public function it_allows_null(ZendValidator $validator)
+	{
+		$validator->isValid()->shouldNotBeCalled();
+		$this->beConstructedWith($validator);
+		$this->validate(null)->shouldBe([]);
+	}
+
 	public function it_allows_data_that_is_valid_according_zend_validator(ZendValidator $validator, $data)
 	{
 		$validator->isValid($data)->shouldBeCalledOnce()->willReturn(true);

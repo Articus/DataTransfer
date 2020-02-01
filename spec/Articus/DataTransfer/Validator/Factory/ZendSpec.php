@@ -21,8 +21,10 @@ class ZendSpec extends ObjectBehavior
 		$options = ['testOptions' => 123];
 		$container->get(ValidatorPluginManager::class)->shouldBeCalledOnce()->willReturn($validatorPluginManager);
 		$validatorPluginManager->get($name, $options)->shouldBeCalledOnce()->willReturn($validator);
-		$this->__invoke($container, $name, $options)->shouldBeAnInstanceOf(DT\Validator\Zend::class);
-		//TODO check that constructor received expected arguments
+
+		$service = $this->__invoke($container, $name, $options);
+		$service->shouldBeAnInstanceOf(DT\Validator\Zend::class);
+		$service->shouldHaveProperty('zendValidator', $validator);
 	}
 
 	public function it_can_create_what_zend_validator_plugin_manager_can_create(

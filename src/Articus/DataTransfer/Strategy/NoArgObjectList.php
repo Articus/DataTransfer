@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace Articus\DataTransfer\Strategy;
 
+use Articus\DataTransfer\Exception\InvalidData;
+use Articus\DataTransfer\Validator;
+
 /**
  * Strategy for list of objects that have same specific type which can be constructed without arguments.
  * "List" means something to iterate over but without keys that identify elements - indexed array or Traversable.
@@ -55,7 +58,15 @@ class NoArgObjectList implements StrategyInterface
 						$this->type, \is_object($item) ? \get_class($item) : \gettype($item), $index
 					));
 				}
-				$result[$index] = $this->typeStrategy->extract($item);
+				try
+				{
+					$result[$index] = $this->typeStrategy->extract($item);
+				}
+				catch (InvalidData $e)
+				{
+					$violations = [Validator\Collection::INVALID_INNER => [$index => $e->getViolations()]];
+					throw new InvalidData($violations, $e);
+				}
 			}
 		}
 		return $result;
@@ -79,7 +90,15 @@ class NoArgObjectList implements StrategyInterface
 			foreach ($from as $index => $item)
 			{
 				$object = new $this->type();
-				$this->typeStrategy->hydrate($item, $object);
+				try
+				{
+					$this->typeStrategy->hydrate($item, $object);
+				}
+				catch (InvalidData $e)
+				{
+					$violations = [Validator\Collection::INVALID_INNER => [$index => $e->getViolations()]];
+					throw new InvalidData($violations, $e);
+				}
 				$to[$index] = $object;
 			}
 		}

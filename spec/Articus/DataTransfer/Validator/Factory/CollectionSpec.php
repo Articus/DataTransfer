@@ -31,8 +31,9 @@ class CollectionSpec extends ObjectBehavior
 		$container->get(DT\Validator\PluginManager::class)->shouldBeCalledOnce()->willReturn($validatorManager);
 		$validatorManager->get(DT\Validator\Chain::class, ['links' => $links])->shouldBeCalledOnce()->willReturn($itemValidator);
 
-		$this->__invoke($container, 'testName', $options)->shouldBeAnInstanceOf(DT\Validator\Collection::class);
-		//TODO check that constructor received expected arguments
+		$service = $this->__invoke($container, 'testName', $options);
+		$service->shouldBeAnInstanceOf(DT\Validator\Collection::class);
+		$service->shouldHaveProperty('itemValidator', $itemValidator);
 	}
 
 	public function it_throws_if_there_is_no_name_for_validator_in_options(ContainerInterface $container)

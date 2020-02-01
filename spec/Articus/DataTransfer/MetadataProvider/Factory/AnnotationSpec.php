@@ -13,10 +13,58 @@ use Zend\Cache\Storage\StorageInterface as CacheStorage;
  */
 class AnnotationSpec extends ObjectBehavior
 {
+	public function it_gets_configuration_from_default_config_key(ContainerInterface $container, \ArrayAccess $config)
+	{
+		$configKey = DT\MetadataProvider\Annotation::class;
+		$container->get('config')->shouldBeCalledOnce()->willReturn($config);
+		$config->offsetExists($configKey)->shouldBeCalledOnce()->willReturn(true);
+		$config->offsetGet($configKey)->shouldBeCalledOnce();
+
+		$service = $this->__invoke($container, '');
+		$service->shouldBeAnInstanceOf(DT\MetadataProvider\Annotation::class);
+	}
+
+	public function it_gets_configuration_from_custom_config_key(ContainerInterface $container, \ArrayAccess $config)
+	{
+		$configKey = 'test_config_key';
+		$container->get('config')->shouldBeCalledOnce()->willReturn($config);
+		$config->offsetExists($configKey)->shouldBeCalledOnce()->willReturn(true);
+		$config->offsetGet($configKey)->shouldBeCalledOnce();
+
+		$this->beConstructedWith($configKey);
+		$service = $this->__invoke($container, '');
+		$service->shouldBeAnInstanceOf(DT\MetadataProvider\Annotation::class);
+	}
+
+	public function it_constructs_itself_and_gets_configuration_from_custom_config_key(ContainerInterface $container, \ArrayAccess $config)
+	{
+		$configKey = 'test_config_key';
+		$container->get('config')->shouldBeCalledOnce()->willReturn($config);
+		$config->offsetExists($configKey)->shouldBeCalledOnce()->willReturn(true);
+		$config->offsetGet($configKey)->shouldBeCalledOnce();
+
+		$service = $this::__callStatic($configKey, [$container, '', null]);
+		$service->shouldBeAnInstanceOf(DT\MetadataProvider\Annotation::class);
+	}
+
+	public function it_throws_on_too_few_arguments_during_self_construct(ContainerInterface $container)
+	{
+		$configKey = 'test_config_key';
+		$error = new \InvalidArgumentException(\sprintf(
+			'To invoke %s with custom configuration key statically 3 arguments are required: container, service name and options.',
+			DT\MetadataProvider\Factory\Annotation::class
+		));
+
+		$this::shouldThrow($error)->during('__callStatic', [$configKey, []]);
+		$this::shouldThrow($error)->during('__callStatic', [$configKey, [$container]]);
+		$this::shouldThrow($error)->during('__callStatic', [$configKey, [$container, '']]);
+	}
+
 	public function it_creates_service_with_default_configuration(ContainerInterface $container)
 	{
 		$container->get('config')->shouldBeCalledOnce()->willReturn([]);
-		$this->__invoke($container, '')->shouldBeAnInstanceOf(DT\MetadataProvider\Annotation::class);
+		$service = $this->__invoke($container, '');
+		$service->shouldBeAnInstanceOf(DT\MetadataProvider\Annotation::class);
 	}
 
 	public function it_creates_service_with_cache_storage_configuration(ContainerInterface $container)
@@ -25,7 +73,8 @@ class AnnotationSpec extends ObjectBehavior
 			DT\MetadataProvider\Annotation::class => ['cache' => ['adapter' => 'memory']]
 		];
 		$container->get('config')->shouldBeCalledOnce()->willReturn($config);
-		$this->__invoke($container, '')->shouldBeAnInstanceOf(DT\MetadataProvider\Annotation::class);
+		$service = $this->__invoke($container, '');
+		$service->shouldBeAnInstanceOf(DT\MetadataProvider\Annotation::class);
 	}
 
 	public function it_creates_service_with_cache_storage_from_container(ContainerInterface $container, CacheStorage $cacheStorage)
@@ -37,7 +86,9 @@ class AnnotationSpec extends ObjectBehavior
 		$container->get('config')->shouldBeCalledOnce()->willReturn($config);
 		$container->has($cacheServiceName)->shouldBeCalledOnce()->willReturn(true);
 		$container->get($cacheServiceName)->shouldBeCalledOnce()->willReturn($cacheStorage);
-		$this->__invoke($container, '')->shouldBeAnInstanceOf(DT\MetadataProvider\Annotation::class);
+		$service = $this->__invoke($container, '');
+		$service->shouldBeAnInstanceOf(DT\MetadataProvider\Annotation::class);
+		$service->shouldHaveProperty('cacheStorage', $cacheStorage);
 	}
 
 	public function it_throws_on_invalid_cache_storage_in_container(ContainerInterface $container, $cacheStorage)

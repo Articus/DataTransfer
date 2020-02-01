@@ -4,8 +4,6 @@ declare(strict_types=1);
 namespace spec\Articus\DataTransfer;
 
 use Articus\DataTransfer as DT;
-use Kahlan\Plugin\Double;
-use Kahlan\Plugin\Monkey;
 
 \describe(DT\Service::class, function ()
 {

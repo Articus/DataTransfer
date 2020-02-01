@@ -29,7 +29,7 @@ class Zend implements ValidatorInterface
 	public function validate($data): array
 	{
 		$result = [];
-		if (!$this->zendValidator->isValid($data))
+		if (!($data === null || $this->zendValidator->isValid($data)))
 		{
 			$result = $this->zendValidator->getMessages();
 		}

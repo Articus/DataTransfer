@@ -136,5 +136,31 @@ use Articus\DataTransfer as DT;
 				$strategy->hydrate($source, $destination);
 			})->toThrow($error);
 		});
+		\it('rethrows wrapped invalid data exception', function ()
+		{
+			$from1 = 'a';
+			$oldTo1 = 'b';
+
+			$violations = ['test' => 123];
+			$innerError = new DT\Exception\InvalidData($violations);
+
+			$fieldStrategy = \mock(DT\Strategy\StrategyInterface::class);
+			$fieldStrategy->shouldReceive('hydrate')->with($from1, $oldTo1)->andThrow($innerError);
+
+			$fieldName1 = 'test_1';
+			$source = [$fieldName1 => $from1];
+			$destination = new Example\DTO\Data();
+			$destination->test1 = $oldTo1;
+			$fields = [
+				[$fieldName1, ['test1', false], ['test1', false], $fieldStrategy],
+			];
+			$error = new DT\Exception\InvalidData([DT\Validator\FieldData::INVALID_INNER => [$fieldName1 => $violations]], $innerError);
+
+			$strategy = new DT\Strategy\FieldData(Example\DTO\Data::class, $fields, false);
+			\expect(function () use (&$strategy, &$source, &$destination)
+			{
+				$strategy->hydrate($source, $destination);
+			})->toThrow($error);
+		});
 	});
 });

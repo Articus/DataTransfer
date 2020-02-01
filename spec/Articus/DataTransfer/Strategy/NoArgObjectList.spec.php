@@ -56,5 +56,26 @@ use Articus\DataTransfer as DT;
 				$strategy->hydrate($source, $destination);
 			})->toThrow($error);
 		});
+		\it('rethrows wrapped invalid data exception', function ()
+		{
+			$sourceItem = \mock();
+			$destination = null;
+			$violations = ['test' => 123];
+			$innerError = new DT\Exception\InvalidData($violations);
+
+			$typeStrategy = \mock(DT\Strategy\StrategyInterface::class);
+			$typeStrategy->shouldReceive('hydrate')
+				->with($sourceItem, \Mockery::type(Example\DTO\Data::class))
+				->andThrow($innerError)
+			;
+			$error = new DT\Exception\InvalidData([DT\Validator\Collection::INVALID_INNER => [$violations]], $innerError);
+
+			$strategy = new DT\Strategy\NoArgObjectList($typeStrategy, Example\DTO\Data::class);
+
+			\expect(function () use (&$strategy, &$sourceItem, &$destination)
+			{
+				$strategy->hydrate([$sourceItem], $destination);
+			})->toThrow($error);
+		});
 	});
 });

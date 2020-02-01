@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 namespace Articus\DataTransfer\Strategy;
 
+use Articus\DataTransfer\Exception\InvalidData;
 use Articus\DataTransfer\Utility;
+use Articus\DataTransfer\Validator;
 
 /**
  * Strategy for object of specific type that can be treated as field set described by type metadata
@@ -57,8 +59,17 @@ class FieldData implements StrategyInterface
 		foreach ($this->typeFields as [$fieldName, $getter, $setter, $strategy])
 		{
 			/** @var StrategyInterface $strategy */
-			$rawValue = $object->get($getter);
-			$map->set($fieldName, $strategy->extract($rawValue));
+			try
+			{
+				$rawValue = $object->get($getter);
+				$fieldValue = $strategy->extract($rawValue);
+				$map->set($fieldName, $fieldValue);
+			}
+			catch (InvalidData $e)
+			{
+				$violations = [Validator\FieldData::INVALID_INNER => [$fieldName => $e->getViolations()]];
+				throw new InvalidData($violations, $e);
+			}
 		}
 		return $result;
 	}
@@ -87,10 +98,18 @@ class FieldData implements StrategyInterface
 		foreach ($this->typeFields as [$fieldName, $getter, $setter, $strategy])
 		{
 			/** @var StrategyInterface $strategy */
-			$fieldValue = $map->get($fieldName);
-			$rawValue = $object->get($getter);
-			$strategy->hydrate($fieldValue, $rawValue);
-			$object->set($setter, $rawValue);
+			try
+			{
+				$fieldValue = $map->get($fieldName);
+				$rawValue = $object->get($getter);
+				$strategy->hydrate($fieldValue, $rawValue);
+				$object->set($setter, $rawValue);
+			}
+			catch (InvalidData $e)
+			{
+				$violations = [Validator\FieldData::INVALID_INNER => [$fieldName => $e->getViolations()]];
+				throw new InvalidData($violations, $e);
+			}
 		}
 	}
 }
