@@ -9,6 +9,10 @@ use Articus\DataTransfer as DT;
 {
 	\describe('->transfer', function ()
 	{
+		\afterEach(function ()
+		{
+			\Mockery::close();
+		});
 		\it('transfers valid data', function ()
 		{
 			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
@@ -29,8 +33,8 @@ use Articus\DataTransfer as DT;
 			$violations = [];
 			$updatedTo = 6;
 
-			$fromExtractor->shouldReceive('extract')->with($from)->andReturn($extractedFrom);
-			$toExtractor->shouldReceive('extract')->with($to)->andReturn($extractedTo);
+			$fromExtractor->shouldReceive('extract')->with($from)->once()->andReturn($extractedFrom);
+			$toExtractor->shouldReceive('extract')->with($to)->once()->andReturn($extractedTo);
 			$untypedDataHydrator->shouldReceive('hydrate')->withArgs(
 				function($a, &$b) use (&$extractedFrom, &$extractedTo, &$updatedExtractedTo)
 				{
@@ -42,8 +46,8 @@ use Articus\DataTransfer as DT;
 					}
 					return $result;
 				}
-			);
-			$toValidator->shouldReceive('validate')->with($updatedExtractedTo)->andReturn($violations);
+			)->once();
+			$toValidator->shouldReceive('validate')->with($updatedExtractedTo)->once()->andReturn($violations);
 			$toHydrator->shouldReceive('hydrate')->withArgs(
 				function($a, &$b) use (&$extractedFrom, &$to, &$updatedTo)
 				{
@@ -55,7 +59,7 @@ use Articus\DataTransfer as DT;
 					}
 					return $result;
 				}
-			);
+			)->once();
 
 			$service = new DT\Service($metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator);
 
@@ -80,7 +84,7 @@ use Articus\DataTransfer as DT;
 			$originalTo = $to;
 			$extractedFromError = new DT\Exception\InvalidData(['test' => 123]);
 
-			$fromExtractor->shouldReceive('extract')->with($from)->andThrow($extractedFromError);
+			$fromExtractor->shouldReceive('extract')->with($from)->once()->andThrow($extractedFromError);
 
 			$service = new DT\Service($metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator);
 
@@ -106,8 +110,8 @@ use Articus\DataTransfer as DT;
 			$extractedToError = new DT\Exception\InvalidData(['test' => 123]);
 			$originalTo = $to;
 
-			$fromExtractor->shouldReceive('extract')->with($from)->andReturn($extractedFrom);
-			$toExtractor->shouldReceive('extract')->with($to)->andThrow($extractedToError);
+			$fromExtractor->shouldReceive('extract')->with($from)->once()->andReturn($extractedFrom);
+			$toExtractor->shouldReceive('extract')->with($to)->once()->andThrow($extractedToError);
 
 			$service = new DT\Service($metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator);
 
@@ -134,9 +138,9 @@ use Articus\DataTransfer as DT;
 			$updatedExtractedToError = new DT\Exception\InvalidData(['test' => 123]);
 			$originalTo = $to;
 
-			$fromExtractor->shouldReceive('extract')->with($from)->andReturn($extractedFrom);
-			$toExtractor->shouldReceive('extract')->with($to)->andReturn($extractedTo);
-			$untypedDataHydrator->shouldReceive('hydrate')->andThrow($updatedExtractedToError);
+			$fromExtractor->shouldReceive('extract')->with($from)->once()->andReturn($extractedFrom);
+			$toExtractor->shouldReceive('extract')->with($to)->once()->andReturn($extractedTo);
+			$untypedDataHydrator->shouldReceive('hydrate')->once()->andThrow($updatedExtractedToError);
 
 			$service = new DT\Service($metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator);
 
@@ -164,8 +168,8 @@ use Articus\DataTransfer as DT;
 			$violations = ['test' => 123];
 			$originalTo = $to;
 
-			$fromExtractor->shouldReceive('extract')->with($from)->andReturn($extractedFrom);
-			$toExtractor->shouldReceive('extract')->with($to)->andReturn($extractedTo);
+			$fromExtractor->shouldReceive('extract')->with($from)->once()->andReturn($extractedFrom);
+			$toExtractor->shouldReceive('extract')->with($to)->once()->andReturn($extractedTo);
 			$untypedDataHydrator->shouldReceive('hydrate')->withArgs(
 				function($a, &$b) use (&$extractedFrom, &$extractedTo, &$updatedExtractedTo)
 				{
@@ -177,8 +181,8 @@ use Articus\DataTransfer as DT;
 					}
 					return $result;
 				}
-			);
-			$toValidator->shouldReceive('validate')->with($updatedExtractedTo)->andReturn($violations);
+			)->once();
+			$toValidator->shouldReceive('validate')->with($updatedExtractedTo)->once()->andReturn($violations);
 
 			$service = new DT\Service($metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator);
 
@@ -207,8 +211,8 @@ use Articus\DataTransfer as DT;
 			$updatedToError = new DT\Exception\InvalidData(['test' => 123]);
 			$originalTo = $to;
 
-			$fromExtractor->shouldReceive('extract')->with($from)->andReturn($extractedFrom);
-			$toExtractor->shouldReceive('extract')->with($to)->andReturn($extractedTo);
+			$fromExtractor->shouldReceive('extract')->with($from)->once()->andReturn($extractedFrom);
+			$toExtractor->shouldReceive('extract')->with($to)->once()->andReturn($extractedTo);
 			$untypedDataHydrator->shouldReceive('hydrate')->withArgs(
 				function($a, &$b) use (&$extractedFrom, &$extractedTo, &$updatedExtractedTo)
 				{
@@ -220,9 +224,9 @@ use Articus\DataTransfer as DT;
 					}
 					return $result;
 				}
-			);
-			$toValidator->shouldReceive('validate')->with($updatedExtractedTo)->andReturn($violations);
-			$toHydrator->shouldReceive('hydrate')->andThrow($updatedToError);
+			)->once();
+			$toValidator->shouldReceive('validate')->with($updatedExtractedTo)->once()->andReturn($violations);
+			$toHydrator->shouldReceive('hydrate')->once()->andThrow($updatedToError);
 
 			$service = new DT\Service($metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator);
 
@@ -233,6 +237,10 @@ use Articus\DataTransfer as DT;
 	});
 	\describe('->transferTypedData', function ()
 	{
+		\afterEach(function ()
+		{
+			\Mockery::close();
+		});
 		\it('passes parameters for ->transfer from valid data', function ()
 		{
 			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
@@ -269,10 +277,10 @@ use Articus\DataTransfer as DT;
 					}
 					return $result;
 				}
-			)->andReturn($violations);
-			$service->shouldReceive('getTypedDataStrategy')->with($from, $fromSubset)->andReturn($fromStrategy);
-			$service->shouldReceive('getTypedDataStrategy')->with($to, $toSubset)->andReturn($toStrategy);
-			$service->shouldReceive('getTypedDataValidator')->with($to, $toSubset)->andReturn($toValidator);
+			)->once()->andReturn($violations);
+			$service->shouldReceive('getTypedDataStrategy')->with($from, $fromSubset)->once()->andReturn($fromStrategy);
+			$service->shouldReceive('getTypedDataStrategy')->with($to, $toSubset)->once()->andReturn($toStrategy);
+			$service->shouldReceive('getTypedDataValidator')->with($to, $toSubset)->once()->andReturn($toValidator);
 
 			/** @var DT\Service $service */
 			$transferResult = $service->transferTypedData($from, $to, $fromSubset, $toSubset);
@@ -282,6 +290,10 @@ use Articus\DataTransfer as DT;
 	});
 	\describe('->transferFromTypedData', function ()
 	{
+		\afterEach(function ()
+		{
+			\Mockery::close();
+		});
 		\it('transfers valid data', function ()
 		{
 			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
@@ -297,7 +309,7 @@ use Articus\DataTransfer as DT;
 			$extractedFrom = 3;
 			$updatedTo = 4;
 
-			$fromStrategy->shouldReceive('extract')->with($from)->andReturn($extractedFrom);
+			$fromStrategy->shouldReceive('extract')->with($from)->once()->andReturn($extractedFrom);
 			$untypedDataHydrator->shouldReceive('hydrate')->withArgs(
 				function($a, &$b) use (&$extractedFrom, &$to, &$updatedTo)
 				{
@@ -308,9 +320,9 @@ use Articus\DataTransfer as DT;
 					}
 					return $result;
 				}
-			);
+			)->once();
 			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator])->makePartial();
-			$service->shouldReceive('getTypedDataStrategy')->with($from, $subset)->andReturn($fromStrategy);
+			$service->shouldReceive('getTypedDataStrategy')->with($from, $subset)->once()->andReturn($fromStrategy);
 
 			/** @var DT\Service $service */
 			$transferResult = $service->transferFromTypedData($from, $to, $subset);
@@ -332,9 +344,9 @@ use Articus\DataTransfer as DT;
 			$extractedFromError = new DT\Exception\InvalidData(['test' => 123]);
 			$originalTo = $to;
 
-			$fromStrategy->shouldReceive('extract')->with($from)->andThrow($extractedFromError);
+			$fromStrategy->shouldReceive('extract')->with($from)->once()->andThrow($extractedFromError);
 			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator])->makePartial();
-			$service->shouldReceive('getTypedDataStrategy')->with($from, $subset)->andReturn($fromStrategy);
+			$service->shouldReceive('getTypedDataStrategy')->with($from, $subset)->once()->andReturn($fromStrategy);
 
 			/** @var DT\Service $service */
 			$transferResult = $service->transferFromTypedData($from, $to, $subset);
@@ -357,10 +369,10 @@ use Articus\DataTransfer as DT;
 			$updatedToError = new DT\Exception\InvalidData(['test' => 123]);
 			$originalTo = $to;
 
-			$fromStrategy->shouldReceive('extract')->with($from)->andReturn($extractedFrom);
-			$untypedDataHydrator->shouldReceive('hydrate')->andThrow($updatedToError);
+			$fromStrategy->shouldReceive('extract')->with($from)->once()->andReturn($extractedFrom);
+			$untypedDataHydrator->shouldReceive('hydrate')->once()->andThrow($updatedToError);
 			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator])->makePartial();
-			$service->shouldReceive('getTypedDataStrategy')->with($from, $subset)->andReturn($fromStrategy);
+			$service->shouldReceive('getTypedDataStrategy')->with($from, $subset)->once()->andReturn($fromStrategy);
 
 			/** @var DT\Service $service */
 			$transferResult = $service->transferFromTypedData($from, $to, $subset);
@@ -370,6 +382,10 @@ use Articus\DataTransfer as DT;
 	});
 	\describe('->transferToTypedData', function ()
 	{
+		\afterEach(function ()
+		{
+			\Mockery::close();
+		});
 		\it('transfers valid data', function ()
 		{
 			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
@@ -388,7 +404,7 @@ use Articus\DataTransfer as DT;
 			$violations = [];
 			$updatedTo = 5;
 
-			$toStrategy->shouldReceive('extract')->with($to)->andReturn($extractedTo);
+			$toStrategy->shouldReceive('extract')->with($to)->once()->andReturn($extractedTo);
 			$untypedDataHydrator->shouldReceive('hydrate')->withArgs(
 				function($a, &$b) use (&$from, &$extractedTo, &$updatedExtractedTo)
 				{
@@ -399,8 +415,8 @@ use Articus\DataTransfer as DT;
 					}
 					return $result;
 				}
-			);
-			$toValidator->shouldReceive('validate')->with($updatedExtractedTo)->andReturn($violations);
+			)->once();
+			$toValidator->shouldReceive('validate')->with($updatedExtractedTo)->once()->andReturn($violations);
 			$toStrategy->shouldReceive('hydrate')->withArgs(
 				function($a, &$b) use (&$from, &$to, &$updatedTo)
 				{
@@ -411,11 +427,11 @@ use Articus\DataTransfer as DT;
 					}
 					return $result;
 				}
-			);
+			)->once();
 
 			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator])->makePartial();
-			$service->shouldReceive('getTypedDataStrategy')->with($to, $subset)->andReturn($toStrategy);
-			$service->shouldReceive('getTypedDataValidator')->with($to, $subset)->andReturn($toValidator);
+			$service->shouldReceive('getTypedDataStrategy')->with($to, $subset)->once()->andReturn($toStrategy);
+			$service->shouldReceive('getTypedDataValidator')->with($to, $subset)->once()->andReturn($toValidator);
 
 			/** @var DT\Service $service */
 			$transferResult = $service->transferToTypedData($from, $to, $subset);
@@ -438,11 +454,11 @@ use Articus\DataTransfer as DT;
 			$extractedToError = new DT\Exception\InvalidData(['test' => 123]);
 			$originalTo = $to;
 
-			$toStrategy->shouldReceive('extract')->with($to)->andThrow($extractedToError);
+			$toStrategy->shouldReceive('extract')->with($to)->once()->andThrow($extractedToError);
 
 			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator])->makePartial();
-			$service->shouldReceive('getTypedDataStrategy')->with($to, $subset)->andReturn($toStrategy);
-			$service->shouldReceive('getTypedDataValidator')->with($to, $subset)->andReturn($toValidator);
+			$service->shouldReceive('getTypedDataStrategy')->with($to, $subset)->once()->andReturn($toStrategy);
+			$service->shouldReceive('getTypedDataValidator')->with($to, $subset)->once()->andReturn($toValidator);
 
 			/** @var DT\Service $service */
 			$transferResult = $service->transferToTypedData($from, $to, $subset);
@@ -466,12 +482,12 @@ use Articus\DataTransfer as DT;
 			$updatedExtractedToError = new DT\Exception\InvalidData(['test' => 123]);
 			$originalTo = $to;
 
-			$toStrategy->shouldReceive('extract')->with($to)->andReturn($extractedTo);
-			$untypedDataHydrator->shouldReceive('hydrate')->andThrow($updatedExtractedToError);
+			$toStrategy->shouldReceive('extract')->with($to)->once()->andReturn($extractedTo);
+			$untypedDataHydrator->shouldReceive('hydrate')->once()->andThrow($updatedExtractedToError);
 
 			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator])->makePartial();
-			$service->shouldReceive('getTypedDataStrategy')->with($to, $subset)->andReturn($toStrategy);
-			$service->shouldReceive('getTypedDataValidator')->with($to, $subset)->andReturn($toValidator);
+			$service->shouldReceive('getTypedDataStrategy')->with($to, $subset)->once()->andReturn($toStrategy);
+			$service->shouldReceive('getTypedDataValidator')->with($to, $subset)->once()->andReturn($toValidator);
 
 			/** @var DT\Service $service */
 			$transferResult = $service->transferToTypedData($from, $to, $subset);
@@ -496,7 +512,7 @@ use Articus\DataTransfer as DT;
 			$violations = ['test' => 123];
 			$originalTo = $to;
 
-			$toStrategy->shouldReceive('extract')->with($to)->andReturn($extractedTo);
+			$toStrategy->shouldReceive('extract')->with($to)->once()->andReturn($extractedTo);
 			$untypedDataHydrator->shouldReceive('hydrate')->withArgs(
 				function($a, &$b) use (&$from, &$extractedTo, &$updatedExtractedTo)
 				{
@@ -507,12 +523,12 @@ use Articus\DataTransfer as DT;
 					}
 					return $result;
 				}
-			);
-			$toValidator->shouldReceive('validate')->with($updatedExtractedTo)->andReturn($violations);
+			)->once();
+			$toValidator->shouldReceive('validate')->with($updatedExtractedTo)->once()->andReturn($violations);
 
 			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator])->makePartial();
-			$service->shouldReceive('getTypedDataStrategy')->with($to, $subset)->andReturn($toStrategy);
-			$service->shouldReceive('getTypedDataValidator')->with($to, $subset)->andReturn($toValidator);
+			$service->shouldReceive('getTypedDataStrategy')->with($to, $subset)->once()->andReturn($toStrategy);
+			$service->shouldReceive('getTypedDataValidator')->with($to, $subset)->once()->andReturn($toValidator);
 
 			/** @var DT\Service $service */
 			$transferResult = $service->transferToTypedData($from, $to, $subset);
@@ -538,7 +554,7 @@ use Articus\DataTransfer as DT;
 			$updatedToError = new DT\Exception\InvalidData(['test' => 123]);
 			$originalTo = $to;
 
-			$toStrategy->shouldReceive('extract')->with($to)->andReturn($extractedTo);
+			$toStrategy->shouldReceive('extract')->with($to)->once()->andReturn($extractedTo);
 			$untypedDataHydrator->shouldReceive('hydrate')->withArgs(
 				function($a, &$b) use (&$from, &$extractedTo, &$updatedExtractedTo)
 				{
@@ -549,13 +565,13 @@ use Articus\DataTransfer as DT;
 					}
 					return $result;
 				}
-			);
-			$toValidator->shouldReceive('validate')->with($updatedExtractedTo)->andReturn($violations);
-			$toStrategy->shouldReceive('hydrate')->andThrow($updatedToError);
+			)->once();
+			$toValidator->shouldReceive('validate')->with($updatedExtractedTo)->once()->andReturn($violations);
+			$toStrategy->shouldReceive('hydrate')->once()->andThrow($updatedToError);
 
 			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator])->makePartial();
-			$service->shouldReceive('getTypedDataStrategy')->with($to, $subset)->andReturn($toStrategy);
-			$service->shouldReceive('getTypedDataValidator')->with($to, $subset)->andReturn($toValidator);
+			$service->shouldReceive('getTypedDataStrategy')->with($to, $subset)->once()->andReturn($toStrategy);
+			$service->shouldReceive('getTypedDataValidator')->with($to, $subset)->once()->andReturn($toValidator);
 
 			/** @var DT\Service $service */
 			$transferResult = $service->transferToTypedData($from, $to, $subset);
@@ -565,6 +581,10 @@ use Articus\DataTransfer as DT;
 	});
 	\describe('->extractFromTypedData', function ()
 	{
+		\afterEach(function ()
+		{
+			\Mockery::close();
+		});
 		\it('extracts valid data', function ()
 		{
 			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
@@ -578,9 +598,9 @@ use Articus\DataTransfer as DT;
 			$subset = 'test';
 			$extractedFrom = 1;
 
-			$fromStrategy->shouldReceive('extract')->with($from)->andReturn($extractedFrom);
+			$fromStrategy->shouldReceive('extract')->with($from)->once()->andReturn($extractedFrom);
 			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator])->makePartial();
-			$service->shouldReceive('getTypedDataStrategy')->with($from, $subset)->andReturn($fromStrategy);
+			$service->shouldReceive('getTypedDataStrategy')->with($from, $subset)->once()->andReturn($fromStrategy);
 
 			/** @var DT\Service $service */
 			$transferResult = $service->extractFromTypedData($from, $subset);

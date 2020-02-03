@@ -24,13 +24,19 @@ class MapAccessor
 	protected $isStdClass;
 
 	/**
+	 * @var bool
+	 */
+	protected $isArrayAccess;
+
+	/**
 	 * @param array|\stdClass|\ArrayAccess $data possible key-value map you want to access
 	 */
 	public function __construct(&$data)
 	{
 		$this->data = &$data;
-		$this->isArray = (\is_array($data) || ($data instanceof \ArrayAccess));
+		$this->isArray = \is_array($data);
 		$this->isStdClass = ($data instanceof \stdClass);
+		$this->isArrayAccess = ($data instanceof \ArrayAccess);
 	}
 
 	/**
@@ -38,7 +44,20 @@ class MapAccessor
 	 */
 	public function accessible(): bool
 	{
-		return ($this->isArray || $this->isStdClass);
+		return ($this->isArray || $this->isStdClass || $this->isArrayAccess);
+	}
+
+	/**
+	 * @param string $key
+	 * @return bool
+	 */
+	public function has(string $key): bool
+	{
+		return (
+			($this->isArray && \array_key_exists($key, $this->data))
+			|| ($this->isStdClass && \property_exists($this->data, $key))
+			|| ($this->isArrayAccess && $this->data->offsetExists($key))
+		);
 	}
 
 	/**
@@ -57,6 +76,10 @@ class MapAccessor
 		{
 			$result = $this->data->{$key} ?? $default;
 		}
+		elseif ($this->isArrayAccess)
+		{
+			$result = $this->data->offsetGet($key) ?? $default;
+		}
 		return $result;
 	}
 
@@ -73,6 +96,10 @@ class MapAccessor
 		elseif ($this->isStdClass)
 		{
 			$this->data->{$key} = $value;
+		}
+		elseif ($this->isArrayAccess)
+		{
+			$this->data->offsetSet($key, $value);
 		}
 	}
 }

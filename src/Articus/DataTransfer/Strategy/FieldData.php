@@ -98,17 +98,20 @@ class FieldData implements StrategyInterface
 		foreach ($this->typeFields as [$fieldName, $getter, $setter, $strategy])
 		{
 			/** @var StrategyInterface $strategy */
-			try
+			if ($map->has($fieldName))
 			{
-				$fieldValue = $map->get($fieldName);
-				$rawValue = $object->get($getter);
-				$strategy->hydrate($fieldValue, $rawValue);
-				$object->set($setter, $rawValue);
-			}
-			catch (InvalidData $e)
-			{
-				$violations = [Validator\FieldData::INVALID_INNER => [$fieldName => $e->getViolations()]];
-				throw new InvalidData($violations, $e);
+				try
+				{
+					$rawValue = $object->get($getter);
+					$fieldValue = $map->get($fieldName);
+					$strategy->hydrate($fieldValue, $rawValue);
+					$object->set($setter, $rawValue);
+				}
+				catch (InvalidData $e)
+				{
+					$violations = [Validator\FieldData::INVALID_INNER => [$fieldName => $e->getViolations()]];
+					throw new InvalidData($violations, $e);
+				}
 			}
 		}
 	}

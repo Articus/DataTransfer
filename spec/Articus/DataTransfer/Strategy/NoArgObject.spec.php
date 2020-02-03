@@ -10,6 +10,10 @@ use Articus\DataTransfer as DT;
 {
 	\describe('->hydrate', function ()
 	{
+		\afterEach(function ()
+		{
+			\Mockery::close();
+		});
 		\it('hydrates from null', function ()
 		{
 			$source = null;
@@ -37,7 +41,7 @@ use Articus\DataTransfer as DT;
 					}
 					return $result;
 				}
-			);
+			)->once();
 
 			$strategy = new DT\Strategy\NoArgObject($typeStrategy, Example\DTO\Data::class);
 			$strategy->hydrate($source, $destination);
@@ -59,7 +63,7 @@ use Articus\DataTransfer as DT;
 					}
 					return $result;
 				}
-			);
+			)->once();
 
 			$strategy = new DT\Strategy\NoArgObject($typeStrategy, Example\DTO\Data::class);
 			$strategy->hydrate($source, $destination);

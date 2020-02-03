@@ -10,6 +10,10 @@ use Articus\DataTransfer as DT;
 {
 	\describe('->hydrate', function ()
 	{
+		\afterEach(function ()
+		{
+			\Mockery::close();
+		});
 		\it('hydrates from null', function ()
 		{
 			$source = null;
@@ -37,7 +41,7 @@ use Articus\DataTransfer as DT;
 					}
 					return $result;
 				}
-			);
+			)->once();
 
 			$strategy = new DT\Strategy\NoArgObjectList($typeStrategy, Example\DTO\Data::class);
 			$strategy->hydrate([$sourceItem], $destination);
@@ -66,6 +70,7 @@ use Articus\DataTransfer as DT;
 			$typeStrategy = \mock(DT\Strategy\StrategyInterface::class);
 			$typeStrategy->shouldReceive('hydrate')
 				->with($sourceItem, \Mockery::type(Example\DTO\Data::class))
+				->once()
 				->andThrow($innerError)
 			;
 			$error = new DT\Exception\InvalidData([DT\Validator\Collection::INVALID_INNER => [$violations]], $innerError);
