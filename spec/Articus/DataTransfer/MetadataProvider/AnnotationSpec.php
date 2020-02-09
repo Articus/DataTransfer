@@ -6,7 +6,7 @@ namespace spec\Articus\DataTransfer\MetadataProvider;
 use spec\Example;
 use Articus\DataTransfer as DT;
 use PhpSpec\ObjectBehavior;
-use Zend\Cache\Storage\StorageInterface as CacheStorage;
+use Doctrine\Common\Cache\Cache as CacheStorage;
 
 /**
  * TODO add expected text for LogicException's
@@ -18,12 +18,11 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_throws_if_there_is_no_class_metadata(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\NoClassMetadata::class;
-		$cacheKey = \str_replace('\\', '_', $className);
 		$subset = '';
 		$metadata = [[], [], [], [], []];
 
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledTimes(5)->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledTimes(5);
+		$cacheStorage->fetch($className)->shouldBeCalledTimes(5)->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledTimes(5);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
@@ -36,7 +35,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_cached_class_strategy(CacheStorage $cacheStorage)
 	{
 		$className = 'test\Class';
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = 'testSubset';
 		$strategy = ['testStrategy', ['test' => 123]];
 		$metadata = [
@@ -46,7 +44,7 @@ class AnnotationSpec extends ObjectBehavior
 			[],
 			[],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn($metadata);
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn($metadata);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassStrategy($className, $subset)->shouldBe($strategy);
@@ -55,7 +53,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_class_strategy(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassStrategy::class;
-		$cacheKey = \str_replace('\\', '_', $className);
 		$subset = '';
 		$strategy = ['testStrategy', null];
 		$metadata = [
@@ -66,8 +63,8 @@ class AnnotationSpec extends ObjectBehavior
 			[],
 		];
 
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassStrategy($className, $subset)->shouldBe($strategy);
@@ -76,7 +73,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_class_strategy_with_options(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassStrategyWithOptions::class;
-		$cacheKey = \str_replace('\\', '_', $className);
 		$subset = '';
 		$strategy = ['testStrategy', ['test' => 123]];
 		$metadata = [
@@ -87,8 +83,8 @@ class AnnotationSpec extends ObjectBehavior
 			[],
 		];
 
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassStrategy($className, $subset)->shouldBe($strategy);
@@ -97,7 +93,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_class_strategy_with_specified_subset(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassStrategiesWithSubsets::class;
-		$cacheKey = \str_replace('\\', '_', $className);
 		$subset1 = 'testSubset1';
 		$strategy1 = ['testStrategy1', null];
 		$subset2 = 'testSubset2';
@@ -110,8 +105,8 @@ class AnnotationSpec extends ObjectBehavior
 			[],
 		];
 
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassStrategy($className, $subset1)->shouldBe($strategy1);
@@ -120,7 +115,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_throws_if_there_is_no_class_strategy_with_specified_subset(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassStrategy::class;
-		$cacheKey = \str_replace('\\', '_', $className);
 		$subset = '';
 		$metadata = [
 			[$subset => ['testStrategy', null]],
@@ -131,8 +125,8 @@ class AnnotationSpec extends ObjectBehavior
 		];
 		$unknownSubset = 'someSubset';
 
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $unknownSubset]);
@@ -141,10 +135,9 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_throws_if_there_are_several_class_strategies_with_same_subset(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassStrategiesWithSameSubset::class;
-		$cacheKey = \str_replace('\\', '_', $className);
 		$subset = 'testSubset';
 
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledTimes(2)->willReturn(null);
+		$cacheStorage->fetch($className)->shouldBeCalledTimes(2)->willReturn(null);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
@@ -154,7 +147,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_cached_class_validator(CacheStorage $cacheStorage)
 	{
 		$className = 'test\Class';
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = 'testSubset';
 		$validator = ['testValidator', ['test' => 123]];
 		$metadata = [
@@ -164,7 +156,7 @@ class AnnotationSpec extends ObjectBehavior
 			[],
 			[],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn($metadata);
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn($metadata);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassValidator($className, $subset)->shouldBe($validator);
@@ -173,7 +165,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_empty_class_validator(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassStrategy::class;
-		$cacheKey = \str_replace('\\', '_', $className);
 		$subset = '';
 		$validator = [DT\Validator\Chain::class, ['links' => []]];
 		$metadata = [
@@ -184,8 +175,8 @@ class AnnotationSpec extends ObjectBehavior
 			[],
 		];
 
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassValidator($className, $subset)->shouldBe($validator);
@@ -194,7 +185,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_class_validator(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassValidator::class;
-		$cacheKey = \str_replace('\\', '_', $className);
 		$subset = '';
 		$validator = [DT\Validator\Chain::class, ['links' => [['testValidator', null, false]]]];
 		$metadata = [
@@ -205,8 +195,8 @@ class AnnotationSpec extends ObjectBehavior
 			[],
 		];
 
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassValidator($className, $subset)->shouldBe($validator);
@@ -215,7 +205,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_class_validator_with_options(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassValidatorWithOptions::class;
-		$cacheKey = \str_replace('\\', '_', $className);
 		$subset = '';
 		$validator = [DT\Validator\Chain::class, ['links' => [['testValidator', ['test' => 123], false]]]];
 		$metadata = [
@@ -226,8 +215,8 @@ class AnnotationSpec extends ObjectBehavior
 			[],
 		];
 
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassValidator($className, $subset)->shouldBe($validator);
@@ -236,7 +225,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_blocking_class_validator(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\BlockingClassValidator::class;
-		$cacheKey = \str_replace('\\', '_', $className);
 		$subset = '';
 		$validator = [DT\Validator\Chain::class, ['links' => [['testValidator', null, true]]]];
 		$metadata = [
@@ -247,8 +235,8 @@ class AnnotationSpec extends ObjectBehavior
 			[],
 		];
 
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassValidator($className, $subset)->shouldBe($validator);
@@ -257,7 +245,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_class_validator_with_specified_subset(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassValidatorsWithSubsets::class;
-		$cacheKey = \str_replace('\\', '_', $className);
 		$subset1 = 'testSubset1';
 		$strategy1 = ['testStrategy1', null];
 		$validator1 = [DT\Validator\Chain::class, ['links' => [['testValidator1', null, false]]]];
@@ -272,8 +259,8 @@ class AnnotationSpec extends ObjectBehavior
 			[],
 		];
 
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassValidator($className, $subset1)->shouldBe($validator1);
@@ -282,7 +269,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_class_validators_with_same_subset_sorted_according_priority(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassValidatorsWithSameSubset::class;
-		$cacheKey = \str_replace('\\', '_', $className);
 		$subset = '';
 		$strategy = ['testStrategy', null];
 		$validator = [DT\Validator\Chain::class, ['links' => [
@@ -302,8 +288,8 @@ class AnnotationSpec extends ObjectBehavior
 			[],
 		];
 
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassValidator($className, $subset)->shouldBe($validator);
@@ -312,10 +298,9 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_throws_on_class_validator_without_class_strategy(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassValidatorWithoutClassStrategy::class;
-		$cacheKey = \str_replace('\\', '_', $className);
 		$subset = '';
 
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledTimes(2)->willReturn(null);
+		$cacheStorage->fetch($className)->shouldBeCalledTimes(2)->willReturn(null);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
@@ -325,7 +310,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_cached_class_field(CacheStorage $cacheStorage)
 	{
 		$className = 'test\Class';
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = 'testSubset';
 		$fields = [['testField', ['test', false], ['setTest', true]]];
 		$metadata = [
@@ -335,7 +319,7 @@ class AnnotationSpec extends ObjectBehavior
 			[],
 			[],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn($metadata);
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn($metadata);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
@@ -344,7 +328,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_class_field_for_public_property(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\PublicClassField::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
 		$field = [$fieldName, ['test', false], ['test', false]];
@@ -358,8 +341,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
 			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
@@ -368,7 +351,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_class_field_for_protected_property(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ProtectedClassField::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
 		$field = [$fieldName, ['getTest', true], ['setTest', true]];
@@ -382,8 +364,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
 			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
@@ -392,7 +374,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_class_field_for_private_property(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\PrivateClassField::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
 		$field = [$fieldName, ['getTest', true], ['setTest', true]];
@@ -406,8 +387,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
 			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
@@ -416,7 +397,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_class_field_with_name(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassFieldWithName::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'name';
 		$field = [$fieldName, ['test', false], ['test', false]];
@@ -430,8 +410,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
 			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
@@ -440,10 +420,9 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_throws_on_class_fields_with_same_name(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassFieldsWithSameName::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledTimes(5)->willReturn(null);
+		$cacheStorage->fetch($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
@@ -456,7 +435,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_nullable_class_field(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\NullableClassField::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
 		$field = [$fieldName, ['test', false], ['test', false]];
@@ -470,8 +448,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
 			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => []]]]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
@@ -480,7 +458,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_class_field_with_getter(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassFieldWithGetter::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
 		$field = [$fieldName, ['getName', true], ['test', false]];
@@ -494,8 +471,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
 			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
@@ -504,7 +481,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_class_field_without_getter(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassFieldWithoutGetter::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
 		$field = [$fieldName, null, ['test', false]];
@@ -518,8 +494,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
 			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
@@ -528,10 +504,9 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_throws_on_class_field_with_absent_getter(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassFieldWithAbsentGetter::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledTimes(5)->willReturn(null);
+		$cacheStorage->fetch($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
@@ -544,10 +519,9 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_throws_on_class_field_with_nonpublic_getter(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassFieldWithNonpublicGetter::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledTimes(5)->willReturn(null);
+		$cacheStorage->fetch($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
@@ -560,10 +534,9 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_throws_on_class_field_with_getter_that_requires_parameter(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassFieldWithGetterThatRequiresParameter::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledTimes(5)->willReturn(null);
+		$cacheStorage->fetch($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
@@ -576,7 +549,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_class_field_with_setter(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassFieldWithSetter::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
 		$field = [$fieldName, ['test', false], ['setName', true]];
@@ -590,8 +562,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
 			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
@@ -600,7 +572,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_class_field_without_setter(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassFieldWithoutSetter::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
 		$field = [$fieldName, ['test', false], null];
@@ -614,8 +585,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
 			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
@@ -624,10 +595,9 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_throws_on_class_field_with_absent_setter(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassFieldWithAbsentSetter::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledTimes(5)->willReturn(null);
+		$cacheStorage->fetch($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
@@ -640,10 +610,9 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_throws_on_class_field_with_nonpublic_setter(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassFieldWithNonpublicSetter::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledTimes(5)->willReturn(null);
+		$cacheStorage->fetch($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
@@ -656,10 +625,9 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_throws_on_class_field_with_setter_that_has_no_parameters(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassFieldWithSetterThatHasNoParameters::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledTimes(5)->willReturn(null);
+		$cacheStorage->fetch($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
@@ -672,10 +640,9 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_throws_on_class_field_with_setter_that_requires_two_parameters(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassFieldWithSetterThatRequiresTwoParameters::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledTimes(5)->willReturn(null);
+		$cacheStorage->fetch($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
@@ -688,7 +655,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_class_field_with_specified_subset(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassFieldWithSubsets::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset1 = 'subset1';
 		$subset2 = 'subset2';
 		$fieldName1 = 'test1';
@@ -723,8 +689,8 @@ class AnnotationSpec extends ObjectBehavior
 				$subset2 => [$fieldName2 => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]],
 			],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassFields($className, $subset1)->shouldIterateAs($fields1);
@@ -733,10 +699,9 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_throws_if_property_has_several_class_fields_with_same_subset(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassFieldsWithSameSubsetForSameProperty::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledTimes(5)->willReturn(null);
+		$cacheStorage->fetch($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
@@ -749,7 +714,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_cached_field_strategy(CacheStorage $cacheStorage)
 	{
 		$className = 'test\Class';
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = 'testSubset';
 		$fieldName = 'testField';
 		$fieldStrategy = ['testStrategy', ['test' => 123]];
@@ -760,7 +724,7 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => $fieldStrategy]],
 			[],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn($metadata);
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn($metadata);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getFieldStrategy($className, $subset, $fieldName)->shouldBe($fieldStrategy);
@@ -769,7 +733,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_default_field_strategy(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\PublicClassField::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
 		$field = [$fieldName, ['test', false], ['test', false]];
@@ -783,8 +746,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => $fieldStrategy]],
 			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getFieldStrategy($className, $subset, $fieldName)->shouldBe($fieldStrategy);
@@ -793,7 +756,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_field_strategy(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\FieldStrategy::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'testField';
 		$field = [$fieldName, ['testField', false], ['testField', false]];
@@ -807,8 +769,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => $fieldStrategy]],
 			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getFieldStrategy($className, $subset, $fieldName)->shouldBe($fieldStrategy);
@@ -817,7 +779,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_field_strategy_with_options(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\FieldStrategyWithOptions::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'testField';
 		$field = [$fieldName, ['testField', false], ['testField', false]];
@@ -831,8 +792,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => $fieldStrategy]],
 			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getFieldStrategy($className, $subset, $fieldName)->shouldBe($fieldStrategy);
@@ -841,7 +802,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_field_strategy_with_specified_subset(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\FieldStrategiesWithSubsets::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset1 = 'subset1';
 		$subset2 = 'subset2';
 		$fieldName = 'testField';
@@ -874,8 +834,8 @@ class AnnotationSpec extends ObjectBehavior
 				$subset2 => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]],
 			],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getFieldStrategy($className, $subset1, $fieldName)->shouldBe($fieldStrategy1);
@@ -884,10 +844,9 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_throws_if_property_has_several_field_strategies_with_same_subset(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\FieldStrategiesWithSameSubsetForSameProperty::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledTimes(5)->willReturn(null);
+		$cacheStorage->fetch($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
@@ -900,10 +859,9 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_throws_if_property_has_field_strategy_but_is_not_class_field(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\FieldStrategyWithoutClassField::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'testField';
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledTimes(5)->willReturn(null);
+		$cacheStorage->fetch($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
@@ -916,7 +874,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_cached_field_validator(CacheStorage $cacheStorage)
 	{
 		$className = 'test\Class';
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = 'testSubset';
 		$fieldName = 'testField';
 		$fieldValidator = ['testValidator', ['test' => 123]];
@@ -927,7 +884,7 @@ class AnnotationSpec extends ObjectBehavior
 			[],
 			[$subset => [$fieldName => $fieldValidator]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn($metadata);
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn($metadata);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getFieldValidator($className, $subset, $fieldName)->shouldBe($fieldValidator);
@@ -936,7 +893,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_default_field_validator_for_not_nullable_field(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\PublicClassField::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
 		$field = [$fieldName, ['test', false], ['test', false]];
@@ -950,8 +906,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
 			[$subset => [$fieldName => $fieldValidator]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getFieldValidator($className, $subset, $fieldName)->shouldBe($fieldValidator);
@@ -960,7 +916,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_empty_field_validator_for_nullable_field(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\NullableClassField::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
 		$field = [$fieldName, ['test', false], ['test', false]];
@@ -974,8 +929,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
 			[$subset => [$fieldName => $fieldValidator]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getFieldValidator($className, $subset, $fieldName)->shouldBe($fieldValidator);
@@ -984,7 +939,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_field_validator(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\FieldValidator::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'testField';
 		$field = [$fieldName, ['testField', false], ['testField', false]];
@@ -1001,8 +955,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
 			[$subset => [$fieldName => $fieldValidator]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getFieldValidator($className, $subset, $fieldName)->shouldBe($fieldValidator);
@@ -1011,7 +965,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_field_validator_with_options(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\FieldValidatorWithOptions::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'testField';
 		$field = [$fieldName, ['testField', false], ['testField', false]];
@@ -1028,8 +981,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
 			[$subset => [$fieldName => $fieldValidator]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getFieldValidator($className, $subset, $fieldName)->shouldBe($fieldValidator);
@@ -1038,7 +991,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_blocking_field_validator(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\BlockingFieldValidator::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'testField';
 		$field = [$fieldName, ['testField', false], ['testField', false]];
@@ -1055,8 +1007,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
 			[$subset => [$fieldName => $fieldValidator]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getFieldValidator($className, $subset, $fieldName)->shouldBe($fieldValidator);
@@ -1065,7 +1017,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_field_validator_with_specified_subset(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\FieldValidatorsWithSubsets::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset1 = 'subset1';
 		$subset2 = 'subset2';
 		$fieldName = 'testField';
@@ -1104,8 +1055,8 @@ class AnnotationSpec extends ObjectBehavior
 				$subset2 => [$fieldName => $fieldValidator2],
 			],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getFieldValidator($className, $subset1, $fieldName)->shouldBe($fieldValidator1);
@@ -1114,7 +1065,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_field_validators_with_same_subset_sorted_according_priority(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\FieldValidatorsWithSameSubset::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'testField';
 		$field = [$fieldName, ['testField', false], ['testField', false]];
@@ -1137,8 +1087,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
 			[$subset => [$fieldName => $fieldValidator]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getFieldValidator($className, $subset, $fieldName)->shouldBe($fieldValidator);
@@ -1147,10 +1097,9 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_throws_if_property_has_field_validator_but_is_not_class_field(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\FieldValidatorWithoutClassField::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'testField';
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledTimes(5)->willReturn(null);
+		$cacheStorage->fetch($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
@@ -1163,7 +1112,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_default_class_strategy_if_there_is_class_field(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\PublicClassField::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
 		$strategy = [DT\Strategy\FieldData::class, ['type' => $className, 'subset' => $subset]];
@@ -1176,8 +1124,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
 			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassStrategy($className, $subset)->shouldBe($strategy);
@@ -1186,7 +1134,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_default_class_validator_if_there_is_class_field(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\PublicClassField::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
 		$validator = [DT\Validator\Chain::class, ['links' => [
@@ -1199,8 +1146,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
 			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassValidator($className, $subset)->shouldBe($validator);
@@ -1209,10 +1156,9 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_throws_if_there_is_class_strategy_and_there_is_class_field(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassFieldWithClassStrategy::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledTimes(5)->willReturn(null);
+		$cacheStorage->fetch($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cacheStorage);
 		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
@@ -1225,7 +1171,6 @@ class AnnotationSpec extends ObjectBehavior
 	public function it_returns_class_validators_and_default_class_validator_if_there_is_class_field(CacheStorage $cacheStorage)
 	{
 		$className = Example\DTO\ClassFieldWithClassValidator::class;
-		$cacheKey = \str_replace('\\', '_', $className);;
 		$subset = '';
 		$fieldName = 'test';
 		$validator = [DT\Validator\Chain::class, ['links' => [
@@ -1240,8 +1185,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
 			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
 		];
-		$cacheStorage->getItem($cacheKey)->shouldBeCalledOnce()->willReturn(null);
-		$cacheStorage->setItem($cacheKey, $metadata)->shouldBeCalledOnce();
+		$cacheStorage->fetch($className)->shouldBeCalledOnce()->willReturn(null);
+		$cacheStorage->save($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cacheStorage);
 		$this->getClassValidator($className, $subset)->shouldBe($validator);

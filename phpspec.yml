@@ -2,6 +2,7 @@ bootstrap: spec/bootstrap.php
 formatter.name: pretty
 matchers:
   - spec\Matcher\PropertyValue
+  - spec\Matcher\PropertyValueType
 extensions:
   FriendsOfPhpSpec\PhpSpec\CodeCoverage\CodeCoverageExtension:
     format:

@@ -5,9 +5,10 @@ namespace Articus\DataTransfer\MetadataProvider\Factory;
 
 use Articus\DataTransfer\ConfigAwareFactory;
 use Articus\DataTransfer\MetadataProvider;
+use Articus\DataTransfer\Cache;
+use Doctrine\Common\Cache\Cache as CacheStorage;
+use Doctrine\Common\Cache\VoidCache;
 use Interop\Container\ContainerInterface;
-use Zend\Cache\StorageFactory;
-use Zend\Cache\Storage\StorageInterface as CacheStorage;
 
 /**
  * Default factory for MetadataProvider\Annotation
@@ -15,12 +16,6 @@ use Zend\Cache\Storage\StorageInterface as CacheStorage;
  */
 class Annotation extends ConfigAwareFactory
 {
-	protected const DEFAULT_CONFIG = [
-		'cache' => [
-			'adapter' => 'blackhole',
-		],
-	];
-
 	public function __construct(string $configKey = MetadataProvider\Annotation::class)
 	{
 		parent::__construct($configKey);
@@ -28,8 +23,8 @@ class Annotation extends ConfigAwareFactory
 
 	public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
 	{
-		$config = \array_merge(self::DEFAULT_CONFIG, $this->getServiceConfig($container), $options ?? []);
-		$cacheStorage = $this->getCacheStorage($container, $config['cache']);
+		$config = \array_merge($this->getServiceConfig($container), $options ?? []);
+		$cacheStorage = $this->getCacheStorage($container, $config['cache'] ?? null);
 		return new MetadataProvider\Annotation($cacheStorage);
 	}
 
@@ -38,10 +33,12 @@ class Annotation extends ConfigAwareFactory
 		$result = null;
 		switch (true)
 		{
-			case empty($options):
-				throw new \LogicException('DataTransfer metadata provider cache storage is not configured.');
+			case ($options === null):
+				$result = new VoidCache();
+				break;
 			case \is_array($options):
-				$result = StorageFactory::factory($options);
+				$result = new Cache\Annotation($options['directory'] ?? '');
+				$result->setNamespace($this->configKey);
 				break;
 			case (\is_string($options) && $container->has($options)):
 				$result = $container->get($options);

@@ -9,8 +9,8 @@ use Articus\DataTransfer\FieldMetadataProviderInterface;
 use Articus\DataTransfer\Strategy;
 use Articus\DataTransfer\Validator;
 use Doctrine\Common\Annotations\AnnotationReader;
-use Zend\Cache\Storage\StorageInterface as CacheStorage;
-use Zend\Stdlib\FastPriorityQueue;
+use Doctrine\Common\Cache\Cache as CacheStorage;
+use Laminas\Stdlib\FastPriorityQueue;
 
 /**
  * Provider that retrieves metadata from class annotations
@@ -147,12 +147,11 @@ class Annotation implements ClassMetadataProviderInterface, FieldMetadataProvide
 	{
 		if (empty($this->classStrategies[$className]))
 		{
-			$cacheKey = \str_replace('\\', '_', $className);
-			$metadata = $this->cacheStorage->getItem($cacheKey);
+			$metadata = $this->cacheStorage->fetch($className);
 			if (empty($metadata))
 			{
 				$metadata = $this->loadMetadata($className);
-				$this->cacheStorage->setItem($cacheKey, $metadata);
+				$this->cacheStorage->save($className, $metadata);
 			}
 			[
 				$this->classStrategies[$className],

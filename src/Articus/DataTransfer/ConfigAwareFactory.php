@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Articus\DataTransfer;
 
 use Interop\Container\ContainerInterface;
-use Zend\ServiceManager\Factory\FactoryInterface;
+use Laminas\ServiceManager\Factory\FactoryInterface;
 
 /**
  * Base class for factories that require configuration from Config service

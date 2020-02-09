@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace Articus\DataTransfer\Validator;
 
-use Zend\ServiceManager\AbstractPluginManager;
-use Zend\ServiceManager\Factory\InvokableFactory;
+use Laminas\ServiceManager\AbstractPluginManager;
+use Laminas\ServiceManager\Factory\InvokableFactory;
 
 class PluginManager extends AbstractPluginManager
 {

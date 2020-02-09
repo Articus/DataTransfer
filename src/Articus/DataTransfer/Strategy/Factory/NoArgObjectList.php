@@ -6,7 +6,7 @@ namespace Articus\DataTransfer\Strategy\Factory;
 use Articus\DataTransfer\ClassMetadataProviderInterface;
 use Articus\DataTransfer\Strategy;
 use Interop\Container\ContainerInterface;
-use Zend\ServiceManager\Factory\FactoryInterface;
+use Laminas\ServiceManager\Factory\FactoryInterface;
 
 /**
  * Default factory for Strategy\NoArgObjectList

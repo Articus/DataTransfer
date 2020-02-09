@@ -6,15 +6,15 @@ namespace spec\Articus\DataTransfer\Validator\Factory;
 use Articus\DataTransfer as DT;
 use Interop\Container\ContainerInterface;
 use PhpSpec\ObjectBehavior;
-use Zend\Validator\ValidatorInterface as ZendValidator;
-use Zend\Validator\ValidatorPluginManager;
+use Laminas\Validator\ValidatorInterface as LaminasValidator;
+use Laminas\Validator\ValidatorPluginManager;
 
-class ZendSpec extends ObjectBehavior
+class LaminasSpec extends ObjectBehavior
 {
 	public function it_creates_service(
 		ContainerInterface $container,
 		ValidatorPluginManager $validatorPluginManager,
-		ZendValidator $validator
+		LaminasValidator $validator
 	)
 	{
 		$name = 'testName';
@@ -23,8 +23,8 @@ class ZendSpec extends ObjectBehavior
 		$validatorPluginManager->get($name, $options)->shouldBeCalledOnce()->willReturn($validator);
 
 		$service = $this->__invoke($container, $name, $options);
-		$service->shouldBeAnInstanceOf(DT\Validator\Zend::class);
-		$service->shouldHaveProperty('zendValidator', $validator);
+		$service->shouldBeAnInstanceOf(DT\Validator\Laminas::class);
+		$service->shouldHaveProperty('laminasValidator', $validator);
 	}
 
 	public function it_can_create_what_zend_validator_plugin_manager_can_create(

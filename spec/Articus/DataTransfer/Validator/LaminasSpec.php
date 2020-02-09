@@ -4,25 +4,25 @@ declare(strict_types=1);
 namespace spec\Articus\DataTransfer\Validator;
 
 use PhpSpec\ObjectBehavior;
-use Zend\Validator\ValidatorInterface as ZendValidator;
+use Laminas\Validator\ValidatorInterface as LaminasValidator;
 
-class ZendSpec extends ObjectBehavior
+class LaminasSpec extends ObjectBehavior
 {
-	public function it_allows_null(ZendValidator $validator)
+	public function it_allows_null(LaminasValidator $validator)
 	{
 		$validator->isValid()->shouldNotBeCalled();
 		$this->beConstructedWith($validator);
 		$this->validate(null)->shouldBe([]);
 	}
 
-	public function it_allows_data_that_is_valid_according_zend_validator(ZendValidator $validator, $data)
+	public function it_allows_data_that_is_valid_according_zend_validator(LaminasValidator $validator, $data)
 	{
 		$validator->isValid($data)->shouldBeCalledOnce()->willReturn(true);
 		$this->beConstructedWith($validator);
 		$this->validate($data)->shouldBe([]);
 	}
 
-	public function it_denies_data_that_is_not_valid_according_zend_validator(ZendValidator $validator, $data)
+	public function it_denies_data_that_is_not_valid_according_zend_validator(LaminasValidator $validator, $data)
 	{
 		$violations = ['test' => 123];
 		$validator->isValid($data)->shouldBeCalledOnce()->willReturn(false);

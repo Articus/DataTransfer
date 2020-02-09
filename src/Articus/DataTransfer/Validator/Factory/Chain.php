@@ -5,7 +5,7 @@ namespace Articus\DataTransfer\Validator\Factory;
 
 use Articus\DataTransfer\Validator;
 use Interop\Container\ContainerInterface;
-use Zend\ServiceManager\Factory\FactoryInterface;
+use Laminas\ServiceManager\Factory\FactoryInterface;
 
 /**
  * Default factory for Validator\Chain
