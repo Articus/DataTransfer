@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Articus\DataTransfer\Strategy;
 
-use Articus\DataTransfer\Exception\InvalidData;
+use Articus\DataTransfer\Exception;
 use Articus\DataTransfer\Validator;
 
 /**
@@ -62,10 +62,10 @@ class NoArgObjectList implements StrategyInterface
 				{
 					$result[$index] = $this->typeStrategy->extract($item);
 				}
-				catch (InvalidData $e)
+				catch (Exception\InvalidData $e)
 				{
 					$violations = [Validator\Collection::INVALID_INNER => [$index => $e->getViolations()]];
-					throw new InvalidData($violations, $e);
+					throw new Exception\InvalidData($violations, $e);
 				}
 			}
 		}
@@ -94,13 +94,54 @@ class NoArgObjectList implements StrategyInterface
 				{
 					$this->typeStrategy->hydrate($item, $object);
 				}
-				catch (InvalidData $e)
+				catch (Exception\InvalidData $e)
 				{
 					$violations = [Validator\Collection::INVALID_INNER => [$index => $e->getViolations()]];
-					throw new InvalidData($violations, $e);
+					throw new Exception\InvalidData($violations, $e);
 				}
 				$to[$index] = $object;
 			}
+		}
+		else
+		{
+			$to = null;
+		}
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function merge($from, &$to): void
+	{
+		if ($from !== null)
+		{
+			if (!\is_iterable($from))
+			{
+				throw new \LogicException(\sprintf(
+					'Merge can be done only for iterable list, not %s',
+					\is_object($from) ? \get_class($from) : \gettype($from)
+				));
+			}
+			$object = new $this->type();
+			$to = [];
+			foreach ($from as $index => $item)
+			{
+				try
+				{
+					$data = $this->typeStrategy->extract($object);//safer than clone - data may contain stdClass objects inside
+					$this->typeStrategy->merge($item, $data);
+					$to[$index] = $data;
+				}
+				catch (Exception\InvalidData $e)
+				{
+					$violations = [Validator\Collection::INVALID_INNER => [$index => $e->getViolations()]];
+					throw new Exception\InvalidData($violations, $e);
+				}
+			}
+		}
+		else
+		{
+			$to = null;
 		}
 	}
 }

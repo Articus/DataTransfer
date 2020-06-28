@@ -5,13 +5,13 @@ namespace Articus\DataTransfer\Strategy;
 
 use Articus\DataTransfer\Exception;
 
-interface HydratorInterface
+interface MergerInterface
 {
 	/**
-	 * Hydrates source untyped data to destination
+	 * Merges source untyped data into destination untyped data
 	 * @param null|bool|int|float|string|array|\stdClass $from
-	 * @param mixed $to
+	 * @param null|bool|int|float|string|array|\stdClass $to
 	 * @throws Exception\InvalidData
 	 */
-	public function hydrate($from, &$to): void;
+	public function merge($from, &$to): void;
 }

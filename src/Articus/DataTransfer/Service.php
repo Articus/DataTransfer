@@ -23,27 +23,19 @@ class Service
 	protected $validatorManager;
 
 	/**
-	 * @var Strategy\HydratorInterface
-	 */
-	protected $untypedDataHydrator;
-
-	/**
 	 * @param ClassMetadataProviderInterface $metadataProvider
 	 * @param Strategy\PluginManager $strategyManager
 	 * @param Validator\PluginManager $validatorManager
-	 * @param Strategy\HydratorInterface $untypedDataHydrator
 	 */
 	public function __construct(
 		ClassMetadataProviderInterface $metadataProvider,
 		Strategy\PluginManager $strategyManager,
-		Validator\PluginManager $validatorManager,
-		Strategy\HydratorInterface $untypedDataHydrator
+		Validator\PluginManager $validatorManager
 	)
 	{
 		$this->metadataProvider = $metadataProvider;
 		$this->strategyManager = $strategyManager;
 		$this->validatorManager = $validatorManager;
-		$this->untypedDataHydrator = $untypedDataHydrator;
 	}
 
 	/**
@@ -52,8 +44,9 @@ class Service
 	 * @param Strategy\ExtractorInterface $fromExtractor a way to extract untyped data from source
 	 * @param mixed $to destination for data
 	 * @param Strategy\ExtractorInterface $toExtractor a way to extract untyped data from destination
-	 * @param Validator\ValidatorInterface $toValidator a way to validate untyped data for destination
-	 * @param Strategy\HydratorInterface $toHydrator a way to hydrate untyped data to destination
+	 * @param Strategy\MergerInterface $merger a way to merge untyped data from source and destination
+	 * @param Validator\ValidatorInterface $toValidator a way to validate merged untyped data
+	 * @param Strategy\HydratorInterface $toHydrator a way to hydrate untyped data from source to destination
 	 * @return array list of violations found during data validation
 	 */
 	public function transfer(
@@ -61,6 +54,7 @@ class Service
 		Strategy\ExtractorInterface $fromExtractor,
 		&$to,
 		Strategy\ExtractorInterface $toExtractor,
+		Strategy\MergerInterface $merger,
 		Validator\ValidatorInterface $toValidator,
 		Strategy\HydratorInterface $toHydrator
 	): array
@@ -70,7 +64,7 @@ class Service
 		{
 			$fromData = $fromExtractor->extract($from);
 			$toData = $toExtractor->extract($to);
-			$this->untypedDataHydrator->hydrate($fromData, $toData);
+			$merger->merge($fromData, $toData);
 			$result = $toValidator->validate($toData);
 			if (empty($result))
 			{
@@ -99,32 +93,7 @@ class Service
 		$toStrategy = $this->getTypedDataStrategy($to, $toSubset);
 		$toValidator = $this->getTypedDataValidator($to, $toSubset);
 
-		return $this->transfer($from, $fromStrategy, $to, $toStrategy, $toValidator, $toStrategy);
-	}
-
-	/**
-	 * Transfers data from typed source to untyped destination
-	 * @param object $typedData source of typed data
-	 * @param mixed $untypedData destination for untyped data
-	 * @param string $subset name of the subset to filter data extracted from source
-	 * @return array list of violations found during data validation
-	 */
-	public function transferFromTypedData($typedData, &$untypedData, string $subset = ''): array
-	{
-		$strategy = $this->getTypedDataStrategy($typedData, $subset);
-
-		$result = [];
-		try
-		{
-			$data = $strategy->extract($typedData);
-			$this->untypedDataHydrator->hydrate($data, $untypedData);
-		}
-		catch (Exception\InvalidData $e)
-		{
-			$result = $e->getViolations();
-		}
-
-		return $result;
+		return $this->transfer($from, $fromStrategy, $to, $toStrategy, $toStrategy, $toValidator, $toStrategy);
 	}
 
 	/**
@@ -143,7 +112,7 @@ class Service
 		try
 		{
 			$data = $strategy->extract($typedData);
-			$this->untypedDataHydrator->hydrate($untypedData, $data);
+			$strategy->merge($untypedData, $data);
 			$result = $validator->validate($data);
 			if (empty($result))
 			{

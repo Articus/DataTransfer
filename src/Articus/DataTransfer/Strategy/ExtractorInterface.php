@@ -8,7 +8,7 @@ use Articus\DataTransfer\Exception;
 interface ExtractorInterface
 {
 	/**
-	 * Extracts untyped data from either typed or untyped data
+	 * Extracts untyped data from source
 	 * @param mixed $from
 	 * @return null|bool|int|float|string|array|\stdClass
 	 * @throws Exception\InvalidData

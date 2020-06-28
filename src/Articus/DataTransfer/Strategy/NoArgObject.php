@@ -70,5 +70,30 @@ class NoArgObject implements StrategyInterface
 			}
 			$this->typeStrategy->hydrate($from, $to);
 		}
+		else
+		{
+			$to = null;
+		}
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function merge($from, &$to): void
+	{
+		if ($from !== null)
+		{
+			if ($to === null)
+			{
+				//TODO use Doctrine instanciator?
+				$object = new $this->type();
+				$to = $this->typeStrategy->extract($object);
+			}
+			$this->typeStrategy->merge($from, $to);
+		}
+		else
+		{
+			$to = null;
+		}
 	}
 }

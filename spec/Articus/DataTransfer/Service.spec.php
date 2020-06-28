@@ -18,10 +18,10 @@ use Articus\DataTransfer as DT;
 			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
 			$strategyManager = \mock(DT\Strategy\PluginManager::class);
 			$validatorManager = \mock(DT\Validator\PluginManager::class);
-			$untypedDataHydrator = \mock(DT\Strategy\HydratorInterface::class);
 
 			$fromExtractor = \mock(DT\Strategy\ExtractorInterface::class);
 			$toExtractor = \mock(DT\Strategy\ExtractorInterface::class);
+			$merger = \mock(DT\Strategy\MergerInterface::class);
 			$toValidator = \mock(DT\Validator\ValidatorInterface::class);
 			$toHydrator = \mock(DT\Strategy\HydratorInterface::class);
 
@@ -35,7 +35,7 @@ use Articus\DataTransfer as DT;
 
 			$fromExtractor->shouldReceive('extract')->with($from)->once()->andReturn($extractedFrom);
 			$toExtractor->shouldReceive('extract')->with($to)->once()->andReturn($extractedTo);
-			$untypedDataHydrator->shouldReceive('hydrate')->withArgs(
+			$merger->shouldReceive('merge')->withArgs(
 				function($a, &$b) use (&$extractedFrom, &$extractedTo, &$updatedExtractedTo)
 				{
 					$result = false;
@@ -61,9 +61,9 @@ use Articus\DataTransfer as DT;
 				}
 			)->once();
 
-			$service = new DT\Service($metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator);
+			$service = new DT\Service($metadataProvider, $strategyManager, $validatorManager);
 
-			$transferResult = $service->transfer($from, $fromExtractor, $to, $toExtractor, $toValidator, $toHydrator);
+			$transferResult = $service->transfer($from, $fromExtractor, $to, $toExtractor, $merger, $toValidator, $toHydrator);
 			\expect($transferResult)->toBe($violations);
 			\expect($to)->toBe($updatedTo);
 		});
@@ -72,10 +72,10 @@ use Articus\DataTransfer as DT;
 			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
 			$strategyManager = \mock(DT\Strategy\PluginManager::class);
 			$validatorManager = \mock(DT\Validator\PluginManager::class);
-			$untypedDataHydrator = \mock(DT\Strategy\HydratorInterface::class);
 
 			$fromExtractor = \mock(DT\Strategy\ExtractorInterface::class);
 			$toExtractor = \mock(DT\Strategy\ExtractorInterface::class);
+			$merger = \mock(DT\Strategy\MergerInterface::class);
 			$toValidator = \mock(DT\Validator\ValidatorInterface::class);
 			$toHydrator = \mock(DT\Strategy\HydratorInterface::class);
 
@@ -86,9 +86,9 @@ use Articus\DataTransfer as DT;
 
 			$fromExtractor->shouldReceive('extract')->with($from)->once()->andThrow($extractedFromError);
 
-			$service = new DT\Service($metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator);
+			$service = new DT\Service($metadataProvider, $strategyManager, $validatorManager);
 
-			$transferResult = $service->transfer($from, $fromExtractor, $to, $toExtractor, $toValidator, $toHydrator);
+			$transferResult = $service->transfer($from, $fromExtractor, $to, $toExtractor, $merger, $toValidator, $toHydrator);
 			\expect($transferResult)->toBe($extractedFromError->getViolations());
 			\expect($to)->toBe($originalTo);
 		});
@@ -97,10 +97,10 @@ use Articus\DataTransfer as DT;
 			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
 			$strategyManager = \mock(DT\Strategy\PluginManager::class);
 			$validatorManager = \mock(DT\Validator\PluginManager::class);
-			$untypedDataHydrator = \mock(DT\Strategy\HydratorInterface::class);
 
 			$fromExtractor = \mock(DT\Strategy\ExtractorInterface::class);
 			$toExtractor = \mock(DT\Strategy\ExtractorInterface::class);
+			$merger = \mock(DT\Strategy\MergerInterface::class);
 			$toValidator = \mock(DT\Validator\ValidatorInterface::class);
 			$toHydrator = \mock(DT\Strategy\HydratorInterface::class);
 
@@ -113,21 +113,21 @@ use Articus\DataTransfer as DT;
 			$fromExtractor->shouldReceive('extract')->with($from)->once()->andReturn($extractedFrom);
 			$toExtractor->shouldReceive('extract')->with($to)->once()->andThrow($extractedToError);
 
-			$service = new DT\Service($metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator);
+			$service = new DT\Service($metadataProvider, $strategyManager, $validatorManager);
 
-			$transferResult = $service->transfer($from, $fromExtractor, $to, $toExtractor, $toValidator, $toHydrator);
+			$transferResult = $service->transfer($from, $fromExtractor, $to, $toExtractor, $merger, $toValidator, $toHydrator);
 			\expect($transferResult)->toBe($extractedToError->getViolations());
 			\expect($to)->toBe($originalTo);
 		});
-		\it('returns violations found during hydration of extracted source to extracted destination', function ()
+		\it('returns violations found during merge of extracted source to extracted destination', function ()
 		{
 			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
 			$strategyManager = \mock(DT\Strategy\PluginManager::class);
 			$validatorManager = \mock(DT\Validator\PluginManager::class);
-			$untypedDataHydrator = \mock(DT\Strategy\HydratorInterface::class);
 
 			$fromExtractor = \mock(DT\Strategy\ExtractorInterface::class);
 			$toExtractor = \mock(DT\Strategy\ExtractorInterface::class);
+			$merger = \mock(DT\Strategy\MergerInterface::class);
 			$toValidator = \mock(DT\Validator\ValidatorInterface::class);
 			$toHydrator = \mock(DT\Strategy\HydratorInterface::class);
 
@@ -140,11 +140,11 @@ use Articus\DataTransfer as DT;
 
 			$fromExtractor->shouldReceive('extract')->with($from)->once()->andReturn($extractedFrom);
 			$toExtractor->shouldReceive('extract')->with($to)->once()->andReturn($extractedTo);
-			$untypedDataHydrator->shouldReceive('hydrate')->once()->andThrow($updatedExtractedToError);
+			$merger->shouldReceive('merge')->once()->andThrow($updatedExtractedToError);
 
-			$service = new DT\Service($metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator);
+			$service = new DT\Service($metadataProvider, $strategyManager, $validatorManager);
 
-			$transferResult = $service->transfer($from, $fromExtractor, $to, $toExtractor, $toValidator, $toHydrator);
+			$transferResult = $service->transfer($from, $fromExtractor, $to, $toExtractor, $merger, $toValidator, $toHydrator);
 			\expect($transferResult)->toBe($updatedExtractedToError->getViolations());
 			\expect($to)->toBe($originalTo);
 		});
@@ -153,10 +153,10 @@ use Articus\DataTransfer as DT;
 			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
 			$strategyManager = \mock(DT\Strategy\PluginManager::class);
 			$validatorManager = \mock(DT\Validator\PluginManager::class);
-			$untypedDataHydrator = \mock(DT\Strategy\HydratorInterface::class);
 
 			$fromExtractor = \mock(DT\Strategy\ExtractorInterface::class);
 			$toExtractor = \mock(DT\Strategy\ExtractorInterface::class);
+			$merger = \mock(DT\Strategy\MergerInterface::class);
 			$toValidator = \mock(DT\Validator\ValidatorInterface::class);
 			$toHydrator = \mock(DT\Strategy\HydratorInterface::class);
 
@@ -170,7 +170,7 @@ use Articus\DataTransfer as DT;
 
 			$fromExtractor->shouldReceive('extract')->with($from)->once()->andReturn($extractedFrom);
 			$toExtractor->shouldReceive('extract')->with($to)->once()->andReturn($extractedTo);
-			$untypedDataHydrator->shouldReceive('hydrate')->withArgs(
+			$merger->shouldReceive('merge')->withArgs(
 				function($a, &$b) use (&$extractedFrom, &$extractedTo, &$updatedExtractedTo)
 				{
 					$result = false;
@@ -184,9 +184,9 @@ use Articus\DataTransfer as DT;
 			)->once();
 			$toValidator->shouldReceive('validate')->with($updatedExtractedTo)->once()->andReturn($violations);
 
-			$service = new DT\Service($metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator);
+			$service = new DT\Service($metadataProvider, $strategyManager, $validatorManager);
 
-			$transferResult = $service->transfer($from, $fromExtractor, $to, $toExtractor, $toValidator, $toHydrator);
+			$transferResult = $service->transfer($from, $fromExtractor, $to, $toExtractor, $merger, $toValidator, $toHydrator);
 			\expect($transferResult)->toBe($violations);
 			\expect($to)->toBe($originalTo);
 		});
@@ -195,10 +195,10 @@ use Articus\DataTransfer as DT;
 			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
 			$strategyManager = \mock(DT\Strategy\PluginManager::class);
 			$validatorManager = \mock(DT\Validator\PluginManager::class);
-			$untypedDataHydrator = \mock(DT\Strategy\HydratorInterface::class);
 
 			$fromExtractor = \mock(DT\Strategy\ExtractorInterface::class);
 			$toExtractor = \mock(DT\Strategy\ExtractorInterface::class);
+			$merger = \mock(DT\Strategy\MergerInterface::class);
 			$toValidator = \mock(DT\Validator\ValidatorInterface::class);
 			$toHydrator = \mock(DT\Strategy\HydratorInterface::class);
 
@@ -213,7 +213,7 @@ use Articus\DataTransfer as DT;
 
 			$fromExtractor->shouldReceive('extract')->with($from)->once()->andReturn($extractedFrom);
 			$toExtractor->shouldReceive('extract')->with($to)->once()->andReturn($extractedTo);
-			$untypedDataHydrator->shouldReceive('hydrate')->withArgs(
+			$merger->shouldReceive('merge')->withArgs(
 				function($a, &$b) use (&$extractedFrom, &$extractedTo, &$updatedExtractedTo)
 				{
 					$result = false;
@@ -228,9 +228,9 @@ use Articus\DataTransfer as DT;
 			$toValidator->shouldReceive('validate')->with($updatedExtractedTo)->once()->andReturn($violations);
 			$toHydrator->shouldReceive('hydrate')->once()->andThrow($updatedToError);
 
-			$service = new DT\Service($metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator);
+			$service = new DT\Service($metadataProvider, $strategyManager, $validatorManager);
 
-			$transferResult = $service->transfer($from, $fromExtractor, $to, $toExtractor, $toValidator, $toHydrator);
+			$transferResult = $service->transfer($from, $fromExtractor, $to, $toExtractor, $merger, $toValidator, $toHydrator);
 			\expect($transferResult)->toBe($updatedToError->getViolations());
 			\expect($to)->toBe($originalTo);
 		});
@@ -246,7 +246,6 @@ use Articus\DataTransfer as DT;
 			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
 			$strategyManager = \mock(DT\Strategy\PluginManager::class);
 			$validatorManager = \mock(DT\Validator\PluginManager::class);
-			$untypedDataHydrator = \mock(DT\Strategy\HydratorInterface::class);
 
 			$fromStrategy = \mock(DT\Strategy\StrategyInterface::class);
 			$toStrategy = \mock(DT\Strategy\StrategyInterface::class);
@@ -259,17 +258,18 @@ use Articus\DataTransfer as DT;
 			$violations = ['test' => 123];
 			$updatedTo = \mock();
 
-			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator])->makePartial();
+			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager])->makePartial();
 			$service->shouldReceive('transfer')->withArgs(
-				function($a, $b, &$c, $d, $e, $f) use (&$from, &$to, &$fromStrategy, &$toStrategy, &$toValidator, &$updatedTo)
+				function($a, $b, &$c, $d, $e, $f, $g) use (&$from, &$to, &$fromStrategy, &$toStrategy, &$toValidator, &$updatedTo)
 				{
 					$result =
 						($a === $from)
 						&& ($b === $fromStrategy)
 						&& ($c === $to)
 						&& ($d === $toStrategy)
-						&& ($e === $toValidator)
-						&& ($f === $toStrategy)
+						&& ($e === $toStrategy)
+						&& ($f === $toValidator)
+						&& ($g === $toStrategy)
 					;
 					if ($result)
 					{
@@ -288,98 +288,6 @@ use Articus\DataTransfer as DT;
 			\expect($to)->toBe($updatedTo);
 		});
 	});
-	\describe('->transferFromTypedData', function ()
-	{
-		\afterEach(function ()
-		{
-			\Mockery::close();
-		});
-		\it('transfers valid data', function ()
-		{
-			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
-			$strategyManager = \mock(DT\Strategy\PluginManager::class);
-			$validatorManager = \mock(DT\Validator\PluginManager::class);
-			$untypedDataHydrator = \mock(DT\Strategy\HydratorInterface::class);
-
-			$fromStrategy = \mock(DT\Strategy\StrategyInterface::class);
-
-			$from = \mock();
-			$subset = 'test';
-			$to = 2;
-			$extractedFrom = 3;
-			$updatedTo = 4;
-
-			$fromStrategy->shouldReceive('extract')->with($from)->once()->andReturn($extractedFrom);
-			$untypedDataHydrator->shouldReceive('hydrate')->withArgs(
-				function($a, &$b) use (&$extractedFrom, &$to, &$updatedTo)
-				{
-					$result = ($a === $extractedFrom) && ($b === $to);
-					if ($result)
-					{
-						$b = $updatedTo;
-					}
-					return $result;
-				}
-			)->once();
-			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator])->makePartial();
-			$service->shouldReceive('getTypedDataStrategy')->with($from, $subset)->once()->andReturn($fromStrategy);
-
-			/** @var DT\Service $service */
-			$transferResult = $service->transferFromTypedData($from, $to, $subset);
-			\expect($transferResult)->toBe([]);
-			\expect($to)->toBe($updatedTo);
-		});
-		\it('returns violations found during source extraction', function ()
-		{
-			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
-			$strategyManager = \mock(DT\Strategy\PluginManager::class);
-			$validatorManager = \mock(DT\Validator\PluginManager::class);
-			$untypedDataHydrator = \mock(DT\Strategy\HydratorInterface::class);
-
-			$fromStrategy = \mock(DT\Strategy\StrategyInterface::class);
-
-			$from = \mock();
-			$subset = 'test';
-			$to = 2;
-			$extractedFromError = new DT\Exception\InvalidData(['test' => 123]);
-			$originalTo = $to;
-
-			$fromStrategy->shouldReceive('extract')->with($from)->once()->andThrow($extractedFromError);
-			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator])->makePartial();
-			$service->shouldReceive('getTypedDataStrategy')->with($from, $subset)->once()->andReturn($fromStrategy);
-
-			/** @var DT\Service $service */
-			$transferResult = $service->transferFromTypedData($from, $to, $subset);
-			\expect($transferResult)->toBe($extractedFromError->getViolations());
-			\expect($to)->toBe($originalTo);
-		});
-		\it('returns violations found during hydration of extracted source to destination', function ()
-		{
-			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
-			$strategyManager = \mock(DT\Strategy\PluginManager::class);
-			$validatorManager = \mock(DT\Validator\PluginManager::class);
-			$untypedDataHydrator = \mock(DT\Strategy\HydratorInterface::class);
-
-			$fromStrategy = \mock(DT\Strategy\StrategyInterface::class);
-
-			$from = \mock();
-			$subset = 'test';
-			$to = 2;
-			$extractedFrom = 3;
-			$updatedToError = new DT\Exception\InvalidData(['test' => 123]);
-			$originalTo = $to;
-
-			$fromStrategy->shouldReceive('extract')->with($from)->once()->andReturn($extractedFrom);
-			$untypedDataHydrator->shouldReceive('hydrate')->once()->andThrow($updatedToError);
-			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator])->makePartial();
-			$service->shouldReceive('getTypedDataStrategy')->with($from, $subset)->once()->andReturn($fromStrategy);
-
-			/** @var DT\Service $service */
-			$transferResult = $service->transferFromTypedData($from, $to, $subset);
-			\expect($transferResult)->toBe($updatedToError->getViolations());
-			\expect($to)->toBe($originalTo);
-		});
-	});
 	\describe('->transferToTypedData', function ()
 	{
 		\afterEach(function ()
@@ -391,7 +299,6 @@ use Articus\DataTransfer as DT;
 			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
 			$strategyManager = \mock(DT\Strategy\PluginManager::class);
 			$validatorManager = \mock(DT\Validator\PluginManager::class);
-			$untypedDataHydrator = \mock(DT\Strategy\HydratorInterface::class);
 
 			$toStrategy = \mock(DT\Strategy\StrategyInterface::class);
 			$toValidator = \mock(DT\Validator\ValidatorInterface::class);
@@ -405,7 +312,7 @@ use Articus\DataTransfer as DT;
 			$updatedTo = 5;
 
 			$toStrategy->shouldReceive('extract')->with($to)->once()->andReturn($extractedTo);
-			$untypedDataHydrator->shouldReceive('hydrate')->withArgs(
+			$toStrategy->shouldReceive('merge')->withArgs(
 				function($a, &$b) use (&$from, &$extractedTo, &$updatedExtractedTo)
 				{
 					$result = ($a === $from) && ($b === $extractedTo);
@@ -429,7 +336,7 @@ use Articus\DataTransfer as DT;
 				}
 			)->once();
 
-			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator])->makePartial();
+			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager])->makePartial();
 			$service->shouldReceive('getTypedDataStrategy')->with($to, $subset)->once()->andReturn($toStrategy);
 			$service->shouldReceive('getTypedDataValidator')->with($to, $subset)->once()->andReturn($toValidator);
 
@@ -443,7 +350,6 @@ use Articus\DataTransfer as DT;
 			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
 			$strategyManager = \mock(DT\Strategy\PluginManager::class);
 			$validatorManager = \mock(DT\Validator\PluginManager::class);
-			$untypedDataHydrator = \mock(DT\Strategy\HydratorInterface::class);
 
 			$toStrategy = \mock(DT\Strategy\StrategyInterface::class);
 			$toValidator = \mock(DT\Validator\ValidatorInterface::class);
@@ -456,7 +362,7 @@ use Articus\DataTransfer as DT;
 
 			$toStrategy->shouldReceive('extract')->with($to)->once()->andThrow($extractedToError);
 
-			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator])->makePartial();
+			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager])->makePartial();
 			$service->shouldReceive('getTypedDataStrategy')->with($to, $subset)->once()->andReturn($toStrategy);
 			$service->shouldReceive('getTypedDataValidator')->with($to, $subset)->once()->andReturn($toValidator);
 
@@ -465,12 +371,11 @@ use Articus\DataTransfer as DT;
 			\expect($transferResult)->toBe($extractedToError->getViolations());
 			\expect($to)->toBe($originalTo);
 		});
-		\it('returns violations found during hydration of source to extracted destination', function ()
+		\it('returns violations found during merge of source to extracted destination', function ()
 		{
 			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
 			$strategyManager = \mock(DT\Strategy\PluginManager::class);
 			$validatorManager = \mock(DT\Validator\PluginManager::class);
-			$untypedDataHydrator = \mock(DT\Strategy\HydratorInterface::class);
 
 			$toStrategy = \mock(DT\Strategy\StrategyInterface::class);
 			$toValidator = \mock(DT\Validator\ValidatorInterface::class);
@@ -483,9 +388,9 @@ use Articus\DataTransfer as DT;
 			$originalTo = $to;
 
 			$toStrategy->shouldReceive('extract')->with($to)->once()->andReturn($extractedTo);
-			$untypedDataHydrator->shouldReceive('hydrate')->once()->andThrow($updatedExtractedToError);
+			$toStrategy->shouldReceive('merge')->once()->andThrow($updatedExtractedToError);
 
-			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator])->makePartial();
+			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager])->makePartial();
 			$service->shouldReceive('getTypedDataStrategy')->with($to, $subset)->once()->andReturn($toStrategy);
 			$service->shouldReceive('getTypedDataValidator')->with($to, $subset)->once()->andReturn($toValidator);
 
@@ -499,7 +404,6 @@ use Articus\DataTransfer as DT;
 			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
 			$strategyManager = \mock(DT\Strategy\PluginManager::class);
 			$validatorManager = \mock(DT\Validator\PluginManager::class);
-			$untypedDataHydrator = \mock(DT\Strategy\HydratorInterface::class);
 
 			$toStrategy = \mock(DT\Strategy\StrategyInterface::class);
 			$toValidator = \mock(DT\Validator\ValidatorInterface::class);
@@ -513,7 +417,7 @@ use Articus\DataTransfer as DT;
 			$originalTo = $to;
 
 			$toStrategy->shouldReceive('extract')->with($to)->once()->andReturn($extractedTo);
-			$untypedDataHydrator->shouldReceive('hydrate')->withArgs(
+			$toStrategy->shouldReceive('merge')->withArgs(
 				function($a, &$b) use (&$from, &$extractedTo, &$updatedExtractedTo)
 				{
 					$result = ($a === $from) && ($b === $extractedTo);
@@ -526,7 +430,7 @@ use Articus\DataTransfer as DT;
 			)->once();
 			$toValidator->shouldReceive('validate')->with($updatedExtractedTo)->once()->andReturn($violations);
 
-			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator])->makePartial();
+			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager])->makePartial();
 			$service->shouldReceive('getTypedDataStrategy')->with($to, $subset)->once()->andReturn($toStrategy);
 			$service->shouldReceive('getTypedDataValidator')->with($to, $subset)->once()->andReturn($toValidator);
 
@@ -540,7 +444,6 @@ use Articus\DataTransfer as DT;
 			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
 			$strategyManager = \mock(DT\Strategy\PluginManager::class);
 			$validatorManager = \mock(DT\Validator\PluginManager::class);
-			$untypedDataHydrator = \mock(DT\Strategy\HydratorInterface::class);
 
 			$toStrategy = \mock(DT\Strategy\StrategyInterface::class);
 			$toValidator = \mock(DT\Validator\ValidatorInterface::class);
@@ -555,7 +458,7 @@ use Articus\DataTransfer as DT;
 			$originalTo = $to;
 
 			$toStrategy->shouldReceive('extract')->with($to)->once()->andReturn($extractedTo);
-			$untypedDataHydrator->shouldReceive('hydrate')->withArgs(
+			$toStrategy->shouldReceive('merge')->withArgs(
 				function($a, &$b) use (&$from, &$extractedTo, &$updatedExtractedTo)
 				{
 					$result = ($a === $from) && ($b === $extractedTo);
@@ -569,7 +472,7 @@ use Articus\DataTransfer as DT;
 			$toValidator->shouldReceive('validate')->with($updatedExtractedTo)->once()->andReturn($violations);
 			$toStrategy->shouldReceive('hydrate')->once()->andThrow($updatedToError);
 
-			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator])->makePartial();
+			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager])->makePartial();
 			$service->shouldReceive('getTypedDataStrategy')->with($to, $subset)->once()->andReturn($toStrategy);
 			$service->shouldReceive('getTypedDataValidator')->with($to, $subset)->once()->andReturn($toValidator);
 
@@ -590,7 +493,6 @@ use Articus\DataTransfer as DT;
 			$metadataProvider = \mock(DT\ClassMetadataProviderInterface::class);
 			$strategyManager = \mock(DT\Strategy\PluginManager::class);
 			$validatorManager = \mock(DT\Validator\PluginManager::class);
-			$untypedDataHydrator = \mock(DT\Strategy\HydratorInterface::class);
 
 			$fromStrategy = \mock(DT\Strategy\StrategyInterface::class);
 
@@ -599,7 +501,7 @@ use Articus\DataTransfer as DT;
 			$extractedFrom = 1;
 
 			$fromStrategy->shouldReceive('extract')->with($from)->once()->andReturn($extractedFrom);
-			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator])->makePartial();
+			$service = \mock(DT\Service::class, [$metadataProvider, $strategyManager, $validatorManager])->makePartial();
 			$service->shouldReceive('getTypedDataStrategy')->with($from, $subset)->once()->andReturn($fromStrategy);
 
 			/** @var DT\Service $service */

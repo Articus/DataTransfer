@@ -17,8 +17,7 @@ class Factory implements FactoryInterface
 		$metadataProvider = $this->getMetadataProvider($container);
 		$strategyManager = $this->getStrategyManager($container);
 		$validatorManager = $this->getValidatorManager($container);
-		$untypedDataHydrator = new Strategy\UntypedData();
-		return new Service($metadataProvider, $strategyManager, $validatorManager, $untypedDataHydrator);
+		return new Service($metadataProvider, $strategyManager, $validatorManager);
 	}
 
 	protected function getMetadataProvider(ContainerInterface $container): ClassMetadataProviderInterface

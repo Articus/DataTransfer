@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Articus\DataTransfer\Strategy;
 
-use Articus\DataTransfer\Exception\InvalidData;
+use Articus\DataTransfer\Exception;
 use Articus\DataTransfer\Utility;
 use Articus\DataTransfer\Validator;
 
@@ -59,16 +59,19 @@ class FieldData implements StrategyInterface
 		foreach ($this->typeFields as [$fieldName, $getter, $setter, $strategy])
 		{
 			/** @var StrategyInterface $strategy */
-			try
+			if ($getter !== null)
 			{
-				$rawValue = $object->get($getter);
-				$fieldValue = $strategy->extract($rawValue);
-				$map->set($fieldName, $fieldValue);
-			}
-			catch (InvalidData $e)
-			{
-				$violations = [Validator\FieldData::INVALID_INNER => [$fieldName => $e->getViolations()]];
-				throw new InvalidData($violations, $e);
+				try
+				{
+					$rawValue = $object->get($getter);
+					$fieldValue = $strategy->extract($rawValue);
+					$map->set($fieldName, $fieldValue);
+				}
+				catch (Exception\InvalidData $e)
+				{
+					$violations = [Validator\FieldData::INVALID_INNER => [$fieldName => $e->getViolations()]];
+					throw new Exception\InvalidData($violations, $e);
+				}
 			}
 		}
 		return $result;
@@ -83,7 +86,7 @@ class FieldData implements StrategyInterface
 		if (!$map->accessible())
 		{
 			throw new \LogicException(\sprintf(
-				'Hydration can be done only from key-value map, not %s.',
+				'Hydration can be done only from key-value map, not %s',
 				\is_object($from) ? \get_class($from) : \gettype($from)
 			));
 		}
@@ -98,7 +101,7 @@ class FieldData implements StrategyInterface
 		foreach ($this->typeFields as [$fieldName, $getter, $setter, $strategy])
 		{
 			/** @var StrategyInterface $strategy */
-			if ($map->has($fieldName))
+			if (($setter !== null) && $map->has($fieldName))
 			{
 				try
 				{
@@ -107,10 +110,53 @@ class FieldData implements StrategyInterface
 					$strategy->hydrate($fieldValue, $rawValue);
 					$object->set($setter, $rawValue);
 				}
-				catch (InvalidData $e)
+				catch (Exception\InvalidData $e)
 				{
 					$violations = [Validator\FieldData::INVALID_INNER => [$fieldName => $e->getViolations()]];
-					throw new InvalidData($violations, $e);
+					throw new Exception\InvalidData($violations, $e);
+				}
+			}
+		}
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function merge($from, &$to): void
+	{
+		$fromMap = new Utility\MapAccessor($from);
+		if (!$fromMap->accessible())
+		{
+			throw new \LogicException(\sprintf(
+				'Merge can be done only for key-value map, not %s',
+				\is_object($from) ? \get_class($from) : \gettype($from)
+			));
+		}
+		$toMap = new Utility\MapAccessor($to);
+		if (!$toMap->accessible())
+		{
+			throw new \LogicException(\sprintf(
+				'Merge can be done only into key-value map, not %s',
+				\is_object($to) ? \get_class($to) : \gettype($to)
+			));
+		}
+
+		foreach ($this->typeFields as [$fieldName, $getter, $setter, $strategy])
+		{
+			/** @var StrategyInterface $strategy */
+			if (($setter !== null) && $fromMap->has($fieldName))
+			{
+				try
+				{
+					$toFieldValue = $toMap->get($fieldName);
+					$fromFieldValue = $fromMap->get($fieldName);
+					$strategy->merge($fromFieldValue, $toFieldValue);
+					$toMap->set($fieldName, $toFieldValue);
+				}
+				catch (Exception\InvalidData $e)
+				{
+					$violations = [Validator\FieldData::INVALID_INNER => [$fieldName => $e->getViolations()]];
+					throw new Exception\InvalidData($violations, $e);
 				}
 			}
 		}

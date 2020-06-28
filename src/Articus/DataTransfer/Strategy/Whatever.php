@@ -23,4 +23,12 @@ class Whatever implements StrategyInterface
 	{
 		$to = $from;
 	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function merge($from, &$to): void
+	{
+		$to = $from;
+	}
 }

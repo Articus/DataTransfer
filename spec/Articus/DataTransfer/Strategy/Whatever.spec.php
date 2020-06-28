@@ -23,4 +23,13 @@ use Articus\DataTransfer as DT;
 		$strategy->hydrate($source, $destination);
 		\expect($destination)->toBe($source);
 	});
+	\it('merges by coping source to destination', function ()
+	{
+		$source = \mock();
+		$destination = \mock();
+
+		$strategy = new DT\Strategy\Whatever();
+		$strategy->merge($source, $destination);
+		\expect($destination)->toBe($source);
+	});
 });
