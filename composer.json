@@ -23,13 +23,14 @@
   },
   "suggest": {
     "doctrine/annotations": "It is required for Articus\\DataTransfer\\MetadataProvider\\Annotation (default metadata provider)",
-    "doctrine/cache": "It is required for Articus\\DataTransfer\\MetadataProvider\\Annotation (default metadata provider)",
+    "psr/simple-cache": "It is required for Articus\\DataTransfer\\MetadataProvider\\Annotation (default metadata provider)",
     "laminas/laminas-stdlib": "It is required for Articus\\DataTransfer\\MetadataProvider\\Annotation (default metadata provider)",
     "laminas/laminas-validator": "It is required for Articus\\DataTransfer\\Validator\\Laminas"
   },
   "require-dev": {
+    "ext-uopz": "*",
     "doctrine/annotations": "^1.8",
-    "doctrine/cache": "^1.10",
+    "psr/simple-cache": "^1.0",
     "laminas/laminas-stdlib": "^3.2",
     "laminas/laminas-validator": "^2.12",
     "phpspec/phpspec": "^5.1|^6.1",

@@ -9,8 +9,8 @@ use Articus\DataTransfer\FieldMetadataProviderInterface;
 use Articus\DataTransfer\Strategy;
 use Articus\DataTransfer\Validator;
 use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Cache\Cache as CacheStorage;
 use Laminas\Stdlib\FastPriorityQueue;
+use Psr\SimpleCache\CacheInterface;
 
 /**
  * Provider that retrieves metadata from class annotations
@@ -20,9 +20,9 @@ class Annotation implements ClassMetadataProviderInterface, FieldMetadataProvide
 	const MAX_VALIDATOR_PRIORITY = 10000;
 
 	/**
-	 * @var CacheStorage
+	 * @var CacheInterface
 	 */
-	protected $cacheStorage;
+	protected $cache;
 
 	/**
 	 * @psalm-var array<string, array<string, array{0: string, 1: array}>>
@@ -49,12 +49,9 @@ class Annotation implements ClassMetadataProviderInterface, FieldMetadataProvide
 	 */
 	protected $fieldValidators = [];
 
-	/**
-	 * @param CacheStorage $cacheStorage
-	 */
-	public function __construct(CacheStorage $cacheStorage)
+	public function __construct(CacheInterface $cache)
 	{
-		$this->cacheStorage = $cacheStorage;
+		$this->cache = $cache;
 	}
 
 	/**
@@ -147,11 +144,11 @@ class Annotation implements ClassMetadataProviderInterface, FieldMetadataProvide
 	{
 		if (empty($this->classStrategies[$className]))
 		{
-			$metadata = $this->cacheStorage->fetch($className);
+			$metadata = $this->cache->get($className);
 			if (empty($metadata))
 			{
 				$metadata = $this->loadMetadata($className);
-				$this->cacheStorage->save($className, $metadata);
+				$this->cache->set($className, $metadata);
 			}
 			[
 				$this->classStrategies[$className],

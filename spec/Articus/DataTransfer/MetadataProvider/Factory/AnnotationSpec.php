@@ -4,10 +4,9 @@ declare(strict_types=1);
 namespace spec\Articus\DataTransfer\MetadataProvider\Factory;
 
 use Articus\DataTransfer as DT;
-use Doctrine\Common\Cache\VoidCache;
 use Interop\Container\ContainerInterface;
 use PhpSpec\ObjectBehavior;
-use Doctrine\Common\Cache\Cache as CacheStorage;
+use Psr\SimpleCache\CacheInterface;
 
 /**
  * TODO add expected text for LogicExceptions
@@ -66,10 +65,10 @@ class AnnotationSpec extends ObjectBehavior
 		$container->get('config')->shouldBeCalledOnce()->willReturn([]);
 		$service = $this->__invoke($container, '');
 		$service->shouldBeAnInstanceOf(DT\MetadataProvider\Annotation::class);
-		$service->shouldHavePropertyOfType('cacheStorage', VoidCache::class);
+		$service->shouldHavePropertyOfType('cache', DT\Cache\MetadataFilePerClass::class);
 	}
 
-	public function it_creates_service_with_cache_storage_configuration(ContainerInterface $container)
+	public function it_creates_service_with_cache_configuration(ContainerInterface $container)
 	{
 		$config = [
 			DT\MetadataProvider\Annotation::class => ['cache' => ['directory' => 'data/cache']]
@@ -77,10 +76,10 @@ class AnnotationSpec extends ObjectBehavior
 		$container->get('config')->shouldBeCalledOnce()->willReturn($config);
 		$service = $this->__invoke($container, '');
 		$service->shouldBeAnInstanceOf(DT\MetadataProvider\Annotation::class);
-		$service->shouldHavePropertyOfType('cacheStorage', DT\Cache\Annotation::class);
+		$service->shouldHavePropertyOfType('cache', DT\Cache\MetadataFilePerClass::class);
 	}
 
-	public function it_creates_service_with_cache_storage_from_container(ContainerInterface $container, CacheStorage $cacheStorage)
+	public function it_creates_service_with_cache_from_container(ContainerInterface $container, CacheInterface $cache)
 	{
 		$cacheServiceName = 'test_cache_service';
 		$config = [
@@ -88,13 +87,13 @@ class AnnotationSpec extends ObjectBehavior
 		];
 		$container->get('config')->shouldBeCalledOnce()->willReturn($config);
 		$container->has($cacheServiceName)->shouldBeCalledOnce()->willReturn(true);
-		$container->get($cacheServiceName)->shouldBeCalledOnce()->willReturn($cacheStorage);
+		$container->get($cacheServiceName)->shouldBeCalledOnce()->willReturn($cache);
 		$service = $this->__invoke($container, '');
 		$service->shouldBeAnInstanceOf(DT\MetadataProvider\Annotation::class);
-		$service->shouldHaveProperty('cacheStorage', $cacheStorage);
+		$service->shouldHaveProperty('cache', $cache);
 	}
 
-	public function it_throws_on_invalid_cache_storage_in_container(ContainerInterface $container, $cacheStorage)
+	public function it_throws_on_invalid_cache_service_in_container(ContainerInterface $container, $cache)
 	{
 		$cacheServiceName = 'test_cache_service';
 		$config = [
@@ -102,11 +101,11 @@ class AnnotationSpec extends ObjectBehavior
 		];
 		$container->get('config')->shouldBeCalledOnce()->willReturn($config);
 		$container->has($cacheServiceName)->shouldBeCalledOnce()->willReturn(true);
-		$container->get($cacheServiceName)->shouldBeCalledOnce()->willReturn($cacheStorage);
+		$container->get($cacheServiceName)->shouldBeCalledOnce()->willReturn($cache);
 		$this->shouldThrow(\LogicException::class)->during('__invoke', [$container, '']);
 	}
 
-	public function it_throws_on_invalid_cache_storage_configuration(ContainerInterface $container)
+	public function it_throws_on_invalid_cache_configuration(ContainerInterface $container)
 	{
 		$config = [
 			DT\MetadataProvider\Annotation::class => ['cache' => new \stdClass()]

@@ -6,9 +6,8 @@ namespace Articus\DataTransfer\MetadataProvider\Factory;
 use Articus\DataTransfer\ConfigAwareFactory;
 use Articus\DataTransfer\MetadataProvider;
 use Articus\DataTransfer\Cache;
-use Doctrine\Common\Cache\Cache as CacheStorage;
-use Doctrine\Common\Cache\VoidCache;
 use Interop\Container\ContainerInterface;
+use Psr\SimpleCache\CacheInterface;
 
 /**
  * Default factory for MetadataProvider\Annotation
@@ -24,31 +23,28 @@ class Annotation extends ConfigAwareFactory
 	public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
 	{
 		$config = \array_merge($this->getServiceConfig($container), $options ?? []);
-		$cacheStorage = $this->getCacheStorage($container, $config['cache'] ?? null);
-		return new MetadataProvider\Annotation($cacheStorage);
+		$cache = $this->getCache($container, $config['cache'] ?? null);
+		return new MetadataProvider\Annotation($cache);
 	}
 
-	protected function getCacheStorage(ContainerInterface $container, $options): CacheStorage
+	protected function getCache(ContainerInterface $container, $options): CacheInterface
 	{
 		$result = null;
 		switch (true)
 		{
 			case ($options === null):
-				$result = new VoidCache();
-				break;
 			case \is_array($options):
-				$result = new Cache\Annotation($options['directory'] ?? '');
-				$result->setNamespace($this->configKey);
+				$result = new Cache\MetadataFilePerClass($options['directory'] ?? null);
 				break;
 			case (\is_string($options) && $container->has($options)):
 				$result = $container->get($options);
-				if (!($result instanceof CacheStorage))
+				if (!($result instanceof CacheInterface))
 				{
-					throw new \LogicException('Invalid metadata provider cache storage for DataTransfer.');
+					throw new \LogicException('Invalid metadata provider cache service for DataTransfer.');
 				}
 				break;
 			default:
-				throw new \LogicException('Invalid configuration for DataTransfer metadata provider cache storage.');
+				throw new \LogicException('Invalid configuration for DataTransfer metadata provider cache.');
 		}
 		return $result;
 	}
