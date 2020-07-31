@@ -7,6 +7,7 @@ php:
 
 before_install:
   - phpenv config-rm xdebug.ini
+  - pecl install uopz
 
 install:
   - |
