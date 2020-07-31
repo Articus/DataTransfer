@@ -13,6 +13,8 @@ install:
   - |
     if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.1" ]]; then
       cp ./composer.lock.7.1 ./composer.lock
+    elif [[ ${TRAVIS_PHP_VERSION:0:3} == "7.2" ]]; then
+      cp ./composer.lock.7.2 ./composer.lock
     fi
   - composer install --no-interaction --no-progress --no-suggest --classmap-authoritative
 
