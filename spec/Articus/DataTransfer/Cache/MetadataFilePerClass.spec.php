@@ -70,6 +70,7 @@ CACHE_CONTENT;
 		});
 		\it('throws if cache folder does not exists and can not be created', function ()
 		{
+			\skipIf(GlobalFunctionMock::disabled());
 			GlobalFunctionMock::stub('is_dir')->with($this->cacheFolder)->andReturn(false);
 			GlobalFunctionMock::stub('mkdir')->with($this->cacheFolder, 0775, true)->andReturn(false);
 			$exception = new \InvalidArgumentException(\sprintf('The directory "%s" does not exist and could not be created.', $this->cacheFolder));
@@ -80,6 +81,7 @@ CACHE_CONTENT;
 		});
 		\it('throws if cache folder exists but is not writable', function ()
 		{
+			\skipIf(GlobalFunctionMock::disabled());
 			GlobalFunctionMock::stub('is_dir')->with($this->cacheFolder)->andReturn(true);
 			GlobalFunctionMock::stub('mkdir')->with($this->cacheFolder, 0775, true)->andReturn(true);
 			GlobalFunctionMock::stub('is_writable')->with($this->cacheFolder)->andReturn(false);
@@ -116,6 +118,7 @@ CACHE_CONTENT;
 		});
 		\it('does not set value to cache if it can not save value to temporary file', function ()
 		{
+			\skipIf(GlobalFunctionMock::disabled());
 			$temporaryFilename = 'test';
 			$folder = \dirname($this->cacheFile);
 			GlobalFunctionMock::stub('tempnam')->withArgs(
@@ -130,6 +133,7 @@ CACHE_CONTENT;
 		});
 		\it('does not set value to cache if it can not move temporary file to permanent location', function ()
 		{
+			\skipIf(GlobalFunctionMock::disabled());
 			$temporaryFilename = 'test';
 			$folder = \dirname($this->cacheFile);
 			GlobalFunctionMock::stub('tempnam')->withArgs(
@@ -146,6 +150,7 @@ CACHE_CONTENT;
 					return (($from === $temporaryFilename) && ($to === \str_replace($folder, \realpath($folder), $this->cacheFile)));
 				}
 			)->andReturn(false);
+			GlobalFunctionMock::stub('unlink')->with($temporaryFilename)->andReturn(true);
 			$cache = new DT\Cache\MetadataFilePerClass($this->cacheFolder);
 			\expect($cache->set($this->cacheKey, $this->cacheData))->toBe(false);
 		});

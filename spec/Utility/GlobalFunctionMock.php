@@ -17,6 +17,11 @@ class GlobalFunctionMock
 	 */
 	protected static $functionNameMap = [];
 
+	public static function disabled(): bool
+	{
+		return (!\extension_loaded('uopz'));
+	}
+
 	/**
 	 * @param string $functionName
 	 * @return Expectation|\Mockery\ExpectationInterface|\Mockery\HigherOrderMessage

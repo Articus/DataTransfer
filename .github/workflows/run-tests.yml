@@ -1,0 +1,82 @@
+name: Run tests
+on:
+  - push
+  - pull_request
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php:
+          - '7.1'
+          - '7.2'
+          - '7.3'
+          - '7.4'
+    container: ghcr.io/articus/phpdbg-coveralls:${{ matrix.php }}_2020-12-28
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Replace composer.lock for PHP 7.1
+        if: matrix.php == '7.1'
+        run: cp ./composer.lock.7.1 ./composer.lock
+
+      - name: Replace composer.lock for PHP 7.2
+        if: matrix.php == '7.2'
+        run: cp ./composer.lock.7.2 ./composer.lock
+
+      - name: Enale UOPZ extension
+        run: phpenmod uopz
+
+      - name: Install dependencies via Composer
+        run: php ./composer.phar install --no-interaction --no-progress --prefer-dist --classmap-authoritative
+
+      - name: Create folder for coverage reports
+        run: mkdir -p ./spec_output
+
+      - name: Run PhpSpec tests
+        run: phpdbg -qrr ./vendor/phpspec/phpspec/bin/phpspec run
+
+      - name: Run Kahlan tests
+        run: phpdbg -qrr ./vendor/kahlan/kahlan/bin/kahlan
+
+      - name: Upload coverage to coveralls.io
+        if: matrix.php == '7.4'
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: coveralls -v
+
+  # TODO move to "test" job when possible
+  experimental_test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php:
+          - '8.0'
+    container: ghcr.io/articus/phpdbg-coveralls:${{ matrix.php }}_2020-12-28
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Replace composer.lock for PHP 8.0
+        if: matrix.php == '8.0'
+        run: cp ./composer.lock.8.0 ./composer.lock
+
+      # Laminas ServiceManager does not support PHP 8.0 officially yet
+      # UOPZ does not have stable version for PHP 8.0 (Segmentation fault for PhpSpec tests)
+      - name: Install dependencies via Composer
+        run: >
+          php ./composer.phar install --no-interaction --no-progress --prefer-dist --classmap-authoritative
+          --ignore-platform-req=php
+          --ignore-platform-req=ext-uopz
+
+      - name: Create folder for coverage reports
+        run: mkdir -p ./spec_output
+
+      - name: Run PhpSpec tests
+        run: phpdbg -qrr ./vendor/phpspec/phpspec/bin/phpspec run
+
+      - name: Run Kahlan tests
+        run: phpdbg -qrr ./vendor/kahlan/kahlan/bin/kahlan
