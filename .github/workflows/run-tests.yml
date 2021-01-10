@@ -64,12 +64,10 @@ jobs:
         if: matrix.php == '8.0'
         run: cp ./composer.lock.8.0 ./composer.lock
 
-      # Laminas ServiceManager does not support PHP 8.0 officially yet
       # UOPZ does not have stable version for PHP 8.0 (Segmentation fault for PhpSpec tests)
       - name: Install dependencies via Composer
         run: >
           php ./composer.phar install --no-interaction --no-progress --prefer-dist --classmap-authoritative
-          --ignore-platform-req=php
           --ignore-platform-req=ext-uopz
 
       - name: Create folder for coverage reports
