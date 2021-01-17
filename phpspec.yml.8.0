@@ -14,9 +14,3 @@ extensions:
       clover: spec_output/phpspec.coverage.xml
     whitelist:
       - src
-    #Exclude files with PHP 8+ code
-    blacklist:
-      - src/Articus/DataTransfer/PhpAttribute
-    blacklist_files:
-      - src/Articus/DataTransfer/MetadataProvider/PhpAttribute.php
-      - src/Articus/DataTransfer/MetadataProvider/Factory/PhpAttribute.php

@@ -18,6 +18,7 @@ jobs:
           # ext-uopz does not support PHP 8 officially yet, so have to use custom build https://github.com/krakjoe/uopz/pull/138
           - php: '8.0'
             upload_coverage: true
+            has_unique_phpspec_tests: true
     container: ghcr.io/articus/phpdbg-coveralls:${{ matrix.php }}_2.4.3_2021-01-16
     steps:
       - name: Checkout code
@@ -35,6 +36,10 @@ jobs:
 
       - name: Create folder for coverage reports
         run: mkdir -p ./spec_output
+
+      - name: Use unique phpspec.yml
+        if: matrix.has_unique_phpspec_tests
+        run: cp ./phpspec.yml.${{ matrix.php }} ./phpspec.yml
 
       - name: Run PhpSpec tests
         run: phpdbg -qrr ./vendor/phpspec/phpspec/bin/phpspec run
