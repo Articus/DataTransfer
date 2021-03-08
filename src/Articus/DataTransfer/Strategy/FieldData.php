@@ -26,7 +26,7 @@ class FieldData implements StrategyInterface
 	/**
 	 * @var bool
 	 */
-	protected $extractStdClass = false;
+	protected $extractStdClass;
 
 	/**
 	 * @param string $type

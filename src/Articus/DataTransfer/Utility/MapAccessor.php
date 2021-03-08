@@ -102,4 +102,23 @@ class MapAccessor
 			$this->data->offsetSet($key, $value);
 		}
 	}
+
+	/**
+	 * @param string $key
+	 */
+	public function remove(string $key): void
+	{
+		if ($this->isArray)
+		{
+			unset($this->data[$key]);
+		}
+		elseif ($this->isStdClass)
+		{
+			unset($this->data->{$key});
+		}
+		elseif ($this->isArrayAccess)
+		{
+			$this->data->offsetUnset($key);
+		}
+	}
 }
