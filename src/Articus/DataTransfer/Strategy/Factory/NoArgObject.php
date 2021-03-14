@@ -9,8 +9,7 @@ use Interop\Container\ContainerInterface;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 
 /**
- * Default factory for Strategy\NoArgObject
- * @see Strategy\NoArgObject
+ * Strategy factory for objects that have specific type which can be constructed without arguments.
  */
 class NoArgObject implements FactoryInterface
 {
@@ -26,8 +25,27 @@ class NoArgObject implements FactoryInterface
 			throw new \LogicException(\sprintf('Type "%s" does not exist', $type));
 		}
 		$subset = $options['subset'] ?? '';
-		$strategy = $this->getStrategyManager($container)->get(...$this->getMetadataProvider($container)->getClassStrategy($type, $subset));
-		return new Strategy\NoArgObject($strategy, $type);
+		$valueStrategy = $this->getStrategyManager($container)->get(...$this->getMetadataProvider($container)->getClassStrategy($type, $subset));
+		$nullIdentifier = static function ($value): ?string
+		{
+			return null;
+		};
+		$typedValueConstructor = static function ($untypedValue) use ($type)
+		{
+			return new $type();
+		};
+		$untypedValueConstructor = static function ($untypedValue) use ($type, $valueStrategy)
+		{
+			$defaultValue = new $type();
+			return $valueStrategy->extract($defaultValue);
+		};
+		return new Strategy\IdentifiableValue(
+			$valueStrategy,
+			$nullIdentifier,
+			$nullIdentifier,
+			$typedValueConstructor,
+			$untypedValueConstructor
+		);
 	}
 
 	protected function getMetadataProvider(ContainerInterface $container): ClassMetadataProviderInterface

@@ -33,9 +33,8 @@ class NoArgObjectSpec extends ObjectBehavior
 		$strategyManager->get(...$strategyDeclaration)->willReturn($strategy);
 
 		$service = $this->__invoke($container, 'testName', $options);
-		$service->shouldBeAnInstanceOf(DT\Strategy\NoArgObject::class);
-		$service->shouldHaveProperty('typeStrategy', $strategy);
-		$service->shouldHaveProperty('type', $className);
+		$service->shouldBeAnInstanceOf(DT\Strategy\IdentifiableValue::class);
+		$service->shouldHaveProperty('valueStrategy', $strategy);
 	}
 
 	public function it_throws_on_no_type(ContainerInterface $container)

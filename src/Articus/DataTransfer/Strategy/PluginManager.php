@@ -8,20 +8,21 @@ use Laminas\ServiceManager\Factory\InvokableFactory;
 
 class PluginManager extends AbstractPluginManager
 {
+	public const S_OBJECT = 'Object';
+	public const S_OBJECT_ARRAY = 'ObjectArray';
+
 	protected $instanceOf = StrategyInterface::class;
 
 	protected $factories = [
 		FieldData::class => Factory\FieldData::class,
-		NoArgObject::class => Factory\NoArgObject::class,
-		NoArgObjectList::class => Factory\NoArgObjectList::class,
+		self::S_OBJECT => Factory\NoArgObject::class,
+		self::S_OBJECT_ARRAY => Factory\NoArgObjectList::class,
 		Whatever::class => InvokableFactory::class,
 	];
 
 	protected $aliases = [
-		'Object' => NoArgObject::class,
-		'object' => NoArgObject::class,
-		'ObjectArray' => NoArgObjectList::class,
-		'objectArray' => NoArgObjectList::class,
+		'object' => self::S_OBJECT,
+		'objectArray' => self::S_OBJECT_ARRAY,
 	];
 
 	protected $shared = [
