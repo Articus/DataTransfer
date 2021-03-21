@@ -7,9 +7,9 @@ use Articus\DataTransfer\PhpAttribute as DTA;
 
 class ClassFieldsWithSameName
 {
-		#[DTA\Data(field: "test")]
-		public $test1;
+	#[DTA\Data(field: "test")]
+	public $test1;
 
-		#[DTA\Data(field: "test")]
-		public $test2;
+	#[DTA\Data(field: "test")]
+	public $test2;
 }

@@ -8,6 +8,6 @@ use Articus\DataTransfer\PhpAttribute as DTA;
 #[DTA\Strategy(name: "testStrategy")]
 class ClassFieldWithClassStrategy
 {
-		#[DTA\Data()]
-		public $test;
+	#[DTA\Data()]
+	public $test;
 }

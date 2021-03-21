@@ -7,6 +7,6 @@ use Articus\DataTransfer\PhpAttribute as DTA;
 
 class ClassFieldWithAbsentSetter
 {
-		#[DTA\Data(setter: "setName")]
-		public $test;
+	#[DTA\Data(setter: "setName")]
+	public $test;
 }

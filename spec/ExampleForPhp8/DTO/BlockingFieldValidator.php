@@ -7,7 +7,7 @@ use Articus\DataTransfer\PhpAttribute as DTA;
 
 class BlockingFieldValidator
 {
-		#[DTA\Data()]
-		#[DTA\Validator(name: "testValidator", blocker: true)]
-		public $testField;
+	#[DTA\Data()]
+	#[DTA\Validator(name: "testValidator", blocker: true)]
+	public $testField;
 }

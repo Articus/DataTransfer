@@ -7,7 +7,7 @@ use Articus\DataTransfer\PhpAttribute as DTA;
 
 class ClassFieldsWithSameSubsetForSameProperty
 {
-		#[DTA\Data()]
-		#[DTA\Data()]
-		public $test;
+	#[DTA\Data()]
+	#[DTA\Data()]
+	public $test;
 }

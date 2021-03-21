@@ -83,7 +83,7 @@ If you provide some additional metadata for classes that you would like to use w
 - `Articus\DataTransfer\Service::transferFromTypedData`
 - `Articus\DataTransfer\Service::extractFromTypedData`     
 
-Currently, there is only one way to declare metadata - via [Doctrine Annotations](https://www.doctrine-project.org/projects/annotations.html). But you can create your own implementation for `Articus\DataTransfer\ClassMetadataProviderInterface` if you want to get metadata from another source.
+Currently, the default way to declare metadata shown in code examples across this documentation is via [Doctrine Annotations](https://www.doctrine-project.org/projects/annotations.html). If your project uses PHP 8 you may declare metadata via [attributes](https://www.php.net/manual/en/language.attributes.overview.php) instead (just switch from `Articus\DataTransfer\MetadataProvider\Annotation` to `Articus\DataTransfer\MetadataProvider\PhpAttribute`). And you can create your own implementation for `Articus\DataTransfer\ClassMetadataProviderInterface` if you want to get metadata from another source.
 
 Metadata consists of two parts:
 - strategy - `Articus\DataTransfer\Strategy\StrategyInterface` implementation that knows how **extract**, **merge** and **hydrate** class objects
@@ -233,7 +233,7 @@ class Sample
 }
 ```
 
-Same as for class metadata there may be several subsets for property metadata and [Doctrine Annotations](https://www.doctrine-project.org/projects/annotations.html) is the only build-in way to declare property metadata. But you can create your own implementation for `Articus\DataTransfer\FieldMetadataProviderInterface` if you want to use another metadata source.  
+Same as for class metadata there may be several subsets for property metadata and [Doctrine Annotations](https://www.doctrine-project.org/projects/annotations.html) is the default way to declare property metadata. If your project uses PHP 8 you may declare property metadata via [attributes](https://www.php.net/manual/en/language.attributes.overview.php) instead (just switch from `Articus\DataTransfer\MetadataProvider\Annotation` to `Articus\DataTransfer\MetadataProvider\PhpAttribute`). And you can create your own implementation for `Articus\DataTransfer\FieldMetadataProviderInterface` if you want to use another metadata source.  
     
 ## Enjoy!
 I really hope that this library will be useful for someone except me. 

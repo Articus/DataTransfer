@@ -9,6 +9,6 @@ use Articus\DataTransfer\PhpAttribute as DTA;
 #[DTA\Validator(name: "testValidator2", priority: 10001)]
 class ClassFieldWithClassValidator
 {
-		#[DTA\Data()]
-		public $test;
+	#[DTA\Data()]
+	public $test;
 }
