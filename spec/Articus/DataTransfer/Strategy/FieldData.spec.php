@@ -360,22 +360,38 @@ use Articus\DataTransfer as DT;
 			$source = \mock();
 			$destination = new Example\DTO\Data();
 			$strategy = new DT\Strategy\FieldData(Example\DTO\Data::class, [], false);
-			$error = new \LogicException(\sprintf('Hydration can be done only from key-value map, not %s', \get_class($source)));
-			\expect(function () use (&$strategy, &$source, &$destination)
+			try
 			{
 				$strategy->hydrate($source, $destination);
-			})->toThrow($error);
+				throw new \LogicException('No expected exception');
+			}
+			catch (DT\Exception\InvalidData $e)
+			{
+				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
+				\expect($e->getPrevious()->getMessage())->toBe(
+					\sprintf('Hydration can be done only from key-value map, not %s', \get_class($source))
+				);
+			}
 		});
 		\it('throws on destination of invalid type', function ()
 		{
 			$source = [];
 			$destination = \mock();
 			$strategy = new DT\Strategy\FieldData(Example\DTO\Data::class, [], false);
-			$error = new \LogicException(\sprintf('Hydration can be done only to %s, not %s', Example\DTO\Data::class, \get_class($destination)));
-			\expect(function () use (&$strategy, &$source, &$destination)
+			try
 			{
 				$strategy->hydrate($source, $destination);
-			})->toThrow($error);
+				throw new \LogicException('No expected exception');
+			}
+			catch (DT\Exception\InvalidData $e)
+			{
+				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
+				\expect($e->getPrevious()->getMessage())->toBe(
+					\sprintf('Hydration can be done only to %s, not %s', Example\DTO\Data::class, \get_class($destination))
+				);
+			}
 		});
 		\it('rethrows wrapped invalid data exception', function ()
 		{
@@ -1066,22 +1082,38 @@ use Articus\DataTransfer as DT;
 			$source = \mock();
 			$destination = [];
 			$strategy = new DT\Strategy\FieldData(Example\DTO\Data::class, [], false);
-			$error = new \LogicException(\sprintf('Merge can be done only for key-value map, not %s', \get_class($source)));
-			\expect(function () use (&$strategy, &$source, &$destination)
+			try
 			{
 				$strategy->merge($source, $destination);
-			})->toThrow($error);
+				throw new \LogicException('No expected exception');
+			}
+			catch (DT\Exception\InvalidData $e)
+			{
+				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
+				\expect($e->getPrevious()->getMessage())->toBe(
+					\sprintf('Merge can be done only for key-value map, not %s', \get_class($source))
+				);
+			}
 		});
 		\it('throws on destination that is not map', function ()
 		{
 			$source = [];
 			$destination = \mock();
 			$strategy = new DT\Strategy\FieldData(Example\DTO\Data::class, [], false);
-			$error = new \LogicException(\sprintf('Merge can be done only into key-value map, not %s', \get_class($destination)));
-			\expect(function () use (&$strategy, &$source, &$destination)
+			try
 			{
 				$strategy->merge($source, $destination);
-			})->toThrow($error);
+				throw new \LogicException('No expected exception');
+			}
+			catch (DT\Exception\InvalidData $e)
+			{
+				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
+				\expect($e->getPrevious()->getMessage())->toBe(
+					\sprintf('Merge can be done only into key-value map, not %s', \get_class($destination))
+				);
+			}
 		});
 		\it('rethrows wrapped invalid data exception', function ()
 		{

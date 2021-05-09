@@ -21,7 +21,6 @@ use Articus\DataTransfer as DT;
 			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
 			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
 			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$exception = new \InvalidArgumentException(\sprintf('Hydration can be done only from iterable, not %s', \get_class($source)));
 
 			$strategy = new DT\Strategy\IdentifiableValueList(
 				$valueStrategy,
@@ -31,11 +30,19 @@ use Articus\DataTransfer as DT;
 				null,
 				null
 			);
-
-			\expect(function () use (&$strategy, &$source, &$destination)
+			try
 			{
 				$strategy->hydrate($source, $destination);
-			})->toThrow($exception);
+				throw new \LogicException('No expected exception');
+			}
+			catch (DT\Exception\InvalidData $e)
+			{
+				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
+				\expect($e->getPrevious()->getMessage())->toBe(
+					\sprintf('Hydration can be done only from iterable, not %s', \get_class($source))
+				);
+			}
 		});
 		\it('throws on non iterable destination', function ()
 		{
@@ -44,7 +51,6 @@ use Articus\DataTransfer as DT;
 			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
 			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
 			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$exception = new \InvalidArgumentException(\sprintf('Hydration can be done only to iterable, not %s', \get_class($destination)));
 
 			$strategy = new DT\Strategy\IdentifiableValueList(
 				$valueStrategy,
@@ -55,10 +61,19 @@ use Articus\DataTransfer as DT;
 				null
 			);
 
-			\expect(function () use (&$strategy, &$source, &$destination)
+			try
 			{
 				$strategy->hydrate($source, $destination);
-			})->toThrow($exception);
+				throw new \LogicException('No expected exception');
+			}
+			catch (DT\Exception\InvalidData $e)
+			{
+				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
+				\expect($e->getPrevious()->getMessage())->toBe(
+					\sprintf('Hydration can be done only to iterable, not %s', \get_class($destination))
+				);
+			}
 		});
 		\it('throws if source have items with same identifier', function ()
 		{
@@ -102,7 +117,6 @@ use Articus\DataTransfer as DT;
 			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
 			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
 			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$exception = new \InvalidArgumentException('List contains items with same identifier');
 
 			$typedValueIdentifier->shouldReceive('__invoke')->with($destination[0])->andReturn('test123')->once();
 			$typedValueIdentifier->shouldReceive('__invoke')->with($destination[1])->andReturn('test123')->once();
@@ -116,10 +130,17 @@ use Articus\DataTransfer as DT;
 				null
 			);
 
-			\expect(function () use (&$strategy, &$source, &$destination)
+			try
 			{
 				$strategy->hydrate($source, $destination);
-			})->toThrow($exception);
+				throw new \LogicException('No expected exception');
+			}
+			catch (DT\Exception\InvalidData $e)
+			{
+				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
+				\expect($e->getPrevious()->getMessage())->toBe('List contains items with same identifier');
+			}
 		});
 		\it('wraps and rethrows invalid data exceptions from value strategy', function ()
 		{
@@ -762,7 +783,6 @@ use Articus\DataTransfer as DT;
 			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
 			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
 			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$exception = new \InvalidArgumentException(\sprintf('Merge can be done only from iterable, not %s', \get_class($source)));
 
 			$strategy = new DT\Strategy\IdentifiableValueList(
 				$valueStrategy,
@@ -773,10 +793,19 @@ use Articus\DataTransfer as DT;
 				null
 			);
 
-			\expect(function () use (&$strategy, &$source, &$destination)
+			try
 			{
 				$strategy->merge($source, $destination);
-			})->toThrow($exception);
+				throw new \LogicException('No expected exception');
+			}
+			catch (DT\Exception\InvalidData $e)
+			{
+				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
+				\expect($e->getPrevious()->getMessage())->toBe(
+					\sprintf('Merge can be done only from iterable, not %s', \get_class($source))
+				);
+			}
 		});
 		\it('throws on non iterable destination', function ()
 		{
@@ -796,10 +825,19 @@ use Articus\DataTransfer as DT;
 				null
 			);
 
-			\expect(function () use (&$strategy, &$source, &$destination)
+			try
 			{
 				$strategy->merge($source, $destination);
-			})->toThrow($exception);
+				throw new \LogicException('No expected exception');
+			}
+			catch (DT\Exception\InvalidData $e)
+			{
+				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
+				\expect($e->getPrevious()->getMessage())->toBe(
+					\sprintf('Merge can be done only to iterable, not %s', \get_class($destination))
+				);
+			}
 		});
 		\it('throws if source have items with same identifier', function ()
 		{
@@ -843,7 +881,6 @@ use Articus\DataTransfer as DT;
 			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
 			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
 			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$exception = new \InvalidArgumentException('List contains items with same identifier');
 
 			$untypedValueIdentifier->shouldReceive('__invoke')->with($destination[0])->andReturn('test123')->once();
 			$untypedValueIdentifier->shouldReceive('__invoke')->with($destination[1])->andReturn('test123')->once();
@@ -857,10 +894,17 @@ use Articus\DataTransfer as DT;
 				null
 			);
 
-			\expect(function () use (&$strategy, &$source, &$destination)
+			try
 			{
 				$strategy->merge($source, $destination);
-			})->toThrow($exception);
+				throw new \LogicException('No expected exception');
+			}
+			catch (DT\Exception\InvalidData $e)
+			{
+				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
+				\expect($e->getPrevious()->getMessage())->toBe('List contains items with same identifier');
+			}
 		});
 		\it('wraps and rethrows invalid data exceptions from value strategy', function ()
 		{

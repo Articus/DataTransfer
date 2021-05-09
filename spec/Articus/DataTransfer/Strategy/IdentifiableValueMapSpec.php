@@ -16,9 +16,9 @@ class IdentifiableValueMapSpec extends ObjectBehavior
 	)
 	{
 		$this->beConstructedWith($valueStrategy, $typedValueIdentifier, $untypedValueIdentifier, null, null, null, false);
-		$this->shouldThrow(\InvalidArgumentException::class)->during('extract', [null]);
-		$this->shouldThrow(\InvalidArgumentException::class)->during('extract', [1]);
-		$this->shouldThrow(\InvalidArgumentException::class)->during('extract', [new class(){}]);
+		$this->shouldThrow(DT\Exception\InvalidData::class)->during('extract', [null]);
+		$this->shouldThrow(DT\Exception\InvalidData::class)->during('extract', [1]);
+		$this->shouldThrow(DT\Exception\InvalidData::class)->during('extract', [new class(){}]);
 	}
 
 	public function it_extracts_empty_array_from_empty_source(

@@ -115,7 +115,7 @@ class FieldDataSpec extends ObjectBehavior
 	public function it_throws_on_object_of_invalid_type($source)
 	{
 		$this->beConstructedWith(Example\DTO\Data::class, [], true);
-		$this->shouldThrow(\LogicException::class)->during('extract', [$source]);
+		$this->shouldThrow(DT\Exception\InvalidData::class)->during('extract', [$source]);
 	}
 
 	public function it_rethrows_wrapped_invalid_data_exception(DT\Strategy\StrategyInterface $strategy)

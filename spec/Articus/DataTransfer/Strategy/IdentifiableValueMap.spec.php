@@ -21,7 +21,6 @@ use Articus\DataTransfer as DT;
 			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
 			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
 			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$exception = new \InvalidArgumentException(\sprintf('Hydration can be done only from iterable or stdClass, not %s', \get_class($source)));
 
 			$strategy = new DT\Strategy\IdentifiableValueMap(
 				$valueStrategy,
@@ -33,10 +32,19 @@ use Articus\DataTransfer as DT;
 				false
 			);
 
-			\expect(function () use (&$strategy, &$source, &$destination)
+			try
 			{
 				$strategy->hydrate($source, $destination);
-			})->toThrow($exception);
+				throw new \LogicException('No expected exception');
+			}
+			catch (DT\Exception\InvalidData $e)
+			{
+				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
+				\expect($e->getPrevious()->getMessage())->toBe(
+					\sprintf('Hydration can be done only from iterable or stdClass, not %s', \get_class($source))
+				);
+			}
 		});
 		\it('throws on non iterable and non stdclass destination', function ()
 		{
@@ -45,7 +53,6 @@ use Articus\DataTransfer as DT;
 			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
 			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
 			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$exception = new \InvalidArgumentException(\sprintf('Hydration can be done only to iterable or stdClass, not %s', \get_class($destination)));
 
 			$strategy = new DT\Strategy\IdentifiableValueMap(
 				$valueStrategy,
@@ -57,10 +64,19 @@ use Articus\DataTransfer as DT;
 				false
 			);
 
-			\expect(function () use (&$strategy, &$source, &$destination)
+			try
 			{
 				$strategy->hydrate($source, $destination);
-			})->toThrow($exception);
+				throw new \LogicException('No expected exception');
+			}
+			catch (DT\Exception\InvalidData $e)
+			{
+				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
+				\expect($e->getPrevious()->getMessage())->toBe(
+					\sprintf('Hydration can be done only to iterable or stdClass, not %s', \get_class($destination))
+				);
+			}
 		});
 		\it('wraps and rethrows invalid data exceptions from value strategy', function ()
 		{
@@ -1058,7 +1074,6 @@ use Articus\DataTransfer as DT;
 			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
 			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
 			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$exception = new \InvalidArgumentException(\sprintf('Merge can be done only from iterable or stdClass, not %s', \get_class($source)));
 
 			$strategy = new DT\Strategy\IdentifiableValueMap(
 				$valueStrategy,
@@ -1070,10 +1085,19 @@ use Articus\DataTransfer as DT;
 				false
 			);
 
-			\expect(function () use (&$strategy, &$source, &$destination)
+			try
 			{
 				$strategy->merge($source, $destination);
-			})->toThrow($exception);
+				throw new \LogicException('No expected exception');
+			}
+			catch (DT\Exception\InvalidData $e)
+			{
+				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
+				\expect($e->getPrevious()->getMessage())->toBe(
+					\sprintf('Merge can be done only from iterable or stdClass, not %s', \get_class($source))
+				);
+			}
 		});
 		\it('throws on non iterable and non stdclass destination', function ()
 		{
@@ -1082,7 +1106,6 @@ use Articus\DataTransfer as DT;
 			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
 			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
 			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$exception = new \InvalidArgumentException(\sprintf('Merge can be done only to iterable or stdClass, not %s', \get_class($destination)));
 
 			$strategy = new DT\Strategy\IdentifiableValueMap(
 				$valueStrategy,
@@ -1094,10 +1117,19 @@ use Articus\DataTransfer as DT;
 				false
 			);
 
-			\expect(function () use (&$strategy, &$source, &$destination)
+			try
 			{
 				$strategy->merge($source, $destination);
-			})->toThrow($exception);
+				throw new \LogicException('No expected exception');
+			}
+			catch (DT\Exception\InvalidData $e)
+			{
+				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
+				\expect($e->getPrevious()->getMessage())->toBe(
+					\sprintf('Merge can be done only to iterable or stdClass, not %s', \get_class($destination))
+				);
+			}
 		});
 		\it('wraps and rethrows invalid data exceptions from value strategy', function ()
 		{

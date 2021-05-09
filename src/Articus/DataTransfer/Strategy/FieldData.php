@@ -47,10 +47,13 @@ class FieldData implements StrategyInterface
 	{
 		if (!($from instanceof $this->type))
 		{
-			throw new \LogicException(\sprintf(
-				'Extraction can be done only from %s, not %s',
-				$this->type, \is_object($from) ? \get_class($from) : \gettype($from)
-			));
+			throw new Exception\InvalidData(
+				Exception\InvalidData::DEFAULT_VIOLATION,
+				new \InvalidArgumentException(\sprintf(
+					'Extraction can be done only from %s, not %s',
+					$this->type, \is_object($from) ? \get_class($from) : \gettype($from)
+				))
+			);
 		}
 
 		$result = ($this->extractStdClass) ? new \stdClass() : [];
@@ -85,17 +88,23 @@ class FieldData implements StrategyInterface
 		$map = new Utility\MapAccessor($from);
 		if (!$map->accessible())
 		{
-			throw new \LogicException(\sprintf(
-				'Hydration can be done only from key-value map, not %s',
-				\is_object($from) ? \get_class($from) : \gettype($from)
-			));
+			throw new Exception\InvalidData(
+				Exception\InvalidData::DEFAULT_VIOLATION,
+				new \InvalidArgumentException(\sprintf(
+					'Hydration can be done only from key-value map, not %s',
+					\is_object($from) ? \get_class($from) : \gettype($from)
+				))
+			);
 		}
 		if (!($to instanceof $this->type))
 		{
-			throw new \LogicException(\sprintf(
-				'Hydration can be done only to %s, not %s',
-				$this->type, \is_object($to) ? \get_class($to) : \gettype($to)
-			));
+			throw new Exception\InvalidData(
+				Exception\InvalidData::DEFAULT_VIOLATION,
+				new \InvalidArgumentException(\sprintf(
+					'Hydration can be done only to %s, not %s',
+					$this->type, \is_object($to) ? \get_class($to) : \gettype($to)
+				))
+			);
 		}
 		$object = new Utility\PropertyAccessor($to);
 		foreach ($this->typeFields as [$fieldName, $getter, $setter, $strategy])
@@ -127,18 +136,24 @@ class FieldData implements StrategyInterface
 		$fromMap = new Utility\MapAccessor($from);
 		if (!$fromMap->accessible())
 		{
-			throw new \LogicException(\sprintf(
-				'Merge can be done only for key-value map, not %s',
-				\is_object($from) ? \get_class($from) : \gettype($from)
-			));
+			throw new Exception\InvalidData(
+				Exception\InvalidData::DEFAULT_VIOLATION,
+				new \InvalidArgumentException(\sprintf(
+					'Merge can be done only for key-value map, not %s',
+					\is_object($from) ? \get_class($from) : \gettype($from)
+				))
+			);
 		}
 		$toMap = new Utility\MapAccessor($to);
 		if (!$toMap->accessible())
 		{
-			throw new \LogicException(\sprintf(
-				'Merge can be done only into key-value map, not %s',
-				\is_object($to) ? \get_class($to) : \gettype($to)
-			));
+			throw new Exception\InvalidData(
+				Exception\InvalidData::DEFAULT_VIOLATION,
+				new \InvalidArgumentException(\sprintf(
+					'Merge can be done only into key-value map, not %s',
+					\is_object($to) ? \get_class($to) : \gettype($to)
+				))
+			);
 		}
 
 		foreach ($this->typeFields as [$fieldName, $getter, $setter, $strategy])

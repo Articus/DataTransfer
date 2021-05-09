@@ -83,10 +83,13 @@ class IdentifiableValueMap implements StrategyInterface
 	{
 		if (!(\is_iterable($from) || ($from instanceof \stdClass)))
 		{
-			throw new \InvalidArgumentException(\sprintf(
-				'Extraction can be done only from iterable or stdClass, not %s',
-				\is_object($from) ? \get_class($from) : \gettype($from)
-			));
+			throw new Exception\InvalidData(
+				Exception\InvalidData::DEFAULT_VIOLATION,
+				new \InvalidArgumentException(\sprintf(
+					'Extraction can be done only from iterable or stdClass, not %s',
+					\is_object($from) ? \get_class($from) : \gettype($from)
+				))
+			);
 		}
 		$result = ($this->extractStdClass ? new \stdClass() : []);
 		$map = new Utility\MapAccessor($result);
@@ -113,17 +116,23 @@ class IdentifiableValueMap implements StrategyInterface
 	{
 		if (!(\is_iterable($from) || ($from instanceof \stdClass)))
 		{
-			throw new \InvalidArgumentException(\sprintf(
-				'Hydration can be done only from iterable or stdClass, not %s',
-				\is_object($from) ? \get_class($from) : \gettype($from)
-			));
+			throw new Exception\InvalidData(
+				Exception\InvalidData::DEFAULT_VIOLATION,
+				new \InvalidArgumentException(\sprintf(
+					'Hydration can be done only from iterable or stdClass, not %s',
+					\is_object($from) ? \get_class($from) : \gettype($from)
+				))
+			);
 		}
 		if (!(\is_iterable($to) || ($to instanceof \stdClass)))
 		{
-			throw new \InvalidArgumentException(\sprintf(
-				'Hydration can be done only to iterable or stdClass, not %s',
-				\is_object($to) ? \get_class($to) : \gettype($to)
-			));
+			throw new Exception\InvalidData(
+				Exception\InvalidData::DEFAULT_VIOLATION,
+				new \InvalidArgumentException(\sprintf(
+					'Hydration can be done only to iterable or stdClass, not %s',
+					\is_object($to) ? \get_class($to) : \gettype($to)
+				))
+			);
 		}
 		//Prepare references to destination items
 		$toValues = $this->referenceValues($to);
@@ -171,18 +180,24 @@ class IdentifiableValueMap implements StrategyInterface
 	{
 		if (!(\is_iterable($from) || ($from instanceof \stdClass)))
 		{
-			throw new \InvalidArgumentException(\sprintf(
-				'Merge can be done only from iterable or stdClass, not %s',
-				\is_object($from) ? \get_class($from) : \gettype($from)
-			));
+			throw new Exception\InvalidData(
+				Exception\InvalidData::DEFAULT_VIOLATION,
+				new \InvalidArgumentException(\sprintf(
+					'Merge can be done only from iterable or stdClass, not %s',
+					\is_object($from) ? \get_class($from) : \gettype($from)
+				))
+			);
 		}
 		$toMap = new Utility\MapAccessor($to);
 		if (!$toMap->accessible())
 		{
-			throw new \InvalidArgumentException(\sprintf(
-				'Merge can be done only to iterable or stdClass, not %s',
-				\is_object($to) ? \get_class($to) : \gettype($to)
-			));
+			throw new Exception\InvalidData(
+				Exception\InvalidData::DEFAULT_VIOLATION,
+				new \InvalidArgumentException(\sprintf(
+					'Merge can be done only to iterable or stdClass, not %s',
+					\is_object($to) ? \get_class($to) : \gettype($to)
+				))
+			);
 		}
 		//Prepare references to destination items
 		$toValues = $this->referenceValues($to);

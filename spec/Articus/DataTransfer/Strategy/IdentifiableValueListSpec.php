@@ -16,10 +16,10 @@ class IdentifiableValueListSpec extends ObjectBehavior
 	)
 	{
 		$this->beConstructedWith($valueStrategy, $typedValueIdentifier, $untypedValueIdentifier, null, null, null);
-		$this->shouldThrow(\InvalidArgumentException::class)->during('extract', [null]);
-		$this->shouldThrow(\InvalidArgumentException::class)->during('extract', [1]);
-		$this->shouldThrow(\InvalidArgumentException::class)->during('extract', ['test']);
-		$this->shouldThrow(\InvalidArgumentException::class)->during('extract', [new \stdClass()]);
+		$this->shouldThrow(DT\Exception\InvalidData::class)->during('extract', [null]);
+		$this->shouldThrow(DT\Exception\InvalidData::class)->during('extract', [1]);
+		$this->shouldThrow(DT\Exception\InvalidData::class)->during('extract', ['test']);
+		$this->shouldThrow(DT\Exception\InvalidData::class)->during('extract', [new \stdClass()]);
 	}
 
 	public function it_extracts_from_empty_iterable(

@@ -76,10 +76,13 @@ class IdentifiableValueList implements StrategyInterface
 	{
 		if (!\is_iterable($from))
 		{
-			throw new \InvalidArgumentException(\sprintf(
-				'Extraction can be done only from iterable, not %s',
-				\is_object($from) ? \get_class($from) : \gettype($from)
-			));
+			throw new Exception\InvalidData(
+				Exception\InvalidData::DEFAULT_VIOLATION,
+				new \InvalidArgumentException(\sprintf(
+					'Extraction can be done only from iterable, not %s',
+					\is_object($from) ? \get_class($from) : \gettype($from)
+				))
+			);
 		}
 		$result = [];
 		foreach ($from as $index => $value)
@@ -104,17 +107,23 @@ class IdentifiableValueList implements StrategyInterface
 	{
 		if (!\is_iterable($from))
 		{
-			throw new \InvalidArgumentException(\sprintf(
-				'Hydration can be done only from iterable, not %s',
-				\is_object($from) ? \get_class($from) : \gettype($from)
-			));
+			throw new Exception\InvalidData(
+				Exception\InvalidData::DEFAULT_VIOLATION,
+				new \InvalidArgumentException(\sprintf(
+					'Hydration can be done only from iterable, not %s',
+					\is_object($from) ? \get_class($from) : \gettype($from)
+				))
+			);
 		}
 		if (!\is_iterable($to))
 		{
-			throw new \InvalidArgumentException(\sprintf(
-				'Hydration can be done only to iterable, not %s',
-				\is_object($to) ? \get_class($to) : \gettype($to)
-			));
+			throw new Exception\InvalidData(
+				Exception\InvalidData::DEFAULT_VIOLATION,
+				new \InvalidArgumentException(\sprintf(
+					'Hydration can be done only to iterable, not %s',
+					\is_object($to) ? \get_class($to) : \gettype($to)
+				))
+			);
 		}
 		//Prepare references to destination items
 		[$toIdentifiedValues, $toUnidentifiedValues] = $this->identifyValues($to, $this->typedValueIdentifier);
@@ -129,9 +138,10 @@ class IdentifiableValueList implements StrategyInterface
 				{
 					if (isset($fromValueIdToIndexMap[$fromValueId]))
 					{
-						throw new Exception\InvalidData([self::DUPLICATE_ID => \sprintf(
-							'Same identifier as item %s', $fromValueIdToIndexMap[$fromValueId]
-						)]);
+						$violations = [
+							self::DUPLICATE_ID => \sprintf('Same identifier as item %s', $fromValueIdToIndexMap[$fromValueId])
+						];
+						throw new Exception\InvalidData($violations);
 					}
 					$fromValueIdToIndexMap[$fromValueId] = $fromIndex;
 				}
@@ -175,17 +185,23 @@ class IdentifiableValueList implements StrategyInterface
 	{
 		if (!\is_iterable($from))
 		{
-			throw new \InvalidArgumentException(\sprintf(
-				'Merge can be done only from iterable, not %s',
-				\is_object($from) ? \get_class($from) : \gettype($from)
-			));
+			throw new Exception\InvalidData(
+				Exception\InvalidData::DEFAULT_VIOLATION,
+				new \InvalidArgumentException(\sprintf(
+					'Merge can be done only from iterable, not %s',
+					\is_object($from) ? \get_class($from) : \gettype($from)
+				))
+			);
 		}
 		if (!\is_iterable($to))
 		{
-			throw new \InvalidArgumentException(\sprintf(
-				'Merge can be done only to iterable, not %s',
-				\is_object($to) ? \get_class($to) : \gettype($to)
-			));
+			throw new Exception\InvalidData(
+				Exception\InvalidData::DEFAULT_VIOLATION,
+				new \InvalidArgumentException(\sprintf(
+					'Merge can be done only to iterable, not %s',
+					\is_object($to) ? \get_class($to) : \gettype($to)
+				))
+			);
 		}
 		//Prepare references to destination items
 		[$toIdentifiedValues, $toUnidentifiedValues] = $this->identifyValues($to, $this->untypedValueIdentifier);
@@ -201,9 +217,10 @@ class IdentifiableValueList implements StrategyInterface
 				{
 					if (isset($fromValueIdToIndexMap[$fromValueId]))
 					{
-						throw new Exception\InvalidData([self::DUPLICATE_ID => \sprintf(
-							'Same identifier as item %s', $fromValueIdToIndexMap[$fromValueId]
-						)]);
+						$violations = [
+							self::DUPLICATE_ID => \sprintf('Same identifier as item %s', $fromValueIdToIndexMap[$fromValueId])
+						];
+						throw new Exception\InvalidData($violations);
 					}
 					$fromValueIdToIndexMap[$fromValueId] = $fromIndex;
 				}
@@ -254,7 +271,10 @@ class IdentifiableValueList implements StrategyInterface
 			}
 			elseif (\array_key_exists($valueId, $identifiedValues))
 			{
-				throw new \InvalidArgumentException('List contains items with same identifier');
+				throw new Exception\InvalidData(
+					Exception\InvalidData::DEFAULT_VIOLATION,
+					new \InvalidArgumentException('List contains items with same identifier')
+				);
 			}
 			else
 			{
