@@ -14,6 +14,7 @@ class PluginManager extends AbstractPluginManager
 		Chain::class => Factory\Chain::class,
 		Collection::class => Factory\Collection::class,
 		FieldData::class => Factory\FieldData::class,
+		Identifier::class => Factory\Identifier::class,
 		NotNull::class => InvokableFactory::class,
 		TypeCompliant::class => Factory\TypeCompliant::class,
 		Whatever::class => InvokableFactory::class,

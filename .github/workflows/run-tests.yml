@@ -14,12 +14,13 @@ jobs:
           - php: '7.2'
             has_unique_dependencies: true
           - php: '7.3'
+            has_unique_dependencies: true
           - php: '7.4'
-          # ext-uopz does not support PHP 8 officially yet, so have to use custom build https://github.com/krakjoe/uopz/pull/138
+            has_unique_dependencies: true
           - php: '8.0'
             upload_coverage: true
             has_unique_phpspec_tests: true
-    container: ghcr.io/articus/phpdbg-coveralls:${{ matrix.php }}_2.4.3_2021-03-21
+    container: ghcr.io/articus/phpdbg-coveralls:${{ matrix.php }}_2.4.3_2021-10-23
     steps:
       - name: Checkout code
         uses: actions/checkout@v2

@@ -15,6 +15,7 @@ class PluginManager extends AbstractPluginManager
 
 	protected $factories = [
 		FieldData::class => Factory\FieldData::class,
+		Identifier::class => Factory\Identifier::class,
 		self::S_OBJECT => Factory\NoArgObject::class,
 		self::S_OBJECT_ARRAY => Factory\NoArgObjectList::class,
 		Whatever::class => InvokableFactory::class,
