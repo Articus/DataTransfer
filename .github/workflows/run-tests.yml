@@ -11,16 +11,20 @@ jobs:
         include:
           - php: '7.1'
             has_unique_dependencies: true
+            has_unique_phpspec_tests: true
           - php: '7.2'
             has_unique_dependencies: true
+            has_unique_phpspec_tests: true
           - php: '7.3'
             has_unique_dependencies: true
+            has_unique_phpspec_tests: true
           - php: '7.4'
             has_unique_dependencies: true
-          - php: '8.0'
-            upload_coverage: true
             has_unique_phpspec_tests: true
-    container: ghcr.io/articus/phpdbg-coveralls:${{ matrix.php }}_2.4.3_2021-10-23
+          - php: '8.0'
+          - php: '8.1'
+            upload_coverage: true
+    container: ghcr.io/articus/phpdbg-coveralls:${{ matrix.php }}_2.5.2_2022-03-20
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -40,7 +44,7 @@ jobs:
 
       - name: Use unique phpspec.yml
         if: matrix.has_unique_phpspec_tests
-        run: cp ./phpspec.yml.${{ matrix.php }} ./phpspec.yml
+        run: cp ./phpspec.yml.$(echo ${{ matrix.php }} | cut -d . -f 1) ./phpspec.yml
 
       - name: Run PhpSpec tests
         run: phpdbg -qrr ./vendor/phpspec/phpspec/bin/phpspec run

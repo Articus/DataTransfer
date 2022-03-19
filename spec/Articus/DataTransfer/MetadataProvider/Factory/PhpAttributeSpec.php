@@ -27,7 +27,7 @@ class PhpAttributeSpec extends ObjectBehavior
 		$configKey = DT\MetadataProvider\PhpAttribute::class;
 		$container->get('config')->shouldBeCalledOnce()->willReturn($config);
 		$config->offsetExists($configKey)->shouldBeCalledOnce()->willReturn(true);
-		$config->offsetGet($configKey)->shouldBeCalledOnce();
+		$config->offsetGet($configKey)->shouldBeCalledOnce()->willReturn(null);
 
 		$service = $this->__invoke($container, '');
 		$service->shouldBeAnInstanceOf(DT\MetadataProvider\PhpAttribute::class);
@@ -38,7 +38,7 @@ class PhpAttributeSpec extends ObjectBehavior
 		$configKey = 'test_config_key';
 		$container->get('config')->shouldBeCalledOnce()->willReturn($config);
 		$config->offsetExists($configKey)->shouldBeCalledOnce()->willReturn(true);
-		$config->offsetGet($configKey)->shouldBeCalledOnce();
+		$config->offsetGet($configKey)->shouldBeCalledOnce()->willReturn(null);
 
 		$this->beConstructedWith($configKey);
 		$service = $this->__invoke($container, '');
@@ -50,7 +50,7 @@ class PhpAttributeSpec extends ObjectBehavior
 		$configKey = 'test_config_key';
 		$container->get('config')->shouldBeCalledOnce()->willReturn($config);
 		$config->offsetExists($configKey)->shouldBeCalledOnce()->willReturn(true);
-		$config->offsetGet($configKey)->shouldBeCalledOnce();
+		$config->offsetGet($configKey)->shouldBeCalledOnce()->willReturn(null);
 
 		$service = $this::__callStatic($configKey, [$container, '', null]);
 		$service->shouldBeAnInstanceOf(DT\MetadataProvider\PhpAttribute::class);

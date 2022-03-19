@@ -25,13 +25,12 @@ class IdentifiableValueListSpec extends ObjectBehavior
 	public function it_extracts_from_empty_iterable(
 		DT\Strategy\StrategyInterface $valueStrategy,
 		Example\InvokableInterface $typedValueIdentifier,
-		Example\InvokableInterface $untypedValueIdentifier,
-		\Iterator $iterator
+		Example\InvokableInterface $untypedValueIdentifier
 	)
 	{
 		$this->beConstructedWith($valueStrategy, $typedValueIdentifier, $untypedValueIdentifier, null, null, null);
 		$this->extract([])->shouldBe([]);
-		$this->extract($iterator)->shouldBe([]);
+		$this->extract(new \ArrayObject())->shouldBe([]);
 	}
 
 	public function it_extracts_from_non_empty_iterable_using_value_strategy(

@@ -24,28 +24,26 @@ class IdentifiableValueMapSpec extends ObjectBehavior
 	public function it_extracts_empty_array_from_empty_source(
 		DT\Strategy\StrategyInterface $valueStrategy,
 		Example\InvokableInterface $typedValueIdentifier,
-		Example\InvokableInterface $untypedValueIdentifier,
-		\Iterator $iterator
+		Example\InvokableInterface $untypedValueIdentifier
 	)
 	{
 		$this->beConstructedWith($valueStrategy, $typedValueIdentifier, $untypedValueIdentifier, null, null, null, false);
 		$this->extract([])->shouldBe([]);
 		$this->extract(new \stdClass())->shouldBe([]);
-		$this->extract($iterator)->shouldBe([]);
+		$this->extract(new \ArrayObject())->shouldBe([]);
 	}
 
 	public function it_extracts_empty_stdclass_from_empty_source(
 		DT\Strategy\StrategyInterface $valueStrategy,
 		Example\InvokableInterface $typedValueIdentifier,
-		Example\InvokableInterface $untypedValueIdentifier,
-		\Iterator $iterator
+		Example\InvokableInterface $untypedValueIdentifier
 	)
 	{
 		$this->beConstructedWith($valueStrategy, $typedValueIdentifier, $untypedValueIdentifier, null, null, null, true);
 
 		$this->extract([])->shouldBeLike(new \stdClass());
 		$this->extract(new \stdClass())->shouldBeLike(new \stdClass());
-		$this->extract($iterator)->shouldBeLike(new \stdClass);
+		$this->extract(new \ArrayObject())->shouldBeLike(new \stdClass);
 	}
 
 	public function it_extracts_non_empty_array_from_non_empty_source_using_value_strategy(
