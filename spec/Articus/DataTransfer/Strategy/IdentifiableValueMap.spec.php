@@ -155,6 +155,45 @@ use Articus\DataTransfer as DT;
 			$strategy->hydrate($source, $destination);
 			\expect($destination)->toBe($newDestination);
 		});
+		\it('hydrates source item to destination item using value strategy if they have same integer key and same identifier', function ()
+		{
+			$sourceItem = \mock();
+			$source = [123 => &$sourceItem];
+			$destinationItem = \mock();
+			$destination = [123 => &$destinationItem];
+			$newDestinationItem = \mock();
+			$newDestination = [123 => &$newDestinationItem];
+			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
+			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
+			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
+
+			$untypedValueIdentifier->shouldReceive('__invoke')->with($sourceItem)->andReturn('test123')->once();
+			$typedValueIdentifier->shouldReceive('__invoke')->with($destinationItem)->andReturn('test123')->once();
+			$valueStrategy->shouldReceive('hydrate')->withArgs(
+				function ($a, &$b) use (&$sourceItem, &$destinationItem, &$newDestinationItem)
+				{
+					$result = (($a === $sourceItem) && ($b === $destinationItem));
+					if ($result)
+					{
+						$b = $newDestinationItem;
+					}
+					return $result;
+				}
+			)->once();
+
+			$strategy = new DT\Strategy\IdentifiableValueMap(
+				$valueStrategy,
+				$typedValueIdentifier,
+				$untypedValueIdentifier,
+				null,
+				null,
+				null,
+				false
+			);
+
+			$strategy->hydrate($source, $destination);
+			\expect($destination)->toBe($newDestination);
+		});
 		\context('if there is typed value setter and there is typed value remover', function ()
 		{
 			\it('resets destination item and hydrates source item with same key to it using value strategy if items have distinct identifiers', function ()
@@ -727,6 +766,85 @@ use Articus\DataTransfer as DT;
 				$strategy->hydrate($source, $destination);
 				\expect($destination)->toBe($newDestination);
 			});
+			\it('hydrates array with integer keys', function ()
+			{
+				$source = [
+					11 => 1,
+					12 => 2,
+					21 => 3,
+					22 => 4,
+					31 => 5,
+					32 => 6,
+				];
+				$destination = [
+					34 => 10,
+					33 => 20,
+					22 => 30,
+					21 => 40,
+					12 => 50,
+					11 => 60,
+				];
+				$defaults = [
+					21 => 100,
+					22 => 200,
+					31 => 300,
+					32 => 400,
+				];
+				$newDestination = [
+					22 => 1000,
+					21 => 2000,
+					12 => 3000,
+					11 => 4000,
+					31 => 5000,
+					32 => 6000,
+				];
+
+				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
+				$typedValueSetter = function &(&$map, $key, $untypedItem) use (&$destination, &$source, &$defaults)
+				{
+					$map[$key] = &$defaults[$key];
+					return $defaults[$key];
+				};
+				$typedValueRemover = function (&$map, $key) use (&$destination)
+				{
+					unset($map[$key]);
+				};
+
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[11])->andReturn('id1')->once();
+				$typedValueIdentifier->shouldReceive('__invoke')->with($destination[11])->andReturn('id1')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[12])->andReturn('id2')->once();
+				$typedValueIdentifier->shouldReceive('__invoke')->with($destination[12])->andReturn('id2')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[21])->andReturn('id11')->once();
+				$typedValueIdentifier->shouldReceive('__invoke')->with($destination[21])->andReturn('id12')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[22])->andReturn('id21')->once();
+				$typedValueIdentifier->shouldReceive('__invoke')->with($destination[22])->andReturn('id22')->once();
+				$valueStrategy->shouldReceive('hydrate')->withArgs(
+					function ($a, &$b) use (&$source, &$destination, &$defaults, &$newDestination)
+					{
+						$key = \array_search($a, $source, true);
+						$result = ($key !== false) && (($defaults[$key] ?? $destination[$key] ?? -1) === $b);
+						if ($result)
+						{
+							$b = $newDestination[$key];
+						}
+						return $result;
+					}
+				)->times(\count($newDestination));
+
+				$strategy = new DT\Strategy\IdentifiableValueMap(
+					$valueStrategy,
+					$typedValueIdentifier,
+					$untypedValueIdentifier,
+					$typedValueSetter,
+					$typedValueRemover,
+					null,
+					false
+				);
+				$strategy->hydrate($source, $destination);
+				\expect($destination)->toBe($newDestination);
+			});
 			\it('hydrates stdclass with several scalars', function ()
 			{
 				$source = new \stdClass();
@@ -1034,6 +1152,85 @@ use Articus\DataTransfer as DT;
 				$typedValueIdentifier->shouldReceive('__invoke')->with($destination['sk1'])->andReturn('id12')->once();
 				$untypedValueIdentifier->shouldReceive('__invoke')->with($source['sk2'])->andReturn('id21')->once();
 				$typedValueIdentifier->shouldReceive('__invoke')->with($destination['sk2'])->andReturn('id22')->once();
+				$valueStrategy->shouldReceive('hydrate')->withArgs(
+					function ($a, &$b) use (&$source, &$destination, &$defaults, &$newDestination)
+					{
+						$key = \array_search($a, $source->getArrayCopy(), true);
+						$result = ($key !== false) && (($defaults[$key] ?? $destination[$key] ?? -1) === $b);
+						if ($result)
+						{
+							$b = $newDestination[$key];
+						}
+						return $result;
+					}
+				)->times(\count($newDestination));
+
+				$strategy = new DT\Strategy\IdentifiableValueMap(
+					$valueStrategy,
+					$typedValueIdentifier,
+					$untypedValueIdentifier,
+					$typedValueSetter,
+					$typedValueRemover,
+					null,
+					false
+				);
+				$strategy->hydrate($source, $destination);
+				\expect($destination->getArrayCopy())->toBe($newDestination);
+			});
+			\it('hydrates array object with integer keys', function ()
+			{
+				$source = new \ArrayObject([
+					11 => 1,
+					12 => 2,
+					21 => 3,
+					22 => 4,
+					31 => 5,
+					32 => 6,
+				]);
+				$destination = new \ArrayObject([
+					34 => 10,
+					33 => 20,
+					22 => 30,
+					21 => 40,
+					12 => 50,
+					11 => 60,
+				]);
+				$defaults = [
+					21 => 100,
+					22 => 200,
+					31 => 300,
+					32 => 400,
+				];
+				$newDestination = [
+					22 => 1000,
+					21 => 2000,
+					12 => 3000,
+					11 => 4000,
+					31 => 5000,
+					32 => 6000,
+				];
+
+				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
+				$typedValueSetter = function &(\ArrayObject &$map, $key, $untypedItem) use (&$destination, &$source, &$defaults)
+				{
+					$map[$key] = &$defaults[$key];
+					return $defaults[$key];
+				};
+				$typedValueRemover = function (\ArrayObject &$map, $key) use (&$destination)
+				{
+					unset($map[$key]);
+				};
+
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[11])->andReturn('id1')->once();
+				$typedValueIdentifier->shouldReceive('__invoke')->with($destination[11])->andReturn('id1')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[12])->andReturn('id2')->once();
+				$typedValueIdentifier->shouldReceive('__invoke')->with($destination[12])->andReturn('id2')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[21])->andReturn('id11')->once();
+				$typedValueIdentifier->shouldReceive('__invoke')->with($destination[21])->andReturn('id12')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[22])->andReturn('id21')->once();
+				$typedValueIdentifier->shouldReceive('__invoke')->with($destination[22])->andReturn('id22')->once();
 				$valueStrategy->shouldReceive('hydrate')->withArgs(
 					function ($a, &$b) use (&$source, &$destination, &$defaults, &$newDestination)
 					{
@@ -1902,6 +2099,83 @@ use Articus\DataTransfer as DT;
 				$strategy->merge($source, $destination);
 				\expect($destination)->toBe($newDestination);
 			});
+			\it('merges array with integer keys', function ()
+			{
+				$source = [
+					11 => 1,
+					12 => 2,
+					21 => 3,
+					22 => 4,
+					31 => 5,
+					32 => 6,
+				];
+				$destination = [
+					34 => 10,
+					33 => 20,
+					22 => 30,
+					21 => 40,
+					12 => 50,
+					11 => 60,
+				];
+				$defaults = [
+					21 => 100,
+					22 => 200,
+					31 => 300,
+					32 => 400,
+				];
+				$newDestination = [
+					22 => 1000,
+					21 => 2000,
+					12 => 3000,
+					11 => 4000,
+					31 => 5000,
+					32 => 6000,
+				];
+
+				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
+				$typedValueSetter = \mock(Example\InvokableInterface::class);
+				$typedValueRemover = \mock(Example\InvokableInterface::class);
+				$untypedValueConstructor = function ($a) use (&$source, &$defaults)
+				{
+					$key = \array_search($a, $source, true);
+					return $defaults[$key] ?? -1;
+				};
+
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[11])->andReturn('id1')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($destination[11])->andReturn('id1')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[12])->andReturn('id2')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($destination[12])->andReturn('id2')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[21])->andReturn('id11')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($destination[21])->andReturn('id12')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[22])->andReturn('id21')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($destination[22])->andReturn('id22')->once();
+				$valueStrategy->shouldReceive('merge')->withArgs(
+					function ($a, &$b) use (&$source, &$destination, &$defaults, &$newDestination)
+					{
+						$key = \array_search($a, $source, true);
+						$result = ($key !== false) && (($defaults[$key] ?? $destination[$key] ?? -1) === $b);
+						if ($result)
+						{
+							$b = $newDestination[$key];
+						}
+						return $result;
+					}
+				)->times(\count($newDestination));
+
+				$strategy = new DT\Strategy\IdentifiableValueMap(
+					$valueStrategy,
+					$typedValueIdentifier,
+					$untypedValueIdentifier,
+					$typedValueSetter,
+					$typedValueRemover,
+					$untypedValueConstructor,
+					false
+				);
+				$strategy->merge($source, $destination);
+				\expect($destination)->toBe($newDestination);
+			});
 			\it('merges stdclass with several scalars', function ()
 			{
 				$source = new \stdClass();
@@ -2215,6 +2489,83 @@ use Articus\DataTransfer as DT;
 				$untypedValueIdentifier->shouldReceive('__invoke')->with($destination['sk1'])->andReturn('id12')->once();
 				$untypedValueIdentifier->shouldReceive('__invoke')->with($source['sk2'])->andReturn('id21')->once();
 				$untypedValueIdentifier->shouldReceive('__invoke')->with($destination['sk2'])->andReturn('id22')->once();
+				$valueStrategy->shouldReceive('merge')->withArgs(
+					function ($a, &$b) use (&$source, &$destination, &$defaults, &$newDestination)
+					{
+						$key = \array_search($a, $source->getArrayCopy(), true);
+						$result = ($key !== false) && (($defaults[$key] ?? $destination[$key] ?? -1) === $b);
+						if ($result)
+						{
+							$b = $newDestination[$key];
+						}
+						return $result;
+					}
+				)->times(\count($newDestination));
+
+				$strategy = new DT\Strategy\IdentifiableValueMap(
+					$valueStrategy,
+					$typedValueIdentifier,
+					$untypedValueIdentifier,
+					$typedValueSetter,
+					$typedValueRemover,
+					$untypedValueConstructor,
+					false
+				);
+				$strategy->merge($source, $destination);
+				\expect($destination->getArrayCopy())->toBe($newDestination);
+			});
+			\it('merges array object with integer keys', function ()
+			{
+				$source = new \ArrayObject([
+					11 => 1,
+					12 => 2,
+					21 => 3,
+					22 => 4,
+					31 => 5,
+					32 => 6,
+				]);
+				$destination = new \ArrayObject([
+					34 => 10,
+					33 => 20,
+					22 => 30,
+					21 => 40,
+					12 => 50,
+					11 => 60,
+				]);
+				$defaults = [
+					21 => 100,
+					22 => 200,
+					31 => 300,
+					32 => 400,
+				];
+				$newDestination = [
+					22 => 1000,
+					21 => 2000,
+					12 => 3000,
+					11 => 4000,
+					31 => 5000,
+					32 => 6000,
+				];
+
+				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
+				$typedValueSetter = \mock(Example\InvokableInterface::class);
+				$typedValueRemover = \mock(Example\InvokableInterface::class);
+				$untypedValueConstructor = function ($a) use (&$source, &$defaults)
+				{
+					$key = \array_search($a, $source->getArrayCopy(), true);
+					return $defaults[$key] ?? -1;
+				};
+
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[11])->andReturn('id1')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($destination[11])->andReturn('id1')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[12])->andReturn('id2')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($destination[12])->andReturn('id2')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[21])->andReturn('id11')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($destination[21])->andReturn('id12')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[22])->andReturn('id21')->once();
+				$untypedValueIdentifier->shouldReceive('__invoke')->with($destination[22])->andReturn('id22')->once();
 				$valueStrategy->shouldReceive('merge')->withArgs(
 					function ($a, &$b) use (&$source, &$destination, &$defaults, &$newDestination)
 					{

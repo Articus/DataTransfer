@@ -48,10 +48,10 @@ class MapAccessor
 	}
 
 	/**
-	 * @param string $key
+	 * @param string|int $key
 	 * @return bool
 	 */
-	public function has(string $key): bool
+	public function has($key): bool
 	{
 		return (
 			($this->isArray && \array_key_exists($key, $this->data))
@@ -61,11 +61,11 @@ class MapAccessor
 	}
 
 	/**
-	 * @param string $key
+	 * @param string|int $key
 	 * @param mixed $default
 	 * @return mixed
 	 */
-	public function get(string $key, $default = null)
+	public function get($key, $default = null)
 	{
 		$result = $default;
 		if ($this->isArray)
@@ -84,10 +84,10 @@ class MapAccessor
 	}
 
 	/**
-	 * @param string $key
+	 * @param string|int $key
 	 * @param mixed $value
 	 */
-	public function set(string $key, $value): void
+	public function set($key, $value): void
 	{
 		if ($this->isArray)
 		{
@@ -104,9 +104,9 @@ class MapAccessor
 	}
 
 	/**
-	 * @param string $key
+	 * @param string|int $key
 	 */
-	public function remove(string $key): void
+	public function remove($key): void
 	{
 		if ($this->isArray)
 		{

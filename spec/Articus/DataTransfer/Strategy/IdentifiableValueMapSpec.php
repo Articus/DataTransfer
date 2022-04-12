@@ -78,6 +78,38 @@ class IdentifiableValueMapSpec extends ObjectBehavior
 		$this->extract($sourceStdClass)->shouldBe($destination);
 	}
 
+	public function it_extracts_non_empty_array_from_non_empty_source_with_integer_keys_using_value_strategy(
+		DT\Strategy\StrategyInterface $valueStrategy,
+		Example\InvokableInterface $typedValueIdentifier,
+		Example\InvokableInterface $untypedValueIdentifier
+	)
+	{
+		$sourceArray = [
+			111 => 'qwe',
+			222 => 'asd',
+			333 => 'zxc',
+		];
+		$sourceStdClass = new \stdClass();
+		$sourceStdClass->{111} = 'rty';
+		$sourceStdClass->{222} = 'fgh';
+		$sourceStdClass->{333} = 'vbn';
+		$destination = [
+			111 => 123,
+			222 => 456,
+			333 => 789,
+		];
+		$valueStrategy->extract($sourceArray[111])->willReturn($destination[111])->shouldBeCalledOnce();
+		$valueStrategy->extract($sourceArray[222])->willReturn($destination[222])->shouldBeCalledOnce();
+		$valueStrategy->extract($sourceArray[333])->willReturn($destination[333])->shouldBeCalledOnce();
+		$valueStrategy->extract($sourceStdClass->{111})->willReturn($destination[111])->shouldBeCalledOnce();
+		$valueStrategy->extract($sourceStdClass->{222})->willReturn($destination[222])->shouldBeCalledOnce();
+		$valueStrategy->extract($sourceStdClass->{333})->willReturn($destination[333])->shouldBeCalledOnce();
+
+		$this->beConstructedWith($valueStrategy, $typedValueIdentifier, $untypedValueIdentifier, null, null, null, false);
+		$this->extract($sourceArray)->shouldBe($destination);
+		$this->extract($sourceStdClass)->shouldBe($destination);
+	}
+
 	public function it_extracts_non_empty_stdclass_from_non_empty_source_using_value_strategy(
 		DT\Strategy\StrategyInterface $valueStrategy,
 		Example\InvokableInterface $typedValueIdentifier,
@@ -103,6 +135,37 @@ class IdentifiableValueMapSpec extends ObjectBehavior
 		$valueStrategy->extract($sourceStdClass->test1)->willReturn($destination->test1)->shouldBeCalledOnce();
 		$valueStrategy->extract($sourceStdClass->test2)->willReturn($destination->test2)->shouldBeCalledOnce();
 		$valueStrategy->extract($sourceStdClass->test3)->willReturn($destination->test3)->shouldBeCalledOnce();
+
+		$this->beConstructedWith($valueStrategy, $typedValueIdentifier, $untypedValueIdentifier, null, null, null, true);
+		$this->extract($sourceArray)->shouldBeLike($destination);
+		$this->extract($sourceStdClass)->shouldBeLike($destination);
+	}
+
+	public function it_extracts_non_empty_stdclass_from_non_empty_source_with_integer_keys_using_value_strategy(
+		DT\Strategy\StrategyInterface $valueStrategy,
+		Example\InvokableInterface $typedValueIdentifier,
+		Example\InvokableInterface $untypedValueIdentifier
+	)
+	{
+		$sourceArray = [
+			111 => 'qwe',
+			222 => 'asd',
+			333 => 'zxc',
+		];
+		$sourceStdClass = new \stdClass();
+		$sourceStdClass->{111} = 'rty';
+		$sourceStdClass->{222} = 'fgh';
+		$sourceStdClass->{333} = 'vbn';
+		$destination = new \stdClass();
+		$destination->{111} = 123;
+		$destination->{222} = 456;
+		$destination->{333} = 789;
+		$valueStrategy->extract($sourceArray[111])->willReturn($destination->{111})->shouldBeCalledOnce();
+		$valueStrategy->extract($sourceArray[222])->willReturn($destination->{222})->shouldBeCalledOnce();
+		$valueStrategy->extract($sourceArray[333])->willReturn($destination->{333})->shouldBeCalledOnce();
+		$valueStrategy->extract($sourceStdClass->{111})->willReturn($destination->{111})->shouldBeCalledOnce();
+		$valueStrategy->extract($sourceStdClass->{222})->willReturn($destination->{222})->shouldBeCalledOnce();
+		$valueStrategy->extract($sourceStdClass->{333})->willReturn($destination->{333})->shouldBeCalledOnce();
 
 		$this->beConstructedWith($valueStrategy, $typedValueIdentifier, $untypedValueIdentifier, null, null, null, true);
 		$this->extract($sourceArray)->shouldBeLike($destination);
