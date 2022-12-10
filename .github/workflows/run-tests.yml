@@ -10,6 +10,7 @@ jobs:
       matrix:
         include:
           - php: '7.1'
+            has_unique_composer: true
             has_unique_dependencies: true
             has_unique_phpspec_tests: true
           - php: '7.2'
@@ -22,12 +23,18 @@ jobs:
             has_unique_dependencies: true
             has_unique_phpspec_tests: true
           - php: '8.0'
+            has_unique_dependencies: true
           - php: '8.1'
             upload_coverage: true
-    container: ghcr.io/articus/phpdbg-coveralls:${{ matrix.php }}_2.5.2_2022-03-20
+          #TODO add 8.2 when PhpSpec supports it
+    container: ghcr.io/articus/phpdbg-coveralls:${{ matrix.php }}_2.5.3_2022-12-10
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: Use unique Composer
+        if: matrix.has_unique_composer
+        run: cp ./composer.phar.${{ matrix.php }} ./composer.phar
 
       - name: Use unique composer.lock
         if: matrix.has_unique_dependencies

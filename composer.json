@@ -18,13 +18,13 @@
     }
   ],
   "require": {
-    "php": "^7.1 || ^8.0",
+    "php": "^7.1|^8.0",
     "laminas/laminas-servicemanager": "^3.4"
   },
   "suggest": {
     "doctrine/annotations": "It is required for Articus\\DataTransfer\\MetadataProvider\\Annotation (default metadata provider)",
-    "psr/simple-cache": "It is required for Articus\\DataTransfer\\MetadataProvider\\Annotation (default metadata provider)",
-    "laminas/laminas-stdlib": "It is required for Articus\\DataTransfer\\MetadataProvider\\Annotation (default metadata provider)",
+    "psr/simple-cache": "It is required for included metadata providers: Articus\\DataTransfer\\MetadataProvider\\Annotation and Articus\\DataTransfer\\MetadataProvider\\PhpAttribute",
+    "laminas/laminas-stdlib": "It is required  for included metadata providers: Articus\\DataTransfer\\MetadataProvider\\Annotation and Articus\\DataTransfer\\MetadataProvider\\PhpAttribute",
     "laminas/laminas-validator": "It is required for Articus\\DataTransfer\\Validator\\Laminas"
   },
   "require-dev": {
