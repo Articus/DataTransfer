@@ -3,6 +3,7 @@
 [![GitHub Actions: Run tests](https://github.com/Articus/DataTransfer/workflows/Run%20tests/badge.svg)](https://github.com/Articus/DataTransfer/actions?query=workflow%3A%22Run+tests%22)
 [![Coveralls](https://coveralls.io/repos/github/Articus/DataTransfer/badge.svg?branch=master)](https://coveralls.io/github/Articus/DataTransfer?branch=master)
 [![Codacy](https://app.codacy.com/project/badge/Grade/2ec15ac8c40c4a709e7662e9c7124fad)](https://www.codacy.com/gh/Articus/DataTransfer/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Articus/DataTransfer&amp;utm_campaign=Badge_Grade)
+
 This library provides a "validating hydrator", a service that patches destination data with source data only if destination data remains valid after that. Source and destination can be anything - scalars, arrays, objects... So either you want to make a partial update of ORM entity with parsed JSON from HTTP-request or produce a plain DTO from this entity to send in AMQP-message this library can help you to do that in a neat convenient way. 
 
 ## How it works?
