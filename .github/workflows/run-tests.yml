@@ -25,8 +25,8 @@ jobs:
           - php: '8.0'
             has_unique_dependencies: true
           - php: '8.1'
+          - php: '8.2'
             upload_coverage: true
-          #TODO add 8.2 when PhpSpec supports it
     container: ghcr.io/articus/phpdbg-coveralls:${{ matrix.php }}_2.5.3_2022-12-10
     steps:
       - name: Checkout code
