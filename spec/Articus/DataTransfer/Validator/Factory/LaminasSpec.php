@@ -4,10 +4,10 @@ declare(strict_types=1);
 namespace spec\Articus\DataTransfer\Validator\Factory;
 
 use Articus\DataTransfer as DT;
-use Interop\Container\ContainerInterface;
-use PhpSpec\ObjectBehavior;
 use Laminas\Validator\ValidatorInterface as LaminasValidator;
 use Laminas\Validator\ValidatorPluginManager;
+use PhpSpec\ObjectBehavior;
+use Psr\Container\ContainerInterface;
 
 class LaminasSpec extends ObjectBehavior
 {

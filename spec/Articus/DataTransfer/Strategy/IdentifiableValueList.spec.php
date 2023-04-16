@@ -1,26 +1,24 @@
 <?php
 declare(strict_types=1);
 
-namespace spec\Articus\DataTransfer\Strategy;
-
-use spec\Example;
 use Articus\DataTransfer as DT;
+use spec\Example;
 
-\describe(DT\Strategy\IdentifiableValueList::class, function ()
+describe(DT\Strategy\IdentifiableValueList::class, function ()
 {
-	\describe('->hydrate', function ()
+	describe('->hydrate', function ()
 	{
-		\afterEach(function ()
+		afterEach(function ()
 		{
-			\Mockery::close();
+			Mockery::close();
 		});
-		\it('throws on non iterable source', function ()
+		it('throws on non iterable source', function ()
 		{
-			$source = \mock();
+			$source = mock();
 			$destination = null;
-			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
+			$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+			$typedValueIdentifier = mock(Example\InvokableInterface::class);
+			$untypedValueIdentifier = mock(Example\InvokableInterface::class);
 
 			$strategy = new DT\Strategy\IdentifiableValueList(
 				$valueStrategy,
@@ -33,24 +31,24 @@ use Articus\DataTransfer as DT;
 			try
 			{
 				$strategy->hydrate($source, $destination);
-				throw new \LogicException('No expected exception');
+				throw new LogicException('No expected exception');
 			}
 			catch (DT\Exception\InvalidData $e)
 			{
-				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
-				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
-				\expect($e->getPrevious()->getMessage())->toBe(
-					\sprintf('Hydration can be done only from iterable, not %s', \get_class($source))
+				expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				expect($e->getPrevious())->toBeAnInstanceOf(InvalidArgumentException::class);
+				expect($e->getPrevious()->getMessage())->toBe(
+					sprintf('Hydration can be done only from iterable, not %s', get_class($source))
 				);
 			}
 		});
-		\it('throws on non iterable destination', function ()
+		it('throws on non iterable destination', function ()
 		{
 			$source = [];
-			$destination = \mock();
-			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
+			$destination = mock();
+			$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+			$typedValueIdentifier = mock(Example\InvokableInterface::class);
+			$untypedValueIdentifier = mock(Example\InvokableInterface::class);
 
 			$strategy = new DT\Strategy\IdentifiableValueList(
 				$valueStrategy,
@@ -64,24 +62,24 @@ use Articus\DataTransfer as DT;
 			try
 			{
 				$strategy->hydrate($source, $destination);
-				throw new \LogicException('No expected exception');
+				throw new LogicException('No expected exception');
 			}
 			catch (DT\Exception\InvalidData $e)
 			{
-				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
-				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
-				\expect($e->getPrevious()->getMessage())->toBe(
-					\sprintf('Hydration can be done only to iterable, not %s', \get_class($destination))
+				expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				expect($e->getPrevious())->toBeAnInstanceOf(InvalidArgumentException::class);
+				expect($e->getPrevious()->getMessage())->toBe(
+					sprintf('Hydration can be done only to iterable, not %s', get_class($destination))
 				);
 			}
 		});
-		\it('throws if source have items with same identifier', function ()
+		it('throws if source have items with same identifier', function ()
 		{
-			$source = [\mock(), \mock()];
+			$source = [mock(), mock()];
 			$destination = [];
-			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
+			$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+			$typedValueIdentifier = mock(Example\InvokableInterface::class);
+			$untypedValueIdentifier = mock(Example\InvokableInterface::class);
 			$exception = new DT\Exception\InvalidData([
 				DT\Validator\Collection::INVALID_INNER => [
 					1 => [DT\Strategy\IdentifiableValueList::DUPLICATE_ID => 'Same identifier as item 0']]
@@ -103,20 +101,20 @@ use Articus\DataTransfer as DT;
 			try
 			{
 				$strategy->hydrate($source, $destination);
-				throw new \LogicException('No exception');
+				throw new LogicException('No exception');
 			}
 			catch (DT\Exception\InvalidData $e)
 			{
-				\expect($e->getViolations())->toBe($exception->getViolations());
+				expect($e->getViolations())->toBe($exception->getViolations());
 			}
 		});
-		\it('throws if destination have items with same identifier', function ()
+		it('throws if destination have items with same identifier', function ()
 		{
 			$source = [];
-			$destination = [\mock(), \mock()];
-			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
+			$destination = [mock(), mock()];
+			$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+			$typedValueIdentifier = mock(Example\InvokableInterface::class);
+			$untypedValueIdentifier = mock(Example\InvokableInterface::class);
 
 			$typedValueIdentifier->shouldReceive('__invoke')->with($destination[0])->andReturn('test123')->once();
 			$typedValueIdentifier->shouldReceive('__invoke')->with($destination[1])->andReturn('test123')->once();
@@ -133,22 +131,22 @@ use Articus\DataTransfer as DT;
 			try
 			{
 				$strategy->hydrate($source, $destination);
-				throw new \LogicException('No expected exception');
+				throw new LogicException('No expected exception');
 			}
 			catch (DT\Exception\InvalidData $e)
 			{
-				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
-				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
-				\expect($e->getPrevious()->getMessage())->toBe('List contains items with same identifier');
+				expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				expect($e->getPrevious())->toBeAnInstanceOf(InvalidArgumentException::class);
+				expect($e->getPrevious()->getMessage())->toBe('List contains items with same identifier');
 			}
 		});
-		\it('wraps and rethrows invalid data exceptions from value strategy', function ()
+		it('wraps and rethrows invalid data exceptions from value strategy', function ()
 		{
-			$source = [\mock()];
-			$destination = [\mock()];
-			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
+			$source = [mock()];
+			$destination = [mock()];
+			$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+			$typedValueIdentifier = mock(Example\InvokableInterface::class);
+			$untypedValueIdentifier = mock(Example\InvokableInterface::class);
 			$innerException = new DT\Exception\InvalidData(['test' => 123]);
 			$exception = new DT\Exception\InvalidData(
 				[DT\Validator\Collection::INVALID_INNER => [0 => $innerException->getViolations()]],
@@ -171,25 +169,25 @@ use Articus\DataTransfer as DT;
 			try
 			{
 				$strategy->hydrate($source, $destination);
-				throw new \LogicException('No exception');
+				throw new LogicException('No exception');
 			}
 			catch (DT\Exception\InvalidData $e)
 			{
-				\expect($e->getViolations())->toBe($exception->getViolations());
-				\expect($e->getPrevious())->toBe($innerException);
+				expect($e->getViolations())->toBe($exception->getViolations());
+				expect($e->getPrevious())->toBe($innerException);
 			}
 		});
-		\it('hydrates identified source item to destination item with same identifier using value strategy', function ()
+		it('hydrates identified source item to destination item with same identifier using value strategy', function ()
 		{
-			$sourceItem = \mock();
+			$sourceItem = mock();
 			$source = [&$sourceItem];
-			$destinationItem = \mock();
+			$destinationItem = mock();
 			$destination = [&$destinationItem];
-			$newDestinationItem = \mock();
+			$newDestinationItem = mock();
 			$newDestination = [&$newDestinationItem];
-			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
+			$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+			$typedValueIdentifier = mock(Example\InvokableInterface::class);
+			$untypedValueIdentifier = mock(Example\InvokableInterface::class);
 
 			$untypedValueIdentifier->shouldReceive('__invoke')->with($sourceItem)->andReturn('test123')->once();
 			$typedValueIdentifier->shouldReceive('__invoke')->with($destinationItem)->andReturn('test123')->once();
@@ -215,26 +213,26 @@ use Articus\DataTransfer as DT;
 			);
 
 			$strategy->hydrate($source, $destination);
-			\expect($destination)->toBe($newDestination);
+			expect($destination)->toBe($newDestination);
 		});
-		\context('if there is typed value adder', function ()
+		context('if there is typed value adder', function ()
 		{
-			\it('adds new destination item and hydrates identified source item to it using value strategy if there is no destination item with same identifier', function ()
+			it('adds new destination item and hydrates identified source item to it using value strategy if there is no destination item with same identifier', function ()
 			{
-				$sourceItem = \mock();
+				$sourceItem = mock();
 				$source = [&$sourceItem];
-				$defaultDestinationItem = \mock();
-				$newDestinationItem = \mock();
+				$defaultDestinationItem = mock();
+				$newDestinationItem = mock();
 				$destination = [];
 				$newDestination = [&$newDestinationItem];
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier	 = mock(Example\InvokableInterface::class);
 				$typedValueAdder = function &(&$list, $untypedItem) use (&$destination, &$sourceItem, &$defaultDestinationItem)
 				{
 					if (($destination !== $list) || ($sourceItem !== $untypedItem))
 					{
-						throw new \InvalidArgumentException('Unexpected arguments for adder');
+						throw new InvalidArgumentException('Unexpected arguments for adder');
 					}
 					$list[] = &$defaultDestinationItem;
 					return $defaultDestinationItem;
@@ -262,24 +260,24 @@ use Articus\DataTransfer as DT;
 					null
 				);
 				$strategy->hydrate($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
-			\it('adds new destination item and hydrates unidentified source item to it using value strategy', function ()
+			it('adds new destination item and hydrates unidentified source item to it using value strategy', function ()
 			{
-				$sourceItem = \mock();
+				$sourceItem = mock();
 				$source = [&$sourceItem];
-				$defaultDestinationItem = \mock();
-				$newDestinationItem = \mock();
+				$defaultDestinationItem = mock();
+				$newDestinationItem = mock();
 				$destination = [];
 				$newDestination = [&$newDestinationItem];
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier	 = mock(Example\InvokableInterface::class);
 				$typedValueAdder = function &(&$list, $untypedItem) use (&$destination, &$sourceItem, &$defaultDestinationItem)
 				{
 					if (($destination !== $list) || ($sourceItem !== $untypedItem))
 					{
-						throw new \InvalidArgumentException('Unexpected arguments for adder');
+						throw new InvalidArgumentException('Unexpected arguments for adder');
 					}
 					$list[] = &$defaultDestinationItem;
 					return $defaultDestinationItem;
@@ -307,19 +305,19 @@ use Articus\DataTransfer as DT;
 					null
 				);
 				$strategy->hydrate($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
 		});
-		\context('if there is no typed value adder', function ()
+		context('if there is no typed value adder', function ()
 		{
-			\it('ignores identified source item if there is no destination item with same identifier', function ()
+			it('ignores identified source item if there is no destination item with same identifier', function ()
 			{
-				$source = [\mock()];
+				$source = [mock()];
 				$destination = [];
 				$newDestination = [];
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier	 = mock(Example\InvokableInterface::class);
 
 				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[0])->andReturn('test123')->once();
 
@@ -332,16 +330,16 @@ use Articus\DataTransfer as DT;
 					null
 				);
 				$strategy->hydrate($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
-			\it('ignores unidentified source item', function ()
+			it('ignores unidentified source item', function ()
 			{
-				$source = [\mock()];
+				$source = [mock()];
 				$destination = [];
 				$newDestination = [];
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier	 = mock(Example\InvokableInterface::class);
 
 				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[0])->andReturnNull()->once();
 
@@ -354,25 +352,25 @@ use Articus\DataTransfer as DT;
 					null
 				);
 				$strategy->hydrate($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
 		});
-		\context('if there is typed value remover', function ()
+		context('if there is typed value remover', function ()
 		{
-			\it('removes identified destination item if there is no source item with same identifier', function ()
+			it('removes identified destination item if there is no source item with same identifier', function ()
 			{
 				$source = [];
-				$destinationItem = \mock();
+				$destinationItem = mock();
 				$destination = [&$destinationItem];
 				$newDestination = [];
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier = mock(Example\InvokableInterface::class);
 				$typedValueRemover = function (&$list, $typedItem) use (&$destination, &$destinationItem)
 				{
 					if (($list !== $destination) || ($typedItem !== $destinationItem))
 					{
-						throw new \InvalidArgumentException('Unexpected arguments for remover');
+						throw new InvalidArgumentException('Unexpected arguments for remover');
 					}
 					unset($list[0]);
 				};
@@ -388,22 +386,22 @@ use Articus\DataTransfer as DT;
 					null
 				);
 				$strategy->hydrate($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
-			\it('removes unidentified destination item', function ()
+			it('removes unidentified destination item', function ()
 			{
 				$source = [];
-				$destinationItem = \mock();
+				$destinationItem = mock();
 				$destination = [&$destinationItem];
 				$newDestination = [];
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier = mock(Example\InvokableInterface::class);
 				$typedValueRemover = function (&$list, $typedItem) use (&$destination, &$destinationItem)
 				{
 					if (($list !== $destination) || ($typedItem !== $destinationItem))
 					{
-						throw new \InvalidArgumentException('Unexpected arguments for remover');
+						throw new InvalidArgumentException('Unexpected arguments for remover');
 					}
 					unset($list[0]);
 				};
@@ -419,20 +417,20 @@ use Articus\DataTransfer as DT;
 					null
 				);
 				$strategy->hydrate($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
 		});
-		\context('if there is no typed value remover', function ()
+		context('if there is no typed value remover', function ()
 		{
-			\it('keeps identified destination item if there is no source item with same identifier', function ()
+			it('keeps identified destination item if there is no source item with same identifier', function ()
 			{
 				$source = [];
-				$destinationItem = \mock();
+				$destinationItem = mock();
 				$destination = [&$destinationItem];
 				$newDestination = [&$destinationItem];
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier = mock(Example\InvokableInterface::class);
 
 				$typedValueIdentifier->shouldReceive('__invoke')->with($destinationItem)->andReturn('test123')->once();
 
@@ -445,17 +443,17 @@ use Articus\DataTransfer as DT;
 					null
 				);
 				$strategy->hydrate($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
-			\it('keeps unidentified destination item', function ()
+			it('keeps unidentified destination item', function ()
 			{
 				$source = [];
-				$destinationItem = \mock();
+				$destinationItem = mock();
 				$destination = [&$destinationItem];
 				$newDestination = [&$destinationItem];
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier = mock(Example\InvokableInterface::class);
 
 				$typedValueIdentifier->shouldReceive('__invoke')->with($destinationItem)->andReturnNull()->once();
 
@@ -468,13 +466,13 @@ use Articus\DataTransfer as DT;
 					null
 				);
 				$strategy->hydrate($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
 		});
 
-		\context('complex positive scenarios', function ()
+		context('complex positive scenarios', function ()
 		{
-			\it('hydrates array with several scalars', function ()
+			it('hydrates array with several scalars', function ()
 			{
 				$source = [1, 2, 3, 4, 5, 6];
 				$destination = [10, 20, 30, 40, 50, 60];
@@ -493,18 +491,18 @@ use Articus\DataTransfer as DT;
 					9 => 6000,
 				];
 
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier	 = mock(Example\InvokableInterface::class);
 				$typedValueAdder = function &(&$list, $untypedItem) use (&$destination, &$source, &$defaults)
 				{
-					$index = \array_search($untypedItem, $source, true);
+					$index = array_search($untypedItem, $source, true);
 					$list[] = &$defaults[$index];
 					return $defaults[$index];
 				};
 				$typedValueRemover = function (&$list, $typedItem) use (&$destination)
 				{
-					$index = \array_search($typedItem, $destination, true);
+					$index = array_search($typedItem, $destination, true);
 					unset($list[$index]);
 				};
 
@@ -525,8 +523,8 @@ use Articus\DataTransfer as DT;
 				$valueStrategy->shouldReceive('hydrate')->withArgs(
 					function ($a, &$b) use (&$source, &$destination, &$defaults, &$newDestination)
 					{
-						$sourceIndex = \array_search($a, $source, true);
-						$destinationIndex = \array_search($b, $destination, true);
+						$sourceIndex = array_search($a, $source, true);
+						$destinationIndex = array_search($b, $destination, true);
 						$result = ($sourceIndex !== false) && ($destinationIndex !== false);
 						if ($result)
 						{
@@ -534,7 +532,7 @@ use Articus\DataTransfer as DT;
 						}
 						return $result;
 					}
-				)->times(\count($newDestination));
+				)->times(count($newDestination));
 
 				$strategy = new DT\Strategy\IdentifiableValueList(
 					$valueStrategy,
@@ -545,39 +543,39 @@ use Articus\DataTransfer as DT;
 					null
 				);
 				$strategy->hydrate($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
-			\it('hydrates array with several objects', function ()
+			it('hydrates array with several objects', function ()
 			{
-				$source = [\mock(), \mock(), \mock(), \mock(), \mock(), \mock()];
-				$destination = [\mock(), \mock(), \mock(), \mock(), \mock(), \mock()];
+				$source = [mock(), mock(), mock(), mock(), mock(), mock()];
+				$destination = [mock(), mock(), mock(), mock(), mock(), mock()];
 				$defaults = [
-					2 => \mock(),
-					3 => \mock(),
-					4 => \mock(),
-					5 => \mock(),
+					2 => mock(),
+					3 => mock(),
+					4 => mock(),
+					5 => mock(),
 				];
 				$newDestination = [
-					4 => \mock(),
-					5 => \mock(),
-					6 => \mock(),
-					7 => \mock(),
-					8 => \mock(),
-					9 => \mock(),
+					4 => mock(),
+					5 => mock(),
+					6 => mock(),
+					7 => mock(),
+					8 => mock(),
+					9 => mock(),
 				];
 
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier	 = mock(Example\InvokableInterface::class);
 				$typedValueAdder = function &(&$list, $untypedItem) use (&$destination, &$source, &$defaults)
 				{
-					$index = \array_search($untypedItem, $source, true);
+					$index = array_search($untypedItem, $source, true);
 					$list[] = &$defaults[$index];
 					return $defaults[$index];
 				};
 				$typedValueRemover = function (&$list, $typedItem) use (&$destination)
 				{
-					$index = \array_search($typedItem, $destination, true);
+					$index = array_search($typedItem, $destination, true);
 					unset($list[$index]);
 				};
 
@@ -598,8 +596,8 @@ use Articus\DataTransfer as DT;
 				$valueStrategy->shouldReceive('hydrate')->withArgs(
 					function ($a, &$b) use (&$source, &$destination, &$defaults, &$newDestination)
 					{
-						$sourceIndex = \array_search($a, $source, true);
-						$destinationIndex = \array_search($b, $destination, true);
+						$sourceIndex = array_search($a, $source, true);
+						$destinationIndex = array_search($b, $destination, true);
 						$result = ($sourceIndex !== false) && ($destinationIndex !== false);
 						if ($result)
 						{
@@ -607,7 +605,7 @@ use Articus\DataTransfer as DT;
 						}
 						return $result;
 					}
-				)->times(\count($newDestination));
+				)->times(count($newDestination));
 
 				$strategy = new DT\Strategy\IdentifiableValueList(
 					$valueStrategy,
@@ -618,12 +616,12 @@ use Articus\DataTransfer as DT;
 					null
 				);
 				$strategy->hydrate($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
-			\it('hydrates array object with several scalars', function ()
+			it('hydrates array object with several scalars', function ()
 			{
-				$source = new \ArrayObject([1, 2, 3, 4, 5, 6]);
-				$destination = new \ArrayObject([10, 20, 30, 40, 50, 60]);
+				$source = new ArrayObject([1, 2, 3, 4, 5, 6]);
+				$destination = new ArrayObject([10, 20, 30, 40, 50, 60]);
 				$defaults = [
 					2 => 100,
 					3 => 200,
@@ -639,19 +637,19 @@ use Articus\DataTransfer as DT;
 					9 => 6000,
 				];
 
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
-				$typedValueAdder = function &(\ArrayObject &$list, $untypedItem) use (&$destination, &$source, &$defaults)
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier	 = mock(Example\InvokableInterface::class);
+				$typedValueAdder = function &(ArrayObject &$list, $untypedItem) use (&$destination, &$source, &$defaults)
 				{
-					$index = \array_search($untypedItem, $source->getArrayCopy(), true);
+					$index = array_search($untypedItem, $source->getArrayCopy(), true);
 					//Simple $list[] = &$defaults[$index] causes PHP error for ArrayObject
-					$list[\max(\array_keys($list->getArrayCopy())) + 1] = &$defaults[$index];
+					$list[max(array_keys($list->getArrayCopy())) + 1] = &$defaults[$index];
 					return $defaults[$index];
 				};
-				$typedValueRemover = function (\ArrayObject &$list, $typedItem) use (&$destination)
+				$typedValueRemover = function (ArrayObject &$list, $typedItem) use (&$destination)
 				{
-					$index = \array_search($typedItem, $destination->getArrayCopy(), true);
+					$index = array_search($typedItem, $destination->getArrayCopy(), true);
 					unset($list[$index]);
 				};
 
@@ -672,8 +670,8 @@ use Articus\DataTransfer as DT;
 				$valueStrategy->shouldReceive('hydrate')->withArgs(
 					function ($a, &$b) use (&$source, &$destination, &$defaults, &$newDestination)
 					{
-						$sourceIndex = \array_search($a, $source->getArrayCopy(), true);
-						$destinationIndex = \array_search($b, $destination->getArrayCopy(), true);
+						$sourceIndex = array_search($a, $source->getArrayCopy(), true);
+						$destinationIndex = array_search($b, $destination->getArrayCopy(), true);
 						$result = ($sourceIndex !== false) && ($destinationIndex !== false);
 						if ($result)
 						{
@@ -681,7 +679,7 @@ use Articus\DataTransfer as DT;
 						}
 						return $result;
 					}
-				)->times(\count($newDestination));
+				)->times(count($newDestination));
 
 				$strategy = new DT\Strategy\IdentifiableValueList(
 					$valueStrategy,
@@ -692,40 +690,40 @@ use Articus\DataTransfer as DT;
 					null
 				);
 				$strategy->hydrate($source, $destination);
-				\expect($destination->getArrayCopy())->toBe($newDestination);
+				expect($destination->getArrayCopy())->toBe($newDestination);
 			});
-			\it('hydrates array object with several objects', function ()
+			it('hydrates array object with several objects', function ()
 			{
-				$source = new \ArrayObject([\mock(), \mock(), \mock(), \mock(), \mock(), \mock()]);
-				$destination = new \ArrayObject([\mock(), \mock(), \mock(), \mock(), \mock(), \mock()]);
+				$source = new ArrayObject([mock(), mock(), mock(), mock(), mock(), mock()]);
+				$destination = new ArrayObject([mock(), mock(), mock(), mock(), mock(), mock()]);
 				$defaults = [
-					2 => \mock(),
-					3 => \mock(),
-					4 => \mock(),
-					5 => \mock(),
+					2 => mock(),
+					3 => mock(),
+					4 => mock(),
+					5 => mock(),
 				];
 				$newDestination = [
-					4 => \mock(),
-					5 => \mock(),
-					6 => \mock(),
-					7 => \mock(),
-					8 => \mock(),
-					9 => \mock(),
+					4 => mock(),
+					5 => mock(),
+					6 => mock(),
+					7 => mock(),
+					8 => mock(),
+					9 => mock(),
 				];
 
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
-				$typedValueAdder = function &(\ArrayObject &$list, $untypedItem) use (&$destination, &$source, &$defaults)
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier	 = mock(Example\InvokableInterface::class);
+				$typedValueAdder = function &(ArrayObject &$list, $untypedItem) use (&$destination, &$source, &$defaults)
 				{
-					$index = \array_search($untypedItem, $source->getArrayCopy(), true);
+					$index = array_search($untypedItem, $source->getArrayCopy(), true);
 					//Simple $list[] = &$defaults[$index] causes PHP error for ArrayObject
-					$list[\max(\array_keys($list->getArrayCopy())) + 1] = &$defaults[$index];
+					$list[max(array_keys($list->getArrayCopy())) + 1] = &$defaults[$index];
 					return $defaults[$index];
 				};
-				$typedValueRemover = function (\ArrayObject &$list, $typedItem) use (&$destination)
+				$typedValueRemover = function (ArrayObject &$list, $typedItem) use (&$destination)
 				{
-					$index = \array_search($typedItem, $destination->getArrayCopy(), true);
+					$index = array_search($typedItem, $destination->getArrayCopy(), true);
 					unset($list[$index]);
 				};
 
@@ -746,8 +744,8 @@ use Articus\DataTransfer as DT;
 				$valueStrategy->shouldReceive('hydrate')->withArgs(
 					function ($a, &$b) use (&$source, &$destination, &$defaults, &$newDestination)
 					{
-						$sourceIndex = \array_search($a, $source->getArrayCopy(), true);
-						$destinationIndex = \array_search($b, $destination->getArrayCopy(), true);
+						$sourceIndex = array_search($a, $source->getArrayCopy(), true);
+						$destinationIndex = array_search($b, $destination->getArrayCopy(), true);
 						$result = ($sourceIndex !== false) && ($destinationIndex !== false);
 						if ($result)
 						{
@@ -755,7 +753,7 @@ use Articus\DataTransfer as DT;
 						}
 						return $result;
 					}
-				)->times(\count($newDestination));
+				)->times(count($newDestination));
 
 				$strategy = new DT\Strategy\IdentifiableValueList(
 					$valueStrategy,
@@ -766,23 +764,23 @@ use Articus\DataTransfer as DT;
 					null
 				);
 				$strategy->hydrate($source, $destination);
-				\expect($destination->getArrayCopy())->toBe($newDestination);
+				expect($destination->getArrayCopy())->toBe($newDestination);
 			});
 		});
 	});
-	\describe('->merge', function ()
+	describe('->merge', function ()
 	{
-		\afterEach(function ()
+		afterEach(function ()
 		{
-			\Mockery::close();
+			Mockery::close();
 		});
-		\it('throws on non iterable source', function ()
+		it('throws on non iterable source', function ()
 		{
-			$source = \mock();
+			$source = mock();
 			$destination = null;
-			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
+			$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+			$typedValueIdentifier = mock(Example\InvokableInterface::class);
+			$untypedValueIdentifier = mock(Example\InvokableInterface::class);
 
 			$strategy = new DT\Strategy\IdentifiableValueList(
 				$valueStrategy,
@@ -796,25 +794,25 @@ use Articus\DataTransfer as DT;
 			try
 			{
 				$strategy->merge($source, $destination);
-				throw new \LogicException('No expected exception');
+				throw new LogicException('No expected exception');
 			}
 			catch (DT\Exception\InvalidData $e)
 			{
-				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
-				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
-				\expect($e->getPrevious()->getMessage())->toBe(
-					\sprintf('Merge can be done only from iterable, not %s', \get_class($source))
+				expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				expect($e->getPrevious())->toBeAnInstanceOf(InvalidArgumentException::class);
+				expect($e->getPrevious()->getMessage())->toBe(
+					sprintf('Merge can be done only from iterable, not %s', get_class($source))
 				);
 			}
 		});
-		\it('throws on non iterable destination', function ()
+		it('throws on non iterable destination', function ()
 		{
 			$source = [];
-			$destination = \mock();
-			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$exception = new \InvalidArgumentException(\sprintf('Merge can be done only to iterable, not %s', \get_class($destination)));
+			$destination = mock();
+			$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+			$typedValueIdentifier = mock(Example\InvokableInterface::class);
+			$untypedValueIdentifier = mock(Example\InvokableInterface::class);
+			$exception = new InvalidArgumentException(sprintf('Merge can be done only to iterable, not %s', get_class($destination)));
 
 			$strategy = new DT\Strategy\IdentifiableValueList(
 				$valueStrategy,
@@ -828,24 +826,24 @@ use Articus\DataTransfer as DT;
 			try
 			{
 				$strategy->merge($source, $destination);
-				throw new \LogicException('No expected exception');
+				throw new LogicException('No expected exception');
 			}
 			catch (DT\Exception\InvalidData $e)
 			{
-				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
-				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
-				\expect($e->getPrevious()->getMessage())->toBe(
-					\sprintf('Merge can be done only to iterable, not %s', \get_class($destination))
+				expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				expect($e->getPrevious())->toBeAnInstanceOf(InvalidArgumentException::class);
+				expect($e->getPrevious()->getMessage())->toBe(
+					sprintf('Merge can be done only to iterable, not %s', get_class($destination))
 				);
 			}
 		});
-		\it('throws if source have items with same identifier', function ()
+		it('throws if source have items with same identifier', function ()
 		{
-			$source = [\mock(), \mock()];
+			$source = [mock(), mock()];
 			$destination = [];
-			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
+			$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+			$typedValueIdentifier = mock(Example\InvokableInterface::class);
+			$untypedValueIdentifier = mock(Example\InvokableInterface::class);
 			$exception = new DT\Exception\InvalidData([
 					DT\Validator\Collection::INVALID_INNER => [
 						1 => [DT\Strategy\IdentifiableValueList::DUPLICATE_ID => 'Same identifier as item 0']]
@@ -867,20 +865,20 @@ use Articus\DataTransfer as DT;
 			try
 			{
 				$strategy->merge($source, $destination);
-				throw new \LogicException('No exception');
+				throw new LogicException('No exception');
 			}
 			catch (DT\Exception\InvalidData $e)
 			{
-				\expect($e->getViolations())->toBe($exception->getViolations());
+				expect($e->getViolations())->toBe($exception->getViolations());
 			}
 		});
-		\it('throws if destination have items with same identifier', function ()
+		it('throws if destination have items with same identifier', function ()
 		{
 			$source = [];
-			$destination = [\mock(), \mock()];
-			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
+			$destination = [mock(), mock()];
+			$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+			$typedValueIdentifier = mock(Example\InvokableInterface::class);
+			$untypedValueIdentifier = mock(Example\InvokableInterface::class);
 
 			$untypedValueIdentifier->shouldReceive('__invoke')->with($destination[0])->andReturn('test123')->once();
 			$untypedValueIdentifier->shouldReceive('__invoke')->with($destination[1])->andReturn('test123')->once();
@@ -897,22 +895,22 @@ use Articus\DataTransfer as DT;
 			try
 			{
 				$strategy->merge($source, $destination);
-				throw new \LogicException('No expected exception');
+				throw new LogicException('No expected exception');
 			}
 			catch (DT\Exception\InvalidData $e)
 			{
-				\expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
-				\expect($e->getPrevious())->toBeAnInstanceOf(\InvalidArgumentException::class);
-				\expect($e->getPrevious()->getMessage())->toBe('List contains items with same identifier');
+				expect($e->getViolations())->toBe(DT\Exception\InvalidData::DEFAULT_VIOLATION);
+				expect($e->getPrevious())->toBeAnInstanceOf(InvalidArgumentException::class);
+				expect($e->getPrevious()->getMessage())->toBe('List contains items with same identifier');
 			}
 		});
-		\it('wraps and rethrows invalid data exceptions from value strategy', function ()
+		it('wraps and rethrows invalid data exceptions from value strategy', function ()
 		{
-			$source = [\mock()];
-			$destination = [\mock()];
-			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
+			$source = [mock()];
+			$destination = [mock()];
+			$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+			$typedValueIdentifier = mock(Example\InvokableInterface::class);
+			$untypedValueIdentifier = mock(Example\InvokableInterface::class);
 			$innerException = new DT\Exception\InvalidData(['test' => 123]);
 			$exception = new DT\Exception\InvalidData(
 				[DT\Validator\Collection::INVALID_INNER => [0 => $innerException->getViolations()]],
@@ -935,25 +933,25 @@ use Articus\DataTransfer as DT;
 			try
 			{
 				$strategy->merge($source, $destination);
-				throw new \LogicException('No exception');
+				throw new LogicException('No exception');
 			}
 			catch (DT\Exception\InvalidData $e)
 			{
-				\expect($e->getViolations())->toBe($exception->getViolations());
-				\expect($e->getPrevious())->toBe($innerException);
+				expect($e->getViolations())->toBe($exception->getViolations());
+				expect($e->getPrevious())->toBe($innerException);
 			}
 		});
-		\it('merges identified source item to destination item with same identifier using value strategy', function ()
+		it('merges identified source item to destination item with same identifier using value strategy', function ()
 		{
-			$sourceItem = \mock();
+			$sourceItem = mock();
 			$source = [&$sourceItem];
-			$destinationItem = \mock();
+			$destinationItem = mock();
 			$destination = [&$destinationItem];
-			$newDestinationItem = \mock();
+			$newDestinationItem = mock();
 			$newDestination = [&$newDestinationItem];
-			$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-			$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-			$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
+			$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+			$typedValueIdentifier = mock(Example\InvokableInterface::class);
+			$untypedValueIdentifier = mock(Example\InvokableInterface::class);
 
 			$untypedValueIdentifier->shouldReceive('__invoke')->with($sourceItem)->andReturn('test123')->once();
 			$untypedValueIdentifier->shouldReceive('__invoke')->with($destinationItem)->andReturn('test123')->once();
@@ -979,25 +977,25 @@ use Articus\DataTransfer as DT;
 			);
 
 			$strategy->merge($source, $destination);
-			\expect($destination)->toBe($newDestination);
+			expect($destination)->toBe($newDestination);
 		});
-		\context('if there is typed value adder', function ()
+		context('if there is typed value adder', function ()
 		{
-			\context('if there is untyped value constructor', function ()
+			context('if there is untyped value constructor', function ()
 			{
-				\it('adds new destination item and merges identified source item to it using value strategy if there is no destination item with same identifier', function ()
+				it('adds new destination item and merges identified source item to it using value strategy if there is no destination item with same identifier', function ()
 				{
-					$sourceItem = \mock();
+					$sourceItem = mock();
 					$source = [&$sourceItem];
-					$defaultDestinationItem = \mock();
-					$newDestinationItem = \mock();
+					$defaultDestinationItem = mock();
+					$newDestinationItem = mock();
 					$destination = [];
 					$newDestination = [&$newDestinationItem];
-					$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-					$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-					$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
-					$typedValueAdder = \mock(Example\InvokableInterface::class);
-					$untypedValueConstructor = \mock(Example\InvokableInterface::class);
+					$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+					$typedValueIdentifier = mock(Example\InvokableInterface::class);
+					$untypedValueIdentifier	 = mock(Example\InvokableInterface::class);
+					$typedValueAdder = mock(Example\InvokableInterface::class);
+					$untypedValueConstructor = mock(Example\InvokableInterface::class);
 
 					$untypedValueIdentifier->shouldReceive('__invoke')->with($sourceItem)->andReturn('test123')->once();
 					$untypedValueConstructor->shouldReceive('__invoke')->with($sourceItem)->andReturn($defaultDestinationItem)->once();
@@ -1022,21 +1020,21 @@ use Articus\DataTransfer as DT;
 						$untypedValueConstructor
 					);
 					$strategy->merge($source, $destination);
-					\expect($destination)->toBe($newDestination);
+					expect($destination)->toBe($newDestination);
 				});
-				\it('adds new destination item and merges unidentified source item to it using value strategy', function ()
+				it('adds new destination item and merges unidentified source item to it using value strategy', function ()
 				{
-					$sourceItem = \mock();
+					$sourceItem = mock();
 					$source = [&$sourceItem];
-					$defaultDestinationItem = \mock();
-					$newDestinationItem = \mock();
+					$defaultDestinationItem = mock();
+					$newDestinationItem = mock();
 					$destination = [];
 					$newDestination = [&$newDestinationItem];
-					$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-					$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-					$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
-					$typedValueAdder = \mock(Example\InvokableInterface::class);
-					$untypedValueConstructor = \mock(Example\InvokableInterface::class);
+					$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+					$typedValueIdentifier = mock(Example\InvokableInterface::class);
+					$untypedValueIdentifier	 = mock(Example\InvokableInterface::class);
+					$typedValueAdder = mock(Example\InvokableInterface::class);
+					$untypedValueConstructor = mock(Example\InvokableInterface::class);
 
 					$untypedValueIdentifier->shouldReceive('__invoke')->with($sourceItem)->andReturnNull()->once();
 					$untypedValueConstructor->shouldReceive('__invoke')->with($sourceItem)->andReturn($defaultDestinationItem)->once();
@@ -1061,22 +1059,22 @@ use Articus\DataTransfer as DT;
 						$untypedValueConstructor
 					);
 					$strategy->merge($source, $destination);
-					\expect($destination)->toBe($newDestination);
+					expect($destination)->toBe($newDestination);
 				});
 			});
-			\context('if there is no untyped value constructor', function ()
+			context('if there is no untyped value constructor', function ()
 			{
-				\it('adds new destination item and hydrates identified source item to it using value strategy if there is no destination item with same identifier', function ()
+				it('adds new destination item and hydrates identified source item to it using value strategy if there is no destination item with same identifier', function ()
 				{
-					$sourceItem = \mock();
+					$sourceItem = mock();
 					$source = [&$sourceItem];
-					$newDestinationItem = \mock();
+					$newDestinationItem = mock();
 					$destination = [];
 					$newDestination = [&$newDestinationItem];
-					$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-					$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-					$untypedValueIdentifier	= \mock(Example\InvokableInterface::class);
-					$typedValueAdder = \mock(Example\InvokableInterface::class);
+					$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+					$typedValueIdentifier = mock(Example\InvokableInterface::class);
+					$untypedValueIdentifier	= mock(Example\InvokableInterface::class);
+					$typedValueAdder = mock(Example\InvokableInterface::class);
 
 					$untypedValueIdentifier->shouldReceive('__invoke')->with($sourceItem)->andReturn('test123')->once();
 					$valueStrategy->shouldReceive('merge')->withArgs(
@@ -1100,19 +1098,19 @@ use Articus\DataTransfer as DT;
 						null
 					);
 					$strategy->merge($source, $destination);
-					\expect($destination)->toBe($newDestination);
+					expect($destination)->toBe($newDestination);
 				});
-				\it('adds new destination item and hydrates unidentified source item to it using value strategy', function ()
+				it('adds new destination item and hydrates unidentified source item to it using value strategy', function ()
 				{
-					$sourceItem = \mock();
+					$sourceItem = mock();
 					$source = [&$sourceItem];
-					$newDestinationItem = \mock();
+					$newDestinationItem = mock();
 					$destination = [];
 					$newDestination = [&$newDestinationItem];
-					$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-					$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-					$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
-					$typedValueAdder = \mock(Example\InvokableInterface::class);
+					$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+					$typedValueIdentifier = mock(Example\InvokableInterface::class);
+					$untypedValueIdentifier = mock(Example\InvokableInterface::class);
+					$typedValueAdder = mock(Example\InvokableInterface::class);
 
 					$untypedValueIdentifier->shouldReceive('__invoke')->with($sourceItem)->andReturnNull()->once();
 					$valueStrategy->shouldReceive('merge')->withArgs(
@@ -1136,20 +1134,20 @@ use Articus\DataTransfer as DT;
 						null
 					);
 					$strategy->merge($source, $destination);
-					\expect($destination)->toBe($newDestination);
+					expect($destination)->toBe($newDestination);
 				});
 			});
 		});
-		\context('if there is no typed value adder', function ()
+		context('if there is no typed value adder', function ()
 		{
-			\it('ignores identified source item if there is no destination item with same identifier', function ()
+			it('ignores identified source item if there is no destination item with same identifier', function ()
 			{
-				$source = [\mock()];
+				$source = [mock()];
 				$destination = [];
 				$newDestination = [];
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier	 = mock(Example\InvokableInterface::class);
 
 				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[0])->andReturn('test123')->once();
 
@@ -1162,16 +1160,16 @@ use Articus\DataTransfer as DT;
 					null
 				);
 				$strategy->merge($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
-			\it('ignores unidentified source item', function ()
+			it('ignores unidentified source item', function ()
 			{
-				$source = [\mock()];
+				$source = [mock()];
 				$destination = [];
 				$newDestination = [];
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier	 = mock(Example\InvokableInterface::class);
 
 				$untypedValueIdentifier->shouldReceive('__invoke')->with($source[0])->andReturnNull()->once();
 
@@ -1184,21 +1182,21 @@ use Articus\DataTransfer as DT;
 					null
 				);
 				$strategy->merge($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
 		});
-		\context('if there is typed value remover', function ()
+		context('if there is typed value remover', function ()
 		{
-			\it('removes identified destination item if there is no source item with same identifier', function ()
+			it('removes identified destination item if there is no source item with same identifier', function ()
 			{
 				$source = [];
-				$destinationItem = \mock();
+				$destinationItem = mock();
 				$destination = [&$destinationItem];
 				$newDestination = [];
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$typedValueRemover = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier = mock(Example\InvokableInterface::class);
+				$typedValueRemover = mock(Example\InvokableInterface::class);
 
 				$untypedValueIdentifier->shouldReceive('__invoke')->with($destinationItem)->andReturn('test123')->once();
 
@@ -1211,18 +1209,18 @@ use Articus\DataTransfer as DT;
 					null
 				);
 				$strategy->merge($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
-			\it('removes unidentified destination item', function ()
+			it('removes unidentified destination item', function ()
 			{
 				$source = [];
-				$destinationItem = \mock();
+				$destinationItem = mock();
 				$destination = [&$destinationItem];
 				$newDestination = [];
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$typedValueRemover = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier = mock(Example\InvokableInterface::class);
+				$typedValueRemover = mock(Example\InvokableInterface::class);
 
 				$untypedValueIdentifier->shouldReceive('__invoke')->with($destinationItem)->andReturnNull()->once();
 
@@ -1235,20 +1233,20 @@ use Articus\DataTransfer as DT;
 					null
 				);
 				$strategy->merge($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
 		});
-		\context('if there is no typed value remover', function ()
+		context('if there is no typed value remover', function ()
 		{
-			\it('keeps identified destination item if there is no source item with same identifier', function ()
+			it('keeps identified destination item if there is no source item with same identifier', function ()
 			{
 				$source = [];
-				$destinationItem = \mock();
+				$destinationItem = mock();
 				$destination = [&$destinationItem];
 				$newDestination = [&$destinationItem];
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier = mock(Example\InvokableInterface::class);
 
 				$untypedValueIdentifier->shouldReceive('__invoke')->with($destinationItem)->andReturn('test123')->once();
 
@@ -1261,17 +1259,17 @@ use Articus\DataTransfer as DT;
 					null
 				);
 				$strategy->merge($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
-			\it('keeps unidentified destination item', function ()
+			it('keeps unidentified destination item', function ()
 			{
 				$source = [];
-				$destinationItem = \mock();
+				$destinationItem = mock();
 				$destination = [&$destinationItem];
 				$newDestination = [&$destinationItem];
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier = mock(Example\InvokableInterface::class);
 
 				$untypedValueIdentifier->shouldReceive('__invoke')->with($destinationItem)->andReturnNull()->once();
 
@@ -1284,13 +1282,13 @@ use Articus\DataTransfer as DT;
 					null
 				);
 				$strategy->merge($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
 		});
 
-		\context('complex positive scenarios', function ()
+		context('complex positive scenarios', function ()
 		{
-			\it('merges array with several scalars', function ()
+			it('merges array with several scalars', function ()
 			{
 				$source = [1, 2, 3, 4, 5, 6];
 				$destination = [10, 20, 30, 40, 50, 60];
@@ -1313,13 +1311,13 @@ use Articus\DataTransfer as DT;
 					$destination[1]
 				];
 
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
-				$typedValueAdder = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier	 = mock(Example\InvokableInterface::class);
+				$typedValueAdder = mock(Example\InvokableInterface::class);
 				$untypedValueConstructor = function ($untypedItem) use (&$source, &$defaults)
 				{
-					$sourceIndex = \array_search($untypedItem, $source, true);
+					$sourceIndex = array_search($untypedItem, $source, true);
 					return $defaults[$sourceIndex];
 				};
 
@@ -1340,8 +1338,8 @@ use Articus\DataTransfer as DT;
 				$valueStrategy->shouldReceive('merge')->withArgs(
 					function ($a, &$b) use (&$source, &$destination, &$defaults, &$newDestination)
 					{
-						$sourceIndex = \array_search($a, $source, true);
-						$destinationIndex = \array_search($b, $destination, true);
+						$sourceIndex = array_search($a, $source, true);
+						$destinationIndex = array_search($b, $destination, true);
 						$result = ($sourceIndex !== false) && ($destinationIndex !== false);
 						if ($result)
 						{
@@ -1349,7 +1347,7 @@ use Articus\DataTransfer as DT;
 						}
 						return $result;
 					}
-				)->times(\count($source));
+				)->times(count($source));
 
 				$strategy = new DT\Strategy\IdentifiableValueList(
 					$valueStrategy,
@@ -1360,38 +1358,38 @@ use Articus\DataTransfer as DT;
 					$untypedValueConstructor
 				);
 				$strategy->merge($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
-			\it('hydrates array with several objects', function ()
+			it('hydrates array with several objects', function ()
 			{
-				$source = [\mock(), \mock(), \mock(), \mock(), \mock(), \mock()];
-				$destination = [\mock(), \mock(), \mock(), \mock(), \mock(), \mock()];
+				$source = [mock(), mock(), mock(), mock(), mock(), mock()];
+				$destination = [mock(), mock(), mock(), mock(), mock(), mock()];
 				$defaults = [
-					2 => \mock(),
-					3 => \mock(),
-					4 => \mock(),
-					5 => \mock(),
+					2 => mock(),
+					3 => mock(),
+					4 => mock(),
+					5 => mock(),
 				];
 				$newDestination = [
-					\mock(),
-					\mock(),
-					\mock(),
-					\mock(),
-					\mock(),
-					\mock(),
+					mock(),
+					mock(),
+					mock(),
+					mock(),
+					mock(),
+					mock(),
 					$destination[2],
 					$destination[3],
 					$destination[0],
 					$destination[1]
 				];
 
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
-				$typedValueAdder = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier	 = mock(Example\InvokableInterface::class);
+				$typedValueAdder = mock(Example\InvokableInterface::class);
 				$untypedValueConstructor = function ($untypedItem) use (&$source, &$defaults)
 				{
-					$sourceIndex = \array_search($untypedItem, $source, true);
+					$sourceIndex = array_search($untypedItem, $source, true);
 					return $defaults[$sourceIndex];
 				};
 
@@ -1412,8 +1410,8 @@ use Articus\DataTransfer as DT;
 				$valueStrategy->shouldReceive('merge')->withArgs(
 					function ($a, &$b) use (&$source, &$destination, &$defaults, &$newDestination)
 					{
-						$sourceIndex = \array_search($a, $source, true);
-						$destinationIndex = \array_search($b, $destination, true);
+						$sourceIndex = array_search($a, $source, true);
+						$destinationIndex = array_search($b, $destination, true);
 						$result = ($sourceIndex !== false) && ($destinationIndex !== false);
 						if ($result)
 						{
@@ -1421,7 +1419,7 @@ use Articus\DataTransfer as DT;
 						}
 						return $result;
 					}
-				)->times(\count($source));
+				)->times(count($source));
 
 				$strategy = new DT\Strategy\IdentifiableValueList(
 					$valueStrategy,
@@ -1432,12 +1430,12 @@ use Articus\DataTransfer as DT;
 					$untypedValueConstructor
 				);
 				$strategy->merge($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
-			\it('hydrates array object with several scalars', function ()
+			it('hydrates array object with several scalars', function ()
 			{
-				$source = new \ArrayObject([1, 2, 3, 4, 5, 6]);
-				$destination = new \ArrayObject([10, 20, 30, 40, 50, 60]);
+				$source = new ArrayObject([1, 2, 3, 4, 5, 6]);
+				$destination = new ArrayObject([10, 20, 30, 40, 50, 60]);
 				$defaults = [
 					2 => 100,
 					3 => 200,
@@ -1457,13 +1455,13 @@ use Articus\DataTransfer as DT;
 					$destination[1]
 				];
 
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
-				$typedValueAdder = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier	 = mock(Example\InvokableInterface::class);
+				$typedValueAdder = mock(Example\InvokableInterface::class);
 				$untypedValueConstructor = function ($untypedItem) use (&$source, &$defaults)
 				{
-					$sourceIndex = \array_search($untypedItem, $source->getArrayCopy(), true);
+					$sourceIndex = array_search($untypedItem, $source->getArrayCopy(), true);
 					return $defaults[$sourceIndex];
 				};
 
@@ -1484,8 +1482,8 @@ use Articus\DataTransfer as DT;
 				$valueStrategy->shouldReceive('merge')->withArgs(
 					function ($a, &$b) use (&$source, &$destination, &$defaults, &$newDestination)
 					{
-						$sourceIndex = \array_search($a, $source->getArrayCopy(), true);
-						$destinationIndex = is_array($destination) ? \array_search($b, $destination, true) : false;
+						$sourceIndex = array_search($a, $source->getArrayCopy(), true);
+						$destinationIndex = is_array($destination) ? array_search($b, $destination, true) : false;
 						$result = ($sourceIndex !== false) && ($destinationIndex !== false);
 						if ($result)
 						{
@@ -1493,7 +1491,7 @@ use Articus\DataTransfer as DT;
 						}
 						return $result;
 					}
-				)->times(\count($source));
+				)->times(count($source));
 
 				$strategy = new DT\Strategy\IdentifiableValueList(
 					$valueStrategy,
@@ -1504,38 +1502,38 @@ use Articus\DataTransfer as DT;
 					$untypedValueConstructor
 				);
 				$strategy->merge($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
-			\it('hydrates array object with several objects', function ()
+			it('hydrates array object with several objects', function ()
 			{
-				$source = new \ArrayObject([\mock(), \mock(), \mock(), \mock(), \mock(), \mock()]);
-				$destination = new \ArrayObject([\mock(), \mock(), \mock(), \mock(), \mock(), \mock()]);
+				$source = new ArrayObject([mock(), mock(), mock(), mock(), mock(), mock()]);
+				$destination = new ArrayObject([mock(), mock(), mock(), mock(), mock(), mock()]);
 				$defaults = [
-					2 => \mock(),
-					3 => \mock(),
-					4 => \mock(),
-					5 => \mock(),
+					2 => mock(),
+					3 => mock(),
+					4 => mock(),
+					5 => mock(),
 				];
 				$newDestination = [
-					\mock(),
-					\mock(),
-					\mock(),
-					\mock(),
-					\mock(),
-					\mock(),
+					mock(),
+					mock(),
+					mock(),
+					mock(),
+					mock(),
+					mock(),
 					$destination[2],
 					$destination[3],
 					$destination[0],
 					$destination[1]
 				];
 
-				$valueStrategy = \mock(DT\Strategy\StrategyInterface::class);
-				$typedValueIdentifier = \mock(Example\InvokableInterface::class);
-				$untypedValueIdentifier	 = \mock(Example\InvokableInterface::class);
-				$typedValueAdder = \mock(Example\InvokableInterface::class);
+				$valueStrategy = mock(DT\Strategy\StrategyInterface::class);
+				$typedValueIdentifier = mock(Example\InvokableInterface::class);
+				$untypedValueIdentifier	 = mock(Example\InvokableInterface::class);
+				$typedValueAdder = mock(Example\InvokableInterface::class);
 				$untypedValueConstructor = function ($untypedItem) use (&$source, &$defaults)
 				{
-					$sourceIndex = \array_search($untypedItem, $source->getArrayCopy(), true);
+					$sourceIndex = array_search($untypedItem, $source->getArrayCopy(), true);
 					return $defaults[$sourceIndex];
 				};
 
@@ -1556,8 +1554,8 @@ use Articus\DataTransfer as DT;
 				$valueStrategy->shouldReceive('merge')->withArgs(
 					function ($a, &$b) use (&$source, &$destination, &$defaults, &$newDestination)
 					{
-						$sourceIndex = \array_search($a, $source->getArrayCopy(), true);
-						$destinationIndex = is_array($destination) ? \array_search($b, $destination, true) : false;
+						$sourceIndex = array_search($a, $source->getArrayCopy(), true);
+						$destinationIndex = is_array($destination) ? array_search($b, $destination, true) : false;
 						$result = ($sourceIndex !== false) && ($destinationIndex !== false);
 						if ($result)
 						{
@@ -1565,7 +1563,7 @@ use Articus\DataTransfer as DT;
 						}
 						return $result;
 					}
-				)->times(\count($source));
+				)->times(count($source));
 
 				$strategy = new DT\Strategy\IdentifiableValueList(
 					$valueStrategy,
@@ -1576,7 +1574,7 @@ use Articus\DataTransfer as DT;
 					$untypedValueConstructor
 				);
 				$strategy->merge($source, $destination);
-				\expect($destination)->toBe($newDestination);
+				expect($destination)->toBe($newDestination);
 			});
 		});
 	});

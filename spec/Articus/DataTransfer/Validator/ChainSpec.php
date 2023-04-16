@@ -5,6 +5,7 @@ namespace spec\Articus\DataTransfer\Validator;
 
 use Articus\DataTransfer as DT;
 use PhpSpec\ObjectBehavior;
+use function array_merge_recursive;
 
 class ChainSpec extends ObjectBehavior
 {
@@ -26,7 +27,7 @@ class ChainSpec extends ObjectBehavior
 		];
 		$violation1 = ['test1' => 1];
 		$violation2 = ['test2' => 2];
-		$violations = \array_merge_recursive($violation1, $violation2);
+		$violations = array_merge_recursive($violation1, $violation2);
 		$validator1->validate($data)->shouldBeCalledOnce()->willReturn($violation1);
 		$validator2->validate($data)->shouldBeCalledOnce()->willReturn($violation2);
 
@@ -49,7 +50,7 @@ class ChainSpec extends ObjectBehavior
 		$violation1 = ['test1' => 1];
 		$violation2 = [];
 		$violation3 = ['test3' => 3];
-		$violations = \array_merge_recursive($violation1, $violation2, $violation3);
+		$violations = array_merge_recursive($violation1, $violation2, $violation3);
 		$validator1->validate($data)->shouldBeCalledOnce()->willReturn($violation1);
 		$validator2->validate($data)->shouldBeCalledOnce()->willReturn($violation2);
 		$validator3->validate($data)->shouldBeCalledOnce()->willReturn($violation3);
@@ -72,7 +73,7 @@ class ChainSpec extends ObjectBehavior
 		];
 		$violation1 = ['test1' => 1];
 		$violation2 = ['test2' => 2];
-		$violations = \array_merge_recursive($violation1, $violation2);
+		$violations = array_merge_recursive($violation1, $violation2);
 		$validator1->validate($data)->shouldBeCalledOnce()->willReturn($violation1);
 		$validator2->validate($data)->shouldBeCalledOnce()->willReturn($violation2);
 		$validator3->validate($data)->shouldNotBeCalled();

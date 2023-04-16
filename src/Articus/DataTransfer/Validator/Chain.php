@@ -3,16 +3,18 @@ declare(strict_types=1);
 
 namespace Articus\DataTransfer\Validator;
 
+use function array_merge_recursive;
+
 /**
- * Composite validator that executes other validators sequentially and returns all found violations combined together.
+ * Composite validator that executes other validators sequentially and returns all found violations.
  * Each chain "link" maybe be marked as blocker - to stop validation early and prevent execution of the following "links".
  */
 class Chain implements ValidatorInterface
 {
 	/**
-	 * @psalm-var array<array{0: ValidatorInterface, 1: bool}>
+	 * @psalm-var iterable<array{0: ValidatorInterface, 1: bool}>
 	 */
-	protected $links = [];
+	protected iterable $links;
 
 	/**
 	 * @param iterable $links list of tuples (<validator>, <flag if validator is blocker>)
@@ -33,7 +35,7 @@ class Chain implements ValidatorInterface
 		{
 			/** @var ValidatorInterface $validator */
 			$violations = $validator->validate($data);
-			$result = \array_merge_recursive($result, $violations);
+			$result = array_merge_recursive($result, $violations);
 			if ($blocker && (!empty($violations)))
 			{
 				break;

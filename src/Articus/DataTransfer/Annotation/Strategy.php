@@ -13,19 +13,16 @@ class Strategy
 	/**
 	 * Name that should be passed to Strategy\PluginManager::get
 	 * @Required
-	 * @var string
 	 */
-	public $name;
+	public string $name;
 
 	/**
 	 * Options that should be passed to Strategy\PluginManager::get
-	 * @var array | null
 	 */
-	public $options = null;
+	public array $options = [];
 
 	/**
 	 * Name of the class metadata subset that annotation belongs to
-	 * @var string
 	 */
-	public $subset = '';
+	public string $subset = '';
 }

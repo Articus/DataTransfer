@@ -1,35 +1,32 @@
 <?php
 declare(strict_types=1);
 
-namespace spec\Articus\DataTransfer\Strategy;
-
-use spec\Example;
 use Articus\DataTransfer as DT;
 
-\describe(DT\Strategy\Whatever::class, function ()
+describe(DT\Strategy\Whatever::class, function ()
 {
-	\it('extracts by returning source', function ()
+	it('extracts by returning source', function ()
 	{
-		$source = \mock();
+		$source = mock();
 		$strategy = new DT\Strategy\Whatever();
-		\expect($strategy->extract($source))->toBe($source);
+		expect($strategy->extract($source))->toBe($source);
 	});
-	\it('hydrates by coping source to destination', function ()
+	it('hydrates by coping source to destination', function ()
 	{
-		$source = \mock();
-		$destination = \mock();
+		$source = mock();
+		$destination = mock();
 
 		$strategy = new DT\Strategy\Whatever();
 		$strategy->hydrate($source, $destination);
-		\expect($destination)->toBe($source);
+		expect($destination)->toBe($source);
 	});
-	\it('merges by coping source to destination', function ()
+	it('merges by coping source to destination', function ()
 	{
-		$source = \mock();
-		$destination = \mock();
+		$source = mock();
+		$destination = mock();
 
 		$strategy = new DT\Strategy\Whatever();
 		$strategy->merge($source, $destination);
-		\expect($destination)->toBe($source);
+		expect($destination)->toBe($source);
 	});
 });

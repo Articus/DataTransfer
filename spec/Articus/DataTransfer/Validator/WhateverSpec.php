@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace spec\Articus\DataTransfer\Validator;
 
-use Articus\DataTransfer as DT;
 use PhpSpec\ObjectBehavior;
+use stdClass;
 
 class WhateverSpec extends ObjectBehavior
 {
@@ -16,6 +16,6 @@ class WhateverSpec extends ObjectBehavior
 		$this->validate(0.0)->shouldBe([]);
 		$this->validate('')->shouldBe([]);
 		$this->validate([])->shouldBe([]);
-		$this->validate(new \stdClass())->shouldBe([]);
+		$this->validate(new stdClass())->shouldBe([]);
 	}
 }

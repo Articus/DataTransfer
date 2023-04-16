@@ -4,6 +4,10 @@ declare(strict_types=1);
 namespace Articus\DataTransfer\Validator;
 
 use Articus\DataTransfer\Utility;
+use function get_class;
+use function gettype;
+use function is_object;
+use function sprintf;
 
 /**
  * Validator that checks if data is a map containing specific valid field set.
@@ -18,7 +22,7 @@ class FieldData implements ValidatorInterface
 	/**
 	 * @psalm-var iterable<array{0: string, 1: ValidatorInterface}>
 	 */
-	protected $fields;
+	protected iterable $fields;
 
 	/**
 	 * @param iterable $fields list of tuples (<field name>, <field value validator>)
@@ -49,8 +53,8 @@ class FieldData implements ValidatorInterface
 		}
 		else
 		{
-			$result[self::INVALID] = \sprintf(
-				'Invalid data: expecting key-value map, not %s.', \is_object($data) ? \get_class($data) : \gettype($data)
+			$result[self::INVALID] = sprintf(
+				'Invalid data: expecting key-value map, not %s.', is_object($data) ? get_class($data) : gettype($data)
 			);
 		}
 		return $result;

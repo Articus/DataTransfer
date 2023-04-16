@@ -4,25 +4,25 @@ declare(strict_types=1);
 namespace Articus\DataTransfer\Validator\Factory;
 
 use Articus\DataTransfer\ClassMetadataProviderInterface;
+use Articus\DataTransfer\Options as DTOptions;
 use Articus\DataTransfer\Validator;
-use Interop\Container\ContainerInterface;
-use Laminas\ServiceManager\Factory\FactoryInterface;
+use Articus\DataTransfer\Validator\Options;
+use Articus\PluginManager\PluginFactoryInterface;
+use Articus\PluginManager\PluginManagerInterface;
+use Psr\Container\ContainerInterface;
 
 /**
  * Default factory for Validator\TypeCompliant
  * @see Validator\TypeCompliant
  */
-class TypeCompliant implements FactoryInterface
+class TypeCompliant implements PluginFactoryInterface
 {
-	public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
+	public function __invoke(ContainerInterface $container, string $name, array $options = []): Validator\TypeCompliant
 	{
-		$type = $options['type'] ?? null;
-		if ($type === null)
-		{
-			throw new \LogicException('Option "type" is required');
-		}
-		$subset = $options['subset'] ?? '';
-		$typeValidator = $this->getValidatorManager($container)->get(...$this->getMetadataProvider($container)->getClassValidator($type, $subset));
+		$parsedOptions = new Options\TypeCompliant($options);
+		$typeValidator = $this->getValidatorManager($container)(
+			...$this->getMetadataProvider($container)->getClassValidator($parsedOptions->type, $parsedOptions->subset)
+		);
 		return new Validator\TypeCompliant($typeValidator);
 	}
 
@@ -31,8 +31,12 @@ class TypeCompliant implements FactoryInterface
 		return $container->get(ClassMetadataProviderInterface::class);
 	}
 
-	protected function getValidatorManager(ContainerInterface $container): Validator\PluginManager
+	/**
+	 * @param ContainerInterface $container
+	 * @return PluginManagerInterface<Validator\ValidatorInterface>
+	 */
+	protected function getValidatorManager(ContainerInterface $container): PluginManagerInterface
 	{
-		return $container->get(Validator\PluginManager::class);
+		return $container->get(DTOptions::DEFAULT_VALIDATOR_PLUGIN_MANAGER);
 	}
 }

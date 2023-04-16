@@ -3,10 +3,11 @@ declare(strict_types=1);
 
 namespace spec\Articus\DataTransfer\MetadataProvider;
 
-use spec\Example;
 use Articus\DataTransfer as DT;
+use LogicException;
 use PhpSpec\ObjectBehavior;
 use Psr\SimpleCache\CacheInterface;
+use spec\Example;
 
 /**
  * TODO add expected text for LogicException's
@@ -25,11 +26,11 @@ class AnnotationSpec extends ObjectBehavior
 		$cache->set($className, $metadata)->shouldBeCalledTimes(5);
 
 		$this->beConstructedWith($cache);
-		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
-		$this->shouldThrow(\LogicException::class)->during('getClassValidator', [$className, $subset]);
-		$this->getClassFields($className, $subset)->shouldThrow(\LogicException::class)->during('current');
-		$this->shouldThrow(\LogicException::class)->during('getFieldStrategy', [$className, $subset, 'test']);
-		$this->shouldThrow(\LogicException::class)->during('getFieldValidator', [$className, $subset, 'test']);
+		$this->shouldThrow(LogicException::class)->during('getClassStrategy', [$className, $subset]);
+		$this->shouldThrow(LogicException::class)->during('getClassValidator', [$className, $subset]);
+		$this->getClassFields($className, $subset)->shouldThrow(LogicException::class)->during('current');
+		$this->shouldThrow(LogicException::class)->during('getFieldStrategy', [$className, $subset, 'test']);
+		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, 'test']);
 	}
 
 	public function it_returns_cached_class_strategy(CacheInterface $cache)
@@ -54,7 +55,7 @@ class AnnotationSpec extends ObjectBehavior
 	{
 		$className = Example\DTO\ClassStrategy::class;
 		$subset = '';
-		$strategy = ['testStrategy', null];
+		$strategy = ['testStrategy', []];
 		$metadata = [
 			[$subset => $strategy],
 			[$subset => [DT\Validator\Chain::class, ['links' => []]]],
@@ -94,9 +95,9 @@ class AnnotationSpec extends ObjectBehavior
 	{
 		$className = Example\DTO\ClassStrategiesWithSubsets::class;
 		$subset1 = 'testSubset1';
-		$strategy1 = ['testStrategy1', null];
+		$strategy1 = ['testStrategy1', []];
 		$subset2 = 'testSubset2';
-		$strategy2 = ['testStrategy2', null];
+		$strategy2 = ['testStrategy2', []];
 		$metadata = [
 			[$subset1 => $strategy1, $subset2 => $strategy2],
 			[$subset1 => [DT\Validator\Chain::class, ['links' => []]], $subset2 => [DT\Validator\Chain::class, ['links' => []]]],
@@ -117,7 +118,7 @@ class AnnotationSpec extends ObjectBehavior
 		$className = Example\DTO\ClassStrategy::class;
 		$subset = '';
 		$metadata = [
-			[$subset => ['testStrategy', null]],
+			[$subset => ['testStrategy', []]],
 			[$subset => [DT\Validator\Chain::class, ['links' => []]]],
 			[],
 			[],
@@ -129,7 +130,7 @@ class AnnotationSpec extends ObjectBehavior
 		$cache->set($className, $metadata)->shouldBeCalledOnce();
 
 		$this->beConstructedWith($cache);
-		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $unknownSubset]);
+		$this->shouldThrow(LogicException::class)->during('getClassStrategy', [$className, $unknownSubset]);
 	}
 
 	public function it_throws_if_there_are_several_class_strategies_with_same_subset(CacheInterface $cache)
@@ -140,8 +141,8 @@ class AnnotationSpec extends ObjectBehavior
 		$cache->get($className)->shouldBeCalledTimes(2)->willReturn(null);
 
 		$this->beConstructedWith($cache);
-		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
-		$this->shouldThrow(\LogicException::class)->during('getClassValidator', [$className, $subset]);
+		$this->shouldThrow(LogicException::class)->during('getClassStrategy', [$className, $subset]);
+		$this->shouldThrow(LogicException::class)->during('getClassValidator', [$className, $subset]);
 	}
 
 	public function it_returns_cached_class_validator(CacheInterface $cache)
@@ -168,7 +169,7 @@ class AnnotationSpec extends ObjectBehavior
 		$subset = '';
 		$validator = [DT\Validator\Chain::class, ['links' => []]];
 		$metadata = [
-			[$subset => ['testStrategy', null]],
+			[$subset => ['testStrategy', []]],
 			[$subset => $validator],
 			[],
 			[],
@@ -186,9 +187,9 @@ class AnnotationSpec extends ObjectBehavior
 	{
 		$className = Example\DTO\ClassValidator::class;
 		$subset = '';
-		$validator = [DT\Validator\Chain::class, ['links' => [['testValidator', null, false]]]];
+		$validator = [DT\Validator\Chain::class, ['links' => [['testValidator', [], false]]]];
 		$metadata = [
-			[$subset => ['testStrategy', null]],
+			[$subset => ['testStrategy', []]],
 			[$subset => $validator],
 			[],
 			[],
@@ -208,7 +209,7 @@ class AnnotationSpec extends ObjectBehavior
 		$subset = '';
 		$validator = [DT\Validator\Chain::class, ['links' => [['testValidator', ['test' => 123], false]]]];
 		$metadata = [
-			[$subset => ['testStrategy', null]],
+			[$subset => ['testStrategy', []]],
 			[$subset => $validator],
 			[],
 			[],
@@ -226,9 +227,9 @@ class AnnotationSpec extends ObjectBehavior
 	{
 		$className = Example\DTO\BlockingClassValidator::class;
 		$subset = '';
-		$validator = [DT\Validator\Chain::class, ['links' => [['testValidator', null, true]]]];
+		$validator = [DT\Validator\Chain::class, ['links' => [['testValidator', [], true]]]];
 		$metadata = [
-			[$subset => ['testStrategy', null]],
+			[$subset => ['testStrategy', []]],
 			[$subset => $validator],
 			[],
 			[],
@@ -246,11 +247,11 @@ class AnnotationSpec extends ObjectBehavior
 	{
 		$className = Example\DTO\ClassValidatorsWithSubsets::class;
 		$subset1 = 'testSubset1';
-		$strategy1 = ['testStrategy1', null];
-		$validator1 = [DT\Validator\Chain::class, ['links' => [['testValidator1', null, false]]]];
+		$strategy1 = ['testStrategy1', []];
+		$validator1 = [DT\Validator\Chain::class, ['links' => [['testValidator1', [], false]]]];
 		$subset2 = 'testSubset2';
-		$strategy2 = ['testStrategy2', null];
-		$validator2 = [DT\Validator\Chain::class, ['links' => [['testValidator2', null, false]]]];
+		$strategy2 = ['testStrategy2', []];
+		$validator2 = [DT\Validator\Chain::class, ['links' => [['testValidator2', [], false]]]];
 		$metadata = [
 			[$subset1 => $strategy1, $subset2 => $strategy2],
 			[$subset1 => $validator1, $subset2 => $validator2],
@@ -270,14 +271,14 @@ class AnnotationSpec extends ObjectBehavior
 	{
 		$className = Example\DTO\ClassValidatorsWithSameSubset::class;
 		$subset = '';
-		$strategy = ['testStrategy', null];
+		$strategy = ['testStrategy', []];
 		$validator = [DT\Validator\Chain::class, ['links' => [
-			['testValidator6', null, false],
-			['testValidator3', null, false],
-			['testValidator5', null, false],
-			['testValidator1', null, false],
-			['testValidator4', null, false],
-			['testValidator2', null, false],
+			['testValidator6', [], false],
+			['testValidator3', [], false],
+			['testValidator5', [], false],
+			['testValidator1', [], false],
+			['testValidator4', [], false],
+			['testValidator2', [], false],
 		]]];
 
 		$metadata = [
@@ -303,8 +304,8 @@ class AnnotationSpec extends ObjectBehavior
 		$cache->get($className)->shouldBeCalledTimes(2)->willReturn(null);
 
 		$this->beConstructedWith($cache);
-		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
-		$this->shouldThrow(\LogicException::class)->during('getClassValidator', [$className, $subset]);
+		$this->shouldThrow(LogicException::class)->during('getClassStrategy', [$className, $subset]);
+		$this->shouldThrow(LogicException::class)->during('getClassValidator', [$className, $subset]);
 	}
 
 	public function it_returns_cached_class_field(CacheInterface $cache)
@@ -338,8 +339,8 @@ class AnnotationSpec extends ObjectBehavior
 				[DT\Validator\FieldData::class, ['type' => $className, 'subset' => $subset], false]]
 			]]],
 			[$subset => $fields],
-			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
-			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
+			[$subset => [$fieldName => [DT\Strategy\Whatever::class, []]]],
+			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, [], true]]]]]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
 		$cache->set($className, $metadata)->shouldBeCalledOnce();
@@ -361,8 +362,8 @@ class AnnotationSpec extends ObjectBehavior
 				[DT\Validator\FieldData::class, ['type' => $className, 'subset' => $subset], false]]
 			]]],
 			[$subset => $fields],
-			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
-			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
+			[$subset => [$fieldName => [DT\Strategy\Whatever::class, []]]],
+			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, [], true]]]]]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
 		$cache->set($className, $metadata)->shouldBeCalledOnce();
@@ -384,8 +385,8 @@ class AnnotationSpec extends ObjectBehavior
 				[DT\Validator\FieldData::class, ['type' => $className, 'subset' => $subset], false]]
 			]]],
 			[$subset => $fields],
-			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
-			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
+			[$subset => [$fieldName => [DT\Strategy\Whatever::class, []]]],
+			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, [], true]]]]]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
 		$cache->set($className, $metadata)->shouldBeCalledOnce();
@@ -407,8 +408,8 @@ class AnnotationSpec extends ObjectBehavior
 				[DT\Validator\FieldData::class, ['type' => $className, 'subset' => $subset], false]]
 			]]],
 			[$subset => $fields],
-			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
-			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
+			[$subset => [$fieldName => [DT\Strategy\Whatever::class, []]]],
+			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, [], true]]]]]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
 		$cache->set($className, $metadata)->shouldBeCalledOnce();
@@ -425,11 +426,11 @@ class AnnotationSpec extends ObjectBehavior
 		$cache->get($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cache);
-		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
-		$this->shouldThrow(\LogicException::class)->during('getClassValidator', [$className, $subset]);
-		$this->getClassFields($className, $subset)->shouldThrow(\LogicException::class)->during('current');
-		$this->shouldThrow(\LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
-		$this->shouldThrow(\LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getClassStrategy', [$className, $subset]);
+		$this->shouldThrow(LogicException::class)->during('getClassValidator', [$className, $subset]);
+		$this->getClassFields($className, $subset)->shouldThrow(LogicException::class)->during('current');
+		$this->shouldThrow(LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
 	public function it_returns_nullable_class_field(CacheInterface $cache)
@@ -445,7 +446,7 @@ class AnnotationSpec extends ObjectBehavior
 				[DT\Validator\FieldData::class, ['type' => $className, 'subset' => $subset], false]]
 			]]],
 			[$subset => $fields],
-			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
+			[$subset => [$fieldName => [DT\Strategy\Whatever::class, []]]],
 			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => []]]]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
@@ -468,8 +469,8 @@ class AnnotationSpec extends ObjectBehavior
 				[DT\Validator\FieldData::class, ['type' => $className, 'subset' => $subset], false]]
 			]]],
 			[$subset => $fields],
-			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
-			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
+			[$subset => [$fieldName => [DT\Strategy\Whatever::class, []]]],
+			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, [], true]]]]]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
 		$cache->set($className, $metadata)->shouldBeCalledOnce();
@@ -491,8 +492,8 @@ class AnnotationSpec extends ObjectBehavior
 				[DT\Validator\FieldData::class, ['type' => $className, 'subset' => $subset], false]]
 			]]],
 			[$subset => $fields],
-			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
-			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
+			[$subset => [$fieldName => [DT\Strategy\Whatever::class, []]]],
+			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, [], true]]]]]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
 		$cache->set($className, $metadata)->shouldBeCalledOnce();
@@ -509,11 +510,11 @@ class AnnotationSpec extends ObjectBehavior
 		$cache->get($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cache);
-		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
-		$this->shouldThrow(\LogicException::class)->during('getClassValidator', [$className, $subset]);
-		$this->getClassFields($className, $subset)->shouldThrow(\LogicException::class)->during('current');
-		$this->shouldThrow(\LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
-		$this->shouldThrow(\LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getClassStrategy', [$className, $subset]);
+		$this->shouldThrow(LogicException::class)->during('getClassValidator', [$className, $subset]);
+		$this->getClassFields($className, $subset)->shouldThrow(LogicException::class)->during('current');
+		$this->shouldThrow(LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
 	public function it_throws_on_class_field_with_nonpublic_getter(CacheInterface $cache)
@@ -524,11 +525,11 @@ class AnnotationSpec extends ObjectBehavior
 		$cache->get($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cache);
-		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
-		$this->shouldThrow(\LogicException::class)->during('getClassValidator', [$className, $subset]);
-		$this->getClassFields($className, $subset)->shouldThrow(\LogicException::class)->during('current');
-		$this->shouldThrow(\LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
-		$this->shouldThrow(\LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getClassStrategy', [$className, $subset]);
+		$this->shouldThrow(LogicException::class)->during('getClassValidator', [$className, $subset]);
+		$this->getClassFields($className, $subset)->shouldThrow(LogicException::class)->during('current');
+		$this->shouldThrow(LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
 	public function it_throws_on_class_field_with_getter_that_requires_parameter(CacheInterface $cache)
@@ -539,11 +540,11 @@ class AnnotationSpec extends ObjectBehavior
 		$cache->get($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cache);
-		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
-		$this->shouldThrow(\LogicException::class)->during('getClassValidator', [$className, $subset]);
-		$this->getClassFields($className, $subset)->shouldThrow(\LogicException::class)->during('current');
-		$this->shouldThrow(\LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
-		$this->shouldThrow(\LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getClassStrategy', [$className, $subset]);
+		$this->shouldThrow(LogicException::class)->during('getClassValidator', [$className, $subset]);
+		$this->getClassFields($className, $subset)->shouldThrow(LogicException::class)->during('current');
+		$this->shouldThrow(LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
 	public function it_returns_class_field_with_setter(CacheInterface $cache)
@@ -559,8 +560,8 @@ class AnnotationSpec extends ObjectBehavior
 				[DT\Validator\FieldData::class, ['type' => $className, 'subset' => $subset], false]]
 			]]],
 			[$subset => $fields],
-			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
-			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
+			[$subset => [$fieldName => [DT\Strategy\Whatever::class, []]]],
+			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, [], true]]]]]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
 		$cache->set($className, $metadata)->shouldBeCalledOnce();
@@ -582,8 +583,8 @@ class AnnotationSpec extends ObjectBehavior
 				[DT\Validator\FieldData::class, ['type' => $className, 'subset' => $subset], false]]
 			]]],
 			[$subset => $fields],
-			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
-			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
+			[$subset => [$fieldName => [DT\Strategy\Whatever::class, []]]],
+			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, [], true]]]]]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
 		$cache->set($className, $metadata)->shouldBeCalledOnce();
@@ -600,11 +601,11 @@ class AnnotationSpec extends ObjectBehavior
 		$cache->get($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cache);
-		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
-		$this->shouldThrow(\LogicException::class)->during('getClassValidator', [$className, $subset]);
-		$this->getClassFields($className, $subset)->shouldThrow(\LogicException::class)->during('current');
-		$this->shouldThrow(\LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
-		$this->shouldThrow(\LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getClassStrategy', [$className, $subset]);
+		$this->shouldThrow(LogicException::class)->during('getClassValidator', [$className, $subset]);
+		$this->getClassFields($className, $subset)->shouldThrow(LogicException::class)->during('current');
+		$this->shouldThrow(LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
 	public function it_throws_on_class_field_with_nonpublic_setter(CacheInterface $cache)
@@ -615,11 +616,11 @@ class AnnotationSpec extends ObjectBehavior
 		$cache->get($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cache);
-		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
-		$this->shouldThrow(\LogicException::class)->during('getClassValidator', [$className, $subset]);
-		$this->getClassFields($className, $subset)->shouldThrow(\LogicException::class)->during('current');
-		$this->shouldThrow(\LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
-		$this->shouldThrow(\LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getClassStrategy', [$className, $subset]);
+		$this->shouldThrow(LogicException::class)->during('getClassValidator', [$className, $subset]);
+		$this->getClassFields($className, $subset)->shouldThrow(LogicException::class)->during('current');
+		$this->shouldThrow(LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
 	public function it_throws_on_class_field_with_setter_that_has_no_parameters(CacheInterface $cache)
@@ -630,11 +631,11 @@ class AnnotationSpec extends ObjectBehavior
 		$cache->get($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cache);
-		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
-		$this->shouldThrow(\LogicException::class)->during('getClassValidator', [$className, $subset]);
-		$this->getClassFields($className, $subset)->shouldThrow(\LogicException::class)->during('current');
-		$this->shouldThrow(\LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
-		$this->shouldThrow(\LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getClassStrategy', [$className, $subset]);
+		$this->shouldThrow(LogicException::class)->during('getClassValidator', [$className, $subset]);
+		$this->getClassFields($className, $subset)->shouldThrow(LogicException::class)->during('current');
+		$this->shouldThrow(LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
 	public function it_throws_on_class_field_with_setter_that_requires_two_parameters(CacheInterface $cache)
@@ -645,11 +646,11 @@ class AnnotationSpec extends ObjectBehavior
 		$cache->get($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cache);
-		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
-		$this->shouldThrow(\LogicException::class)->during('getClassValidator', [$className, $subset]);
-		$this->getClassFields($className, $subset)->shouldThrow(\LogicException::class)->during('current');
-		$this->shouldThrow(\LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
-		$this->shouldThrow(\LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getClassStrategy', [$className, $subset]);
+		$this->shouldThrow(LogicException::class)->during('getClassValidator', [$className, $subset]);
+		$this->getClassFields($className, $subset)->shouldThrow(LogicException::class)->during('current');
+		$this->shouldThrow(LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
 	public function it_returns_class_field_with_specified_subset(CacheInterface $cache)
@@ -681,12 +682,12 @@ class AnnotationSpec extends ObjectBehavior
 				$subset2 => $fields2,
 			],
 			[
-				$subset1 => [$fieldName1 => [DT\Strategy\Whatever::class, null]],
-				$subset2 => [$fieldName2 => [DT\Strategy\Whatever::class, null]],
+				$subset1 => [$fieldName1 => [DT\Strategy\Whatever::class, []]],
+				$subset2 => [$fieldName2 => [DT\Strategy\Whatever::class, []]],
 			],
 			[
-				$subset1 => [$fieldName1 => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]],
-				$subset2 => [$fieldName2 => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]],
+				$subset1 => [$fieldName1 => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, [], true]]]]],
+				$subset2 => [$fieldName2 => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, [], true]]]]],
 			],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
@@ -704,11 +705,11 @@ class AnnotationSpec extends ObjectBehavior
 		$cache->get($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cache);
-		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
-		$this->shouldThrow(\LogicException::class)->during('getClassValidator', [$className, $subset]);
-		$this->getClassFields($className, $subset)->shouldThrow(\LogicException::class)->during('current');
-		$this->shouldThrow(\LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
-		$this->shouldThrow(\LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getClassStrategy', [$className, $subset]);
+		$this->shouldThrow(LogicException::class)->during('getClassValidator', [$className, $subset]);
+		$this->getClassFields($className, $subset)->shouldThrow(LogicException::class)->during('current');
+		$this->shouldThrow(LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
 	public function it_returns_cached_field_strategy(CacheInterface $cache)
@@ -736,7 +737,7 @@ class AnnotationSpec extends ObjectBehavior
 		$subset = '';
 		$fieldName = 'test';
 		$field = [$fieldName, ['test', false], ['test', false]];
-		$fieldStrategy = [DT\Strategy\Whatever::class, null];
+		$fieldStrategy = [DT\Strategy\Whatever::class, []];
 		$metadata = [
 			[$subset => [DT\Strategy\FieldData::class, ['type' => $className, 'subset' => $subset]]],
 			[$subset => [DT\Validator\Chain::class, ['links' => [
@@ -744,7 +745,7 @@ class AnnotationSpec extends ObjectBehavior
 			]]],
 			[$subset => [$fieldName => $field]],
 			[$subset => [$fieldName => $fieldStrategy]],
-			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
+			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, [], true]]]]]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
 		$cache->set($className, $metadata)->shouldBeCalledOnce();
@@ -759,7 +760,7 @@ class AnnotationSpec extends ObjectBehavior
 		$subset = '';
 		$fieldName = 'testField';
 		$field = [$fieldName, ['testField', false], ['testField', false]];
-		$fieldStrategy = ['testStrategy', null];
+		$fieldStrategy = ['testStrategy', []];
 		$metadata = [
 			[$subset => [DT\Strategy\FieldData::class, ['type' => $className, 'subset' => $subset]]],
 			[$subset => [DT\Validator\Chain::class, ['links' => [
@@ -767,7 +768,7 @@ class AnnotationSpec extends ObjectBehavior
 			]]],
 			[$subset => [$fieldName => $field]],
 			[$subset => [$fieldName => $fieldStrategy]],
-			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
+			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, [], true]]]]]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
 		$cache->set($className, $metadata)->shouldBeCalledOnce();
@@ -790,7 +791,7 @@ class AnnotationSpec extends ObjectBehavior
 			]]],
 			[$subset => [$fieldName => $field]],
 			[$subset => [$fieldName => $fieldStrategy]],
-			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
+			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, [], true]]]]]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
 		$cache->set($className, $metadata)->shouldBeCalledOnce();
@@ -806,8 +807,8 @@ class AnnotationSpec extends ObjectBehavior
 		$subset2 = 'subset2';
 		$fieldName = 'testField';
 		$field = [$fieldName, ['testField', false], ['testField', false]];
-		$fieldStrategy1 = ['testStrategy1', null];
-		$fieldStrategy2 = ['testStrategy2', null];
+		$fieldStrategy1 = ['testStrategy1', []];
+		$fieldStrategy2 = ['testStrategy2', []];
 		$metadata = [
 			[
 				$subset1 => [DT\Strategy\FieldData::class, ['type' => $className, 'subset' => $subset1]],
@@ -830,8 +831,8 @@ class AnnotationSpec extends ObjectBehavior
 				$subset2 => [$fieldName => $fieldStrategy2],
 			],
 			[
-				$subset1 => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]],
-				$subset2 => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]],
+				$subset1 => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, [], true]]]]],
+				$subset2 => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, [], true]]]]],
 			],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
@@ -849,11 +850,11 @@ class AnnotationSpec extends ObjectBehavior
 		$cache->get($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cache);
-		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
-		$this->shouldThrow(\LogicException::class)->during('getClassValidator', [$className, $subset]);
-		$this->getClassFields($className, $subset)->shouldThrow(\LogicException::class)->during('current');
-		$this->shouldThrow(\LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
-		$this->shouldThrow(\LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getClassStrategy', [$className, $subset]);
+		$this->shouldThrow(LogicException::class)->during('getClassValidator', [$className, $subset]);
+		$this->getClassFields($className, $subset)->shouldThrow(LogicException::class)->during('current');
+		$this->shouldThrow(LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
 	public function it_throws_if_property_has_field_strategy_but_is_not_class_field(CacheInterface $cache)
@@ -864,11 +865,11 @@ class AnnotationSpec extends ObjectBehavior
 		$cache->get($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cache);
-		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
-		$this->shouldThrow(\LogicException::class)->during('getClassValidator', [$className, $subset]);
-		$this->getClassFields($className, $subset)->shouldThrow(\LogicException::class)->during('current');
-		$this->shouldThrow(\LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
-		$this->shouldThrow(\LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getClassStrategy', [$className, $subset]);
+		$this->shouldThrow(LogicException::class)->during('getClassValidator', [$className, $subset]);
+		$this->getClassFields($className, $subset)->shouldThrow(LogicException::class)->during('current');
+		$this->shouldThrow(LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
 	public function it_returns_cached_field_validator(CacheInterface $cache)
@@ -896,14 +897,14 @@ class AnnotationSpec extends ObjectBehavior
 		$subset = '';
 		$fieldName = 'test';
 		$field = [$fieldName, ['test', false], ['test', false]];
-		$fieldValidator = [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]];
+		$fieldValidator = [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, [], true]]]];
 		$metadata = [
 			[$subset => [DT\Strategy\FieldData::class, ['type' => $className, 'subset' => $subset]]],
 			[$subset => [DT\Validator\Chain::class, ['links' => [
 				[DT\Validator\FieldData::class, ['type' => $className, 'subset' => $subset], false]]
 			]]],
 			[$subset => [$fieldName => $field]],
-			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
+			[$subset => [$fieldName => [DT\Strategy\Whatever::class, []]]],
 			[$subset => [$fieldName => $fieldValidator]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
@@ -926,7 +927,7 @@ class AnnotationSpec extends ObjectBehavior
 				[DT\Validator\FieldData::class, ['type' => $className, 'subset' => $subset], false]]
 			]]],
 			[$subset => [$fieldName => $field]],
-			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
+			[$subset => [$fieldName => [DT\Strategy\Whatever::class, []]]],
 			[$subset => [$fieldName => $fieldValidator]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
@@ -943,8 +944,8 @@ class AnnotationSpec extends ObjectBehavior
 		$fieldName = 'testField';
 		$field = [$fieldName, ['testField', false], ['testField', false]];
 		$fieldValidator = [DT\Validator\Chain::class, ['links' => [
-			[DT\Validator\NotNull::class, null, true],
-			['testValidator', null, false],
+			[DT\Validator\NotNull::class, [], true],
+			['testValidator', [], false],
 		]]];
 		$metadata = [
 			[$subset => [DT\Strategy\FieldData::class, ['type' => $className, 'subset' => $subset]]],
@@ -952,7 +953,7 @@ class AnnotationSpec extends ObjectBehavior
 				[DT\Validator\FieldData::class, ['type' => $className, 'subset' => $subset], false]]
 			]]],
 			[$subset => [$fieldName => $field]],
-			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
+			[$subset => [$fieldName => [DT\Strategy\Whatever::class, []]]],
 			[$subset => [$fieldName => $fieldValidator]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
@@ -969,7 +970,7 @@ class AnnotationSpec extends ObjectBehavior
 		$fieldName = 'testField';
 		$field = [$fieldName, ['testField', false], ['testField', false]];
 		$fieldValidator = [DT\Validator\Chain::class, ['links' => [
-			[DT\Validator\NotNull::class, null, true],
+			[DT\Validator\NotNull::class, [], true],
 			['testValidator', ['test' => 123], false],
 		]]];
 		$metadata = [
@@ -978,7 +979,7 @@ class AnnotationSpec extends ObjectBehavior
 				[DT\Validator\FieldData::class, ['type' => $className, 'subset' => $subset], false]]
 			]]],
 			[$subset => [$fieldName => $field]],
-			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
+			[$subset => [$fieldName => [DT\Strategy\Whatever::class, []]]],
 			[$subset => [$fieldName => $fieldValidator]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
@@ -995,8 +996,8 @@ class AnnotationSpec extends ObjectBehavior
 		$fieldName = 'testField';
 		$field = [$fieldName, ['testField', false], ['testField', false]];
 		$fieldValidator = [DT\Validator\Chain::class, ['links' => [
-			[DT\Validator\NotNull::class, null, true],
-			['testValidator', null, true],
+			[DT\Validator\NotNull::class, [], true],
+			['testValidator', [], true],
 		]]];
 		$metadata = [
 			[$subset => [DT\Strategy\FieldData::class, ['type' => $className, 'subset' => $subset]]],
@@ -1004,7 +1005,7 @@ class AnnotationSpec extends ObjectBehavior
 				[DT\Validator\FieldData::class, ['type' => $className, 'subset' => $subset], false]]
 			]]],
 			[$subset => [$fieldName => $field]],
-			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
+			[$subset => [$fieldName => [DT\Strategy\Whatever::class, []]]],
 			[$subset => [$fieldName => $fieldValidator]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
@@ -1022,12 +1023,12 @@ class AnnotationSpec extends ObjectBehavior
 		$fieldName = 'testField';
 		$field = [$fieldName, ['testField', false], ['testField', false]];
 		$fieldValidator1 = [DT\Validator\Chain::class, ['links' => [
-			[DT\Validator\NotNull::class, null, true],
-			['testValidator1', null, false],
+			[DT\Validator\NotNull::class, [], true],
+			['testValidator1', [], false],
 		]]];
 		$fieldValidator2 = [DT\Validator\Chain::class, ['links' => [
-			[DT\Validator\NotNull::class, null, true],
-			['testValidator2', null, false],
+			[DT\Validator\NotNull::class, [], true],
+			['testValidator2', [], false],
 		]]];
 		$metadata = [
 			[
@@ -1047,8 +1048,8 @@ class AnnotationSpec extends ObjectBehavior
 				$subset2 => [$fieldName => $field],
 			],
 			[
-				$subset1 => [$fieldName => [DT\Strategy\Whatever::class, null]],
-				$subset2 => [$fieldName => [DT\Strategy\Whatever::class, null]],
+				$subset1 => [$fieldName => [DT\Strategy\Whatever::class, []]],
+				$subset2 => [$fieldName => [DT\Strategy\Whatever::class, []]],
 			],
 			[
 				$subset1 => [$fieldName => $fieldValidator1],
@@ -1069,14 +1070,14 @@ class AnnotationSpec extends ObjectBehavior
 		$fieldName = 'testField';
 		$field = [$fieldName, ['testField', false], ['testField', false]];
 		$fieldValidator = [DT\Validator\Chain::class, ['links' => [
-			['testValidator7', null, false],
-			[DT\Validator\NotNull::class, null, true],
-			['testValidator6', null, false],
-			['testValidator3', null, false],
-			['testValidator5', null, false],
-			['testValidator1', null, false],
-			['testValidator4', null, false],
-			['testValidator2', null, false],
+			['testValidator7', [], false],
+			[DT\Validator\NotNull::class, [], true],
+			['testValidator6', [], false],
+			['testValidator3', [], false],
+			['testValidator5', [], false],
+			['testValidator1', [], false],
+			['testValidator4', [], false],
+			['testValidator2', [], false],
 		]]];
 		$metadata = [
 			[$subset => [DT\Strategy\FieldData::class, ['type' => $className, 'subset' => $subset]]],
@@ -1084,7 +1085,7 @@ class AnnotationSpec extends ObjectBehavior
 				[DT\Validator\FieldData::class, ['type' => $className, 'subset' => $subset], false]]
 			]]],
 			[$subset => [$fieldName => $field]],
-			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
+			[$subset => [$fieldName => [DT\Strategy\Whatever::class, []]]],
 			[$subset => [$fieldName => $fieldValidator]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
@@ -1102,11 +1103,11 @@ class AnnotationSpec extends ObjectBehavior
 		$cache->get($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cache);
-		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
-		$this->shouldThrow(\LogicException::class)->during('getClassValidator', [$className, $subset]);
-		$this->getClassFields($className, $subset)->shouldThrow(\LogicException::class)->during('current');
-		$this->shouldThrow(\LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
-		$this->shouldThrow(\LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getClassStrategy', [$className, $subset]);
+		$this->shouldThrow(LogicException::class)->during('getClassValidator', [$className, $subset]);
+		$this->getClassFields($className, $subset)->shouldThrow(LogicException::class)->during('current');
+		$this->shouldThrow(LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
 	public function it_returns_default_class_strategy_if_there_is_class_field(CacheInterface $cache)
@@ -1121,8 +1122,8 @@ class AnnotationSpec extends ObjectBehavior
 				[DT\Validator\FieldData::class, ['type' => $className, 'subset' => $subset], false]]
 			]]],
 			[$subset => [$fieldName => [$fieldName, ['test', false], ['test', false]]]],
-			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
-			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
+			[$subset => [$fieldName => [DT\Strategy\Whatever::class, []]]],
+			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, [], true]]]]]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
 		$cache->set($className, $metadata)->shouldBeCalledOnce();
@@ -1143,8 +1144,8 @@ class AnnotationSpec extends ObjectBehavior
 			[$subset => [DT\Strategy\FieldData::class, ['type' => $className, 'subset' => $subset]]],
 			[$subset => $validator],
 			[$subset => [$fieldName => [$fieldName, ['test', false], ['test', false]]]],
-			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
-			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
+			[$subset => [$fieldName => [DT\Strategy\Whatever::class, []]]],
+			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, [], true]]]]]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
 		$cache->set($className, $metadata)->shouldBeCalledOnce();
@@ -1161,11 +1162,11 @@ class AnnotationSpec extends ObjectBehavior
 		$cache->get($className)->shouldBeCalledTimes(5)->willReturn(null);
 
 		$this->beConstructedWith($cache);
-		$this->shouldThrow(\LogicException::class)->during('getClassStrategy', [$className, $subset]);
-		$this->shouldThrow(\LogicException::class)->during('getClassValidator', [$className, $subset]);
-		$this->getClassFields($className, $subset)->shouldThrow(\LogicException::class)->during('current');
-		$this->shouldThrow(\LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
-		$this->shouldThrow(\LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getClassStrategy', [$className, $subset]);
+		$this->shouldThrow(LogicException::class)->during('getClassValidator', [$className, $subset]);
+		$this->getClassFields($className, $subset)->shouldThrow(LogicException::class)->during('current');
+		$this->shouldThrow(LogicException::class)->during('getFieldStrategy', [$className, $subset, $fieldName]);
+		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
 	public function it_returns_class_validators_and_default_class_validator_if_there_is_class_field(CacheInterface $cache)
@@ -1174,16 +1175,16 @@ class AnnotationSpec extends ObjectBehavior
 		$subset = '';
 		$fieldName = 'test';
 		$validator = [DT\Validator\Chain::class, ['links' => [
-			['testValidator2', null, false],
+			['testValidator2', [], false],
 			[DT\Validator\FieldData::class, ['type' => $className, 'subset' => $subset], false],
-			['testValidator1', null, false],
+			['testValidator1', [], false],
 		]]];
 		$metadata = [
 			[$subset => [DT\Strategy\FieldData::class, ['type' => $className, 'subset' => $subset]]],
 			[$subset => $validator],
 			[$subset => [$fieldName => [$fieldName, ['test', false], ['test', false]]]],
-			[$subset => [$fieldName => [DT\Strategy\Whatever::class, null]]],
-			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, null, true]]]]]],
+			[$subset => [$fieldName => [DT\Strategy\Whatever::class, []]]],
+			[$subset => [$fieldName => [DT\Validator\Chain::class, ['links' => [[DT\Validator\NotNull::class, [], true]]]]]],
 		];
 		$cache->get($className)->shouldBeCalledOnce()->willReturn(null);
 		$cache->set($className, $metadata)->shouldBeCalledOnce();

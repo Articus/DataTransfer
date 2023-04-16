@@ -3,7 +3,30 @@ declare(strict_types=1);
 
 namespace Articus\DataTransfer\Cache;
 
+use Closure;
+use InvalidArgumentException;
+use LogicException;
 use Psr\SimpleCache\CacheInterface;
+use function array_push;
+use function chmod;
+use function explode;
+use function file_put_contents;
+use function implode;
+use function is_array;
+use function is_dir;
+use function is_writable;
+use function mkdir;
+use function pathinfo;
+use function realpath;
+use function rename;
+use function restore_error_handler;
+use function set_error_handler;
+use function sprintf;
+use function tempnam;
+use function unlink;
+use function var_export;
+use const DIRECTORY_SEPARATOR;
+use const PATHINFO_DIRNAME;
 
 /**
  * Incomplete implementation of PSR-16 optimized to store metadata.
@@ -13,24 +36,16 @@ class MetadataFilePerClass implements CacheInterface
 {
 	/**
 	 * Root folder to store metadata
-	 * @var string|null
 	 */
-	protected $directory;
+	protected ?string $directory = null;
 	/**
 	 * Permissions that should be removed from files and folders used to store metadata.
 	 * Similar to https://www.php.net/manual/en/function.umask.php
-	 * @var int
 	 */
-	protected $umask;
-	/**
-	 * @var \Closure
-	 */
-	protected static $emptyErrorHandler;
+	protected int $umask;
 
-	/**
-	 * @param string|null $directory
-	 * @param int $umask
-	 */
+	protected static Closure $emptyErrorHandler;
+
 	public function __construct(?string $directory, int $umask = 0002)
 	{
 		$this->umask = $umask;// It has to be before createDirectoryIfNeeded()
@@ -38,13 +53,13 @@ class MetadataFilePerClass implements CacheInterface
 		{
 			if (!$this->createDirectoryIfNeeded($directory))
 			{
-				throw new \InvalidArgumentException(\sprintf('The directory "%s" does not exist and could not be created.', $directory));
+				throw new InvalidArgumentException(sprintf('The directory "%s" does not exist and could not be created.', $directory));
 			}
-			if (!\is_writable($directory))
+			if (!is_writable($directory))
 			{
-				throw new \InvalidArgumentException(\sprintf('The directory "%s" is not writable.', $directory));
+				throw new InvalidArgumentException(sprintf('The directory "%s" is not writable.', $directory));
 			}
-			$this->directory = \realpath($directory);// It has to be after createDirectoryIfNeeded()
+			$this->directory = realpath($directory);// It has to be after createDirectoryIfNeeded()
 		}
 		self::$emptyErrorHandler = static function() {};
 	}
@@ -59,10 +74,10 @@ class MetadataFilePerClass implements CacheInterface
 		{
 			$filename = $this->getFilename($this->directory, $key);
 			// note: error suppression is still faster than `file_exists`, `is_file` and `is_readable`
-			\set_error_handler(self::$emptyErrorHandler);
+			set_error_handler(self::$emptyErrorHandler);
 			$value = include $filename;
-			\restore_error_handler();
-			if (\is_array($value))
+			restore_error_handler();
+			if (is_array($value))
 			{
 				$result = $value;
 			}
@@ -76,10 +91,10 @@ class MetadataFilePerClass implements CacheInterface
 	public function set($key, $value, $ttl = null)
 	{
 		$result = false;
-		if (($this->directory !== null) && \is_array($value) && ($ttl === null))
+		if (($this->directory !== null) && is_array($value) && ($ttl === null))
 		{
 			$filename = $this->getFilename($this->directory, $key);
-			$content  = \sprintf('<?php return %s;', \var_export($value, true));
+			$content  = sprintf('<?php return %s;', var_export($value, true));
 			$result = $this->writeFile($filename, $content);
 		}
 		return $result;
@@ -90,7 +105,7 @@ class MetadataFilePerClass implements CacheInterface
 	 */
 	public function delete($key)
 	{
-		throw new \LogicException('Not implemented');
+		throw new LogicException('Not implemented');
 	}
 
 	/**
@@ -98,7 +113,7 @@ class MetadataFilePerClass implements CacheInterface
 	 */
 	public function clear()
 	{
-		throw new \LogicException('Not implemented');
+		throw new LogicException('Not implemented');
 	}
 
 	/**
@@ -106,7 +121,7 @@ class MetadataFilePerClass implements CacheInterface
 	 */
 	public function getMultiple($keys, $default = null)
 	{
-		throw new \LogicException('Not implemented');
+		throw new LogicException('Not implemented');
 	}
 
 	/**
@@ -114,7 +129,7 @@ class MetadataFilePerClass implements CacheInterface
 	 */
 	public function setMultiple($values, $ttl = null)
 	{
-		throw new \LogicException('Not implemented');
+		throw new LogicException('Not implemented');
 	}
 
 	/**
@@ -122,7 +137,7 @@ class MetadataFilePerClass implements CacheInterface
 	 */
 	public function deleteMultiple($keys)
 	{
-		throw new \LogicException('Not implemented');
+		throw new LogicException('Not implemented');
 	}
 
 	/**
@@ -130,34 +145,34 @@ class MetadataFilePerClass implements CacheInterface
 	 */
 	public function has($key)
 	{
-		throw new \LogicException('Not implemented');
+		throw new LogicException('Not implemented');
 	}
 
 	protected function getFilename(string $directory, string $key): string
 	{
 		$pathParts = [$directory];
-		\array_push($pathParts, ...\explode('\\', $key));
-		return \implode(\DIRECTORY_SEPARATOR, $pathParts) . '.metadata.php';
+		array_push($pathParts, ...explode('\\', $key));
+		return implode(DIRECTORY_SEPARATOR, $pathParts) . '.metadata.php';
 	}
 
 	protected function writeFile(string $filename, string $content): bool
 	{
 		$result = false;
-		$directory = \pathinfo($filename, \PATHINFO_DIRNAME);
+		$directory = pathinfo($filename, PATHINFO_DIRNAME);
 
-		if ($this->createDirectoryIfNeeded($directory) && \is_writable($directory))
+		if ($this->createDirectoryIfNeeded($directory) && is_writable($directory))
 		{
-			$temporaryFilename = \tempnam($directory, 'swap');
-			if (\file_put_contents($temporaryFilename, $content) !== false)
+			$temporaryFilename = tempnam($directory, 'swap');
+			if (file_put_contents($temporaryFilename, $content) !== false)
 			{
-				@\chmod($temporaryFilename, 0666 & (~$this->umask));
-				if (@\rename($temporaryFilename, $filename))
+				@chmod($temporaryFilename, 0666 & (~$this->umask));
+				if (@rename($temporaryFilename, $filename))
 				{
 					$result = true;
 				}
 				else
 				{
-					@\unlink($temporaryFilename);
+					@unlink($temporaryFilename);
 				}
 			}
 		}
@@ -166,6 +181,6 @@ class MetadataFilePerClass implements CacheInterface
 
 	protected function createDirectoryIfNeeded(string $directory) : bool
 	{
-		return (\is_dir($directory) || @\mkdir($directory, 0777 & (~$this->umask), true));
+		return (is_dir($directory) || @mkdir($directory, 0777 & (~$this->umask), true));
 	}
 }

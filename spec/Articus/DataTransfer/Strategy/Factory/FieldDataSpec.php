@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 namespace spec\Articus\DataTransfer\Strategy\Factory;
 
-use Interop\Container\ContainerInterface;
+use Articus\PluginManager\PluginManagerInterface;
+use LogicException;
+use Psr\Container\ContainerInterface;
 use PhpSpec\ObjectBehavior;
 use spec\Example;
 use Articus\DataTransfer as DT;
@@ -16,7 +18,7 @@ class FieldDataSpec extends ObjectBehavior
 	public function it_creates_service(
 		ContainerInterface $container,
 		DT\FieldMetadataProviderInterface $metadataProvider,
-		DT\Strategy\PluginManager $strategyManager,
+		PluginManagerInterface $strategyManager,
 		DT\Strategy\StrategyInterface $strategy
 	)
 	{
@@ -33,10 +35,10 @@ class FieldDataSpec extends ObjectBehavior
 		$fieldSetter = ['testSetter', true];
 		$strategyDeclaration = ['testStrategy', ['test' => 123]];
 		$container->get(DT\FieldMetadataProviderInterface::class)->willReturn($metadataProvider);
-		$container->get(DT\Strategy\PluginManager::class)->willReturn($strategyManager);
+		$container->get(DT\Options::DEFAULT_STRATEGY_PLUGIN_MANAGER)->willReturn($strategyManager);
 		$metadataProvider->getClassFields($className, $subset)->willReturn([[$fieldName, $fieldGetter, $fieldSetter]]);
 		$metadataProvider->getFieldStrategy($className, $subset, $fieldName)->willReturn($strategyDeclaration);
-		$strategyManager->get(...$strategyDeclaration)->willReturn($strategy);
+		$strategyManager->__invoke(...$strategyDeclaration)->willReturn($strategy);
 
 		$service = $this->__invoke($container, 'testName', $options);
 		$service->shouldBeAnInstanceOf(DT\Strategy\FieldData::class);
@@ -45,13 +47,8 @@ class FieldDataSpec extends ObjectBehavior
 		$service->shouldHaveProperty('extractStdClass', $extractStdClass);
 	}
 
-	public function it_throws_on_no_type(ContainerInterface $container)
-	{
-		$this->shouldThrow(\LogicException::class)->during('__invoke', [$container, 'testName']);
-	}
-
 	public function it_throws_on_type_that_does_not_exist(ContainerInterface $container)
 	{
-		$this->shouldThrow(\LogicException::class)->during('__invoke', [$container, 'testName', ['type' => 'unknown']]);
+		$this->shouldThrow(LogicException::class)->during('__invoke', [$container, 'testName', ['type' => 'unknown']]);
 	}
 }

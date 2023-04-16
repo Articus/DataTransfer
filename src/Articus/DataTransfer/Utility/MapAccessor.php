@@ -3,40 +3,37 @@ declare(strict_types=1);
 
 namespace Articus\DataTransfer\Utility;
 
+use ArrayAccess;
+use stdClass;
+use function array_key_exists;
+use function is_array;
+use function property_exists;
+
 /**
  * Provides single interface to access different variations of key-value maps: arrays, stdClasses, implementations of ArrayAccess.
  */
 class MapAccessor
 {
 	/**
-	 * @var array|\stdClass|\ArrayAccess
+	 * @var array|stdClass|ArrayAccess
 	 */
 	protected $data;
 
-	/**
-	 * @var bool
-	 */
-	protected $isArray;
+	protected bool $isArray;
+
+	protected bool $isStdClass;
+
+	protected bool $isArrayAccess;
 
 	/**
-	 * @var bool
-	 */
-	protected $isStdClass;
-
-	/**
-	 * @var bool
-	 */
-	protected $isArrayAccess;
-
-	/**
-	 * @param array|\stdClass|\ArrayAccess $data possible key-value map you want to access
+	 * @param array|stdClass|ArrayAccess $data possible key-value map you want to access
 	 */
 	public function __construct(&$data)
 	{
 		$this->data = &$data;
-		$this->isArray = \is_array($data);
-		$this->isStdClass = ($data instanceof \stdClass);
-		$this->isArrayAccess = ($data instanceof \ArrayAccess);
+		$this->isArray = is_array($data);
+		$this->isStdClass = ($data instanceof stdClass);
+		$this->isArrayAccess = ($data instanceof ArrayAccess);
 	}
 
 	/**
@@ -54,8 +51,8 @@ class MapAccessor
 	public function has($key): bool
 	{
 		return (
-			($this->isArray && \array_key_exists($key, $this->data))
-			|| ($this->isStdClass && \property_exists($this->data, $key))
+			($this->isArray && array_key_exists($key, $this->data))
+			|| ($this->isStdClass && property_exists($this->data, $key))
 			|| ($this->isArrayAccess && $this->data->offsetExists($key))
 		);
 	}

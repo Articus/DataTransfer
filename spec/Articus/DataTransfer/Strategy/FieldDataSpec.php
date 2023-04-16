@@ -1,10 +1,12 @@
 <?php
+declare(strict_types=1);
 
 namespace spec\Articus\DataTransfer\Strategy;
 
-use spec\Example;
 use Articus\DataTransfer as DT;
 use PhpSpec\ObjectBehavior;
+use spec\Example;
+use stdClass;
 
 class FieldDataSpec extends ObjectBehavior
 {
@@ -79,7 +81,7 @@ class FieldDataSpec extends ObjectBehavior
 		];
 		$this->beConstructedWith(Example\DTO\Data::class, $fields, true);
 
-		$data = new \stdClass();
+		$data = new stdClass();
 		$data->{$fieldName1} = $to1;
 		$data->{$fieldName2} = $to2;
 
@@ -107,7 +109,7 @@ class FieldDataSpec extends ObjectBehavior
 		];
 		$this->beConstructedWith(Example\DTO\Data::class, $fields, true);
 
-		$data = new \stdClass();
+		$data = new stdClass();
 
 		$this->extract($source)->shouldBeLike($data);
 	}

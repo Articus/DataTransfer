@@ -5,6 +5,13 @@ namespace Articus\DataTransfer\Strategy;
 
 use Articus\DataTransfer\Exception;
 use Articus\DataTransfer\Validator;
+use InvalidArgumentException;
+use function array_key_exists;
+use function get_class;
+use function gettype;
+use function is_iterable;
+use function is_object;
+use function sprintf;
 
 /**
  * Configurable strategy to deal with lists of complex identifiable values.
@@ -16,9 +23,8 @@ class IdentifiableValueList implements StrategyInterface
 
 	/**
 	 * Internal strategy to perform data transfer for list items when needed
-	 * @var StrategyInterface
 	 */
-	protected $valueStrategy;
+	protected StrategyInterface $valueStrategy;
 
 	/**
 	 * A way to calculate identifier of typed data for list item
@@ -74,13 +80,13 @@ class IdentifiableValueList implements StrategyInterface
 	 */
 	public function extract($from)
 	{
-		if (!\is_iterable($from))
+		if (!is_iterable($from))
 		{
 			throw new Exception\InvalidData(
 				Exception\InvalidData::DEFAULT_VIOLATION,
-				new \InvalidArgumentException(\sprintf(
+				new InvalidArgumentException(sprintf(
 					'Extraction can be done only from iterable, not %s',
-					\is_object($from) ? \get_class($from) : \gettype($from)
+					is_object($from) ? get_class($from) : gettype($from)
 				))
 			);
 		}
@@ -105,23 +111,23 @@ class IdentifiableValueList implements StrategyInterface
 	 */
 	public function hydrate($from, &$to): void
 	{
-		if (!\is_iterable($from))
+		if (!is_iterable($from))
 		{
 			throw new Exception\InvalidData(
 				Exception\InvalidData::DEFAULT_VIOLATION,
-				new \InvalidArgumentException(\sprintf(
+				new InvalidArgumentException(sprintf(
 					'Hydration can be done only from iterable, not %s',
-					\is_object($from) ? \get_class($from) : \gettype($from)
+					is_object($from) ? get_class($from) : gettype($from)
 				))
 			);
 		}
-		if (!\is_iterable($to))
+		if (!is_iterable($to))
 		{
 			throw new Exception\InvalidData(
 				Exception\InvalidData::DEFAULT_VIOLATION,
-				new \InvalidArgumentException(\sprintf(
+				new InvalidArgumentException(sprintf(
 					'Hydration can be done only to iterable, not %s',
-					\is_object($to) ? \get_class($to) : \gettype($to)
+					is_object($to) ? get_class($to) : gettype($to)
 				))
 			);
 		}
@@ -139,13 +145,13 @@ class IdentifiableValueList implements StrategyInterface
 					if (isset($fromValueIdToIndexMap[$fromValueId]))
 					{
 						$violations = [
-							self::DUPLICATE_ID => \sprintf('Same identifier as item %s', $fromValueIdToIndexMap[$fromValueId])
+							self::DUPLICATE_ID => sprintf('Same identifier as item %s', $fromValueIdToIndexMap[$fromValueId])
 						];
 						throw new Exception\InvalidData($violations);
 					}
 					$fromValueIdToIndexMap[$fromValueId] = $fromIndex;
 				}
-				if (($fromValueId !== null) && \array_key_exists($fromValueId, $toIdentifiedValues))
+				if (($fromValueId !== null) && array_key_exists($fromValueId, $toIdentifiedValues))
 				{
 					$this->valueStrategy->hydrate($fromValue, $toIdentifiedValues[$fromValueId]);
 				}
@@ -183,23 +189,23 @@ class IdentifiableValueList implements StrategyInterface
 	 */
 	public function merge($from, &$to): void
 	{
-		if (!\is_iterable($from))
+		if (!is_iterable($from))
 		{
 			throw new Exception\InvalidData(
 				Exception\InvalidData::DEFAULT_VIOLATION,
-				new \InvalidArgumentException(\sprintf(
+				new InvalidArgumentException(sprintf(
 					'Merge can be done only from iterable, not %s',
-					\is_object($from) ? \get_class($from) : \gettype($from)
+					is_object($from) ? get_class($from) : gettype($from)
 				))
 			);
 		}
-		if (!\is_iterable($to))
+		if (!is_iterable($to))
 		{
 			throw new Exception\InvalidData(
 				Exception\InvalidData::DEFAULT_VIOLATION,
-				new \InvalidArgumentException(\sprintf(
+				new InvalidArgumentException(sprintf(
 					'Merge can be done only to iterable, not %s',
-					\is_object($to) ? \get_class($to) : \gettype($to)
+					is_object($to) ? get_class($to) : gettype($to)
 				))
 			);
 		}
@@ -218,13 +224,13 @@ class IdentifiableValueList implements StrategyInterface
 					if (isset($fromValueIdToIndexMap[$fromValueId]))
 					{
 						$violations = [
-							self::DUPLICATE_ID => \sprintf('Same identifier as item %s', $fromValueIdToIndexMap[$fromValueId])
+							self::DUPLICATE_ID => sprintf('Same identifier as item %s', $fromValueIdToIndexMap[$fromValueId])
 						];
 						throw new Exception\InvalidData($violations);
 					}
 					$fromValueIdToIndexMap[$fromValueId] = $fromIndex;
 				}
-				if (($fromValueId !== null) && \array_key_exists($fromValueId, $toIdentifiedValues))
+				if (($fromValueId !== null) && array_key_exists($fromValueId, $toIdentifiedValues))
 				{
 					$to[$fromIndex] = &$toIdentifiedValues[$fromValueId];
 					$this->valueStrategy->merge($fromValue, $to[$fromIndex]);
@@ -269,11 +275,11 @@ class IdentifiableValueList implements StrategyInterface
 			{
 				$unidentifiedValues[] = &$value;
 			}
-			elseif (\array_key_exists($valueId, $identifiedValues))
+			elseif (array_key_exists($valueId, $identifiedValues))
 			{
 				throw new Exception\InvalidData(
 					Exception\InvalidData::DEFAULT_VIOLATION,
-					new \InvalidArgumentException('List contains items with same identifier')
+					new InvalidArgumentException('List contains items with same identifier')
 				);
 			}
 			else

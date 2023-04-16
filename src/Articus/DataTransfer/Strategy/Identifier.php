@@ -4,26 +4,18 @@ declare(strict_types=1);
 namespace Articus\DataTransfer\Strategy;
 
 use Articus\DataTransfer\IdentifiableValueLoader;
+use function is_int;
+use function is_string;
 
 /**
  * Strategy for immutable values that can be fully represented by their identifiers.
  */
 class Identifier implements StrategyInterface
 {
-	/**
-	 * @var IdentifiableValueLoader
-	 */
-	protected $loader;
+	protected IdentifiableValueLoader $loader;
 
-	/**
-	 * @var string
-	 */
-	protected $type;
+	protected string $type;
 
-	/**
-	 * @param IdentifiableValueLoader $loader
-	 * @param string $type
-	 */
 	public function __construct(IdentifiableValueLoader $loader, string $type)
 	{
 		$this->loader = $loader;
@@ -67,7 +59,7 @@ class Identifier implements StrategyInterface
 	 */
 	public function merge($from, &$to): void
 	{
-		if (\is_int($from) || \is_string($from))
+		if (is_int($from) || is_string($from))
 		{
 			$this->loader->wish($this->type, $from);
 		}

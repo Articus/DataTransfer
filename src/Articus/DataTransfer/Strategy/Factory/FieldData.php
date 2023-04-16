@@ -4,38 +4,31 @@ declare(strict_types=1);
 namespace Articus\DataTransfer\Strategy\Factory;
 
 use Articus\DataTransfer\FieldMetadataProviderInterface;
+use Articus\DataTransfer\Options as DTOptions;
 use Articus\DataTransfer\Strategy;
-use Interop\Container\ContainerInterface;
-use Laminas\ServiceManager\Factory\FactoryInterface;
+use Articus\DataTransfer\Strategy\Options;
+use Articus\PluginManager\PluginFactoryInterface;
+use Articus\PluginManager\PluginManagerInterface;
+use Psr\Container\ContainerInterface;
 
 /**
  * Default factory for Strategy\FieldData
  * @see Strategy\FieldData
  */
-class FieldData implements FactoryInterface
+class FieldData implements PluginFactoryInterface
 {
-	public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
+	public function __invoke(ContainerInterface $container, string $name, array $options = []): Strategy\FieldData
 	{
-		$type = $options['type'] ?? null;
-		if ($type === null)
-		{
-			throw new \LogicException('Option "type" is required');
-		}
-		elseif (!\class_exists($type))
-		{
-			throw new \LogicException(\sprintf('Type "%s" does not exist', $type));
-		}
-		$subset = $options['subset'] ?? '';
-		$extractStdClass = $options['extract_std_class'] ?? false;
+		$parsedOptions = new Options\FieldData($options);
 		$metadataProvider = $this->getMetadataProvider($container);
 		$strategyManager = $this->getStrategyManager($container);
 		$typeFields = [];
-		foreach ($metadataProvider->getClassFields($type, $subset) as [$fieldName, $getter, $setter])
+		foreach ($metadataProvider->getClassFields($parsedOptions->type, $parsedOptions->subset) as [$fieldName, $getter, $setter])
 		{
-			$strategy = $strategyManager->get(...$metadataProvider->getFieldStrategy($type, $subset, $fieldName));
+			$strategy = $strategyManager(...$metadataProvider->getFieldStrategy($parsedOptions->type, $parsedOptions->subset, $fieldName));
 			$typeFields[] = [$fieldName, $getter, $setter, $strategy];
 		}
-		return new Strategy\FieldData($type, $typeFields, $extractStdClass);
+		return new Strategy\FieldData($parsedOptions->type, $typeFields, $parsedOptions->extractStdClass);
 	}
 
 	protected function getMetadataProvider(ContainerInterface $container): FieldMetadataProviderInterface
@@ -43,8 +36,8 @@ class FieldData implements FactoryInterface
 		return $container->get(FieldMetadataProviderInterface::class);
 	}
 
-	protected function getStrategyManager(ContainerInterface $container): Strategy\PluginManager
+	protected function getStrategyManager(ContainerInterface $container): PluginManagerInterface
 	{
-		return $container->get(Strategy\PluginManager::class);
+		return $container->get(DTOptions::DEFAULT_STRATEGY_PLUGIN_MANAGER);
 	}
 }

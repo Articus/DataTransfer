@@ -3,26 +3,33 @@ declare(strict_types=1);
 
 namespace Articus\DataTransfer\MetadataProvider\Factory;
 
-use Articus\DataTransfer\ConfigAwareFactory;
-use Articus\DataTransfer\MetadataProvider;
 use Articus\DataTransfer\Cache;
-use Interop\Container\ContainerInterface;
+use Articus\DataTransfer\MetadataProvider;
+use Articus\PluginManager\ConfigAwareFactoryTrait;
+use Articus\PluginManager\ServiceFactoryInterface;
+use LogicException;
+use Psr\Container\ContainerInterface;
 use Psr\SimpleCache\CacheInterface;
+use function is_array;
+use function is_string;
 
 /**
- * Default factory for MetadataProvider\Annotation
- * @see MetadataProvider\Annotation
+ * Default factory for MetadataProvider\PhpAttribute
+ * @see MetadataProvider\PhpAttribute
  */
-class PhpAttribute extends ConfigAwareFactory
+class PhpAttribute implements ServiceFactoryInterface
 {
-	public function __construct(string $configKey = MetadataProvider\PhpAttribute::class)
+	use ConfigAwareFactoryTrait;
+
+	public function __construct(
+		protected string $configKey = MetadataProvider\PhpAttribute::class
+	)
 	{
-		parent::__construct($configKey);
 	}
 
-	public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
+	public function __invoke(ContainerInterface $container, string $name): MetadataProvider\PhpAttribute
 	{
-		$config = \array_merge($this->getServiceConfig($container), $options ?? []);
+		$config = $this->getServiceConfig($container);
 		$cache = $this->getCache($container, $config['cache'] ?? null);
 		return new MetadataProvider\PhpAttribute($cache);
 	}
@@ -33,18 +40,18 @@ class PhpAttribute extends ConfigAwareFactory
 		switch (true)
 		{
 			case ($options === null):
-			case \is_array($options):
+			case is_array($options):
 				$result = new Cache\MetadataFilePerClass($options['directory'] ?? null);
 				break;
-			case (\is_string($options) && $container->has($options)):
+			case (is_string($options) && $container->has($options)):
 				$result = $container->get($options);
 				if (!($result instanceof CacheInterface))
 				{
-					throw new \LogicException('Invalid metadata provider cache service for DataTransfer.');
+					throw new LogicException('Invalid metadata provider cache service for DataTransfer.');
 				}
 				break;
 			default:
-				throw new \LogicException('Invalid configuration for DataTransfer metadata provider cache.');
+				throw new LogicException('Invalid configuration for DataTransfer metadata provider cache.');
 		}
 		return $result;
 	}

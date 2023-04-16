@@ -3,10 +3,11 @@ declare(strict_types=1);
 
 namespace spec\Articus\DataTransfer\Strategy;
 
-use spec\Example;
 use Articus\DataTransfer as DT;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use spec\Example;
+use stdClass;
 
 class IdentifiableValueSpec extends ObjectBehavior
 {
@@ -32,8 +33,8 @@ class IdentifiableValueSpec extends ObjectBehavior
 		Example\InvokableInterface $untypedValueConstructor
 	)
 	{
-		$source = new \stdClass();
-		$destination = new \stdClass();
+		$source = new stdClass();
+		$destination = new stdClass();
 
 		$valueStrategy->extract($source)->shouldBeCalledOnce()->willReturn($destination);
 

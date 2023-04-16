@@ -4,8 +4,9 @@ declare(strict_types=1);
 namespace spec\Articus\DataTransfer\Validator\Factory;
 
 use Articus\DataTransfer as DT;
-use Interop\Container\ContainerInterface;
+use Articus\PluginManager\PluginManagerInterface;
 use PhpSpec\ObjectBehavior;
+use Psr\Container\ContainerInterface;
 
 /**
  * TODO add example to test default option values
@@ -14,7 +15,7 @@ class CollectionSpec extends ObjectBehavior
 {
 	public function it_creates_service(
 		ContainerInterface $container,
-		DT\Validator\PluginManager $validatorManager,
+		PluginManagerInterface $validatorManager,
 		DT\Validator\ValidatorInterface $itemValidator
 	)
 	{
@@ -25,20 +26,14 @@ class CollectionSpec extends ObjectBehavior
 			]
 		];
 		$links = [
-			['testValidator1', ['test1' => 111], true],
-			['testValidator2', null, false],
+			new DT\Validator\Options\ChainLink(['testValidator1', ['test1' => 111], true]),
+			new DT\Validator\Options\ChainLink(['testValidator2', [], false]),
 		];
-		$container->get(DT\Validator\PluginManager::class)->shouldBeCalledOnce()->willReturn($validatorManager);
-		$validatorManager->get(DT\Validator\Chain::class, ['links' => $links])->shouldBeCalledOnce()->willReturn($itemValidator);
+		$container->get(DT\Options::DEFAULT_VALIDATOR_PLUGIN_MANAGER)->shouldBeCalledOnce()->willReturn($validatorManager);
+		$validatorManager->__invoke(DT\Validator\Chain::class, ['links' => $links])->shouldBeCalledOnce()->willReturn($itemValidator);
 
 		$service = $this->__invoke($container, 'testName', $options);
 		$service->shouldBeAnInstanceOf(DT\Validator\Collection::class);
 		$service->shouldHaveProperty('itemValidator', $itemValidator);
-	}
-
-	public function it_throws_if_there_is_no_name_for_validator_in_options(ContainerInterface $container)
-	{
-		$options = ['validators' => [[]]];
-		$this->shouldThrow(\LogicException::class)->during('__invoke', [$container, 'testName', $options]);
 	}
 }

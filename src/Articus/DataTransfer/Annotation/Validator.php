@@ -13,31 +13,26 @@ class Validator
 	/**
 	 * Name that should be passed to PluginManager::get
 	 * @Required
-	 * @var string
 	 */
-	public $name;
+	public string $name;
 
 	/**
 	 * Options that should be passed to PluginManager::get
-	 * @var array | null
 	 */
-	public $options = null;
+	public array $options = [];
 
 	/**
 	 * Priority in which validator should be executed
-	 * @var int
 	 */
-	public $priority = 1;
+	public int $priority = 1;
 
 	/**
 	 * Flag if further validation should be skipped when this validator reports violations
-	 * @var bool
 	 */
-	public $blocker = false;
+	public bool $blocker = false;
 
 	/**
 	 * Name of the class metadata subset that annotation belongs to
-	 * @var string
 	 */
-	public $subset = '';
+	public string $subset = '';
 }

@@ -3,6 +3,11 @@ declare(strict_types=1);
 
 namespace Articus\DataTransfer;
 
+use Generator;
+use LogicException;
+use function iterator_to_array;
+use function sprintf;
+
 /**
  * Service for efficient loading of identifiable values
  */
@@ -12,30 +17,30 @@ class IdentifiableValueLoader
 	 * Identifiable values that have already been loaded
 	 * @var array<string, array<int|string, object|resource|array|string|int|float|bool>> map "type" -> "identifier" -> "value"
 	 */
-	protected $values = [];
+	protected array $values = [];
 
 	/**
 	 * Identifiers for missing identifiable values (for which loading has failed)
 	 * @var array<string, array<int|string, false>> map "type" -> "identifier" -> false
 	 */
-	protected $unknowns = [];
+	protected array $unknowns = [];
 
 	/**
 	 * Identifiers for "preordered" identifiable values (for bulk loading)
 	 * @var array<string, array<int|string, false>> map "type" -> "identifier" -> false
 	 */
-	protected $wishes = [];
+	protected array $wishes = [];
 
 	/**
 	 * Registry of supported identifiable value types
 	 * @var array<string, array<callable>> map of tuples "type" -> ("identifier getter", "value loader")
 	 * @psalm-var array<string, array{0:callable(object|resource|array|string|int|float|bool):int|string|null, 1:callable(array<int|string>):iterable<object|resource|array|string|int|float|bool>}>
 	 */
-	protected $types;
+	protected array $types;
 
 	/**
-	 * @param array<string, array<callable>> map of tuples "type" -> ("identifier getter", "value loader")
-	 * @psalm-param array<string, array{0:callable(object|resource|array|string|int|float|bool):int|string|null, 1:callable(array<int|string>):iterable<object|resource|array|string|int|float|bool>}>
+	 * @param array<string, array<callable>> $types map of tuples "type" -> ("identifier getter", "value loader")
+	 * @psalm-param array<string, array{0:callable(object|resource|array|string|int|float|bool):int|string|null, 1:callable(array<int|string>):iterable<object|resource|array|string|int|float|bool>}> $types
 	 */
 	public function __construct(array $types)
 	{
@@ -54,7 +59,7 @@ class IdentifiableValueLoader
 		[$identifierGetter] = $this->types[$type] ?? null;
 		if ($identifierGetter === null)
 		{
-			throw new \LogicException(\sprintf('Unknown type "%s"', $type));
+			throw new LogicException(sprintf('Unknown type "%s"', $type));
 		}
 		return $identifierGetter($value);
 	}
@@ -69,7 +74,7 @@ class IdentifiableValueLoader
 		$id = $this->identify($type, $value);
 		if ($id === null)
 		{
-			throw new \LogicException('Banked value does not have identifier');
+			throw new LogicException('Banked value does not have identifier');
 		}
 		$this->values[$type][$id] = $value;
 		unset($this->unknowns[$type][$id]);
@@ -114,7 +119,7 @@ class IdentifiableValueLoader
 	 */
 	public function get(string $type, $id)
 	{
-		return \iterator_to_array($this->getMultiple($type, [$id]))[$id] ?? null;
+		return iterator_to_array($this->getMultiple($type, [$id]))[$id] ?? null;
 	}
 
 	/**
@@ -123,9 +128,9 @@ class IdentifiableValueLoader
 	 * There might be less emitted values than specified identifiers if loading failed for some identifiers.
 	 * @param string $type
 	 * @param array<int|string> $ids
-	 * @return \Generator<int|string, object|resource|array|string|int|float|bool>
+	 * @return Generator<int|string, object|resource|array|string|int|float|bool>
 	 */
-	public function getMultiple(string $type, array $ids): \Generator
+	public function getMultiple(string $type, array $ids): Generator
 	{
 		/** @var false[] $unknowns */
 		$unknowns = [];
@@ -172,21 +177,21 @@ class IdentifiableValueLoader
 	 * There might be more emitted values than specified identifiers if value loader returns "bonus" values for specified identifiers.
 	 * @param string $type
 	 * @param array<int|string> $ids
-	 * @return \Generator<int, object|resource|array|string|int|float|bool>
+	 * @return Generator<int, object|resource|array|string|int|float|bool>
 	 */
-	protected function load(string $type, array $ids): \Generator
+	protected function load(string $type, array $ids): Generator
 	{
 		[$identifierGetter, $valueLoader] = $this->types[$type] ?? null;
 		if (($identifierGetter === null) || ($valueLoader === null))
 		{
-			throw new \LogicException(\sprintf('Unknown type "%s"', $type));
+			throw new LogicException(sprintf('Unknown type "%s"', $type));
 		}
 		foreach ($valueLoader($ids) as $value)
 		{
 			$id = $identifierGetter($value);
 			if ($id === null)
 			{
-				throw new \LogicException('Loaded value does not have identifier');
+				throw new LogicException('Loaded value does not have identifier');
 			}
 			yield $id => $value;
 		}

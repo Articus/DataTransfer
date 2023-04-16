@@ -3,9 +3,11 @@ declare(strict_types=1);
 
 namespace spec\Articus\DataTransfer\Strategy;
 
+use ArrayObject;
 use spec\Example;
 use Articus\DataTransfer as DT;
 use PhpSpec\ObjectBehavior;
+use stdClass;
 
 class IdentifiableValueListSpec extends ObjectBehavior
 {
@@ -19,7 +21,7 @@ class IdentifiableValueListSpec extends ObjectBehavior
 		$this->shouldThrow(DT\Exception\InvalidData::class)->during('extract', [null]);
 		$this->shouldThrow(DT\Exception\InvalidData::class)->during('extract', [1]);
 		$this->shouldThrow(DT\Exception\InvalidData::class)->during('extract', ['test']);
-		$this->shouldThrow(DT\Exception\InvalidData::class)->during('extract', [new \stdClass()]);
+		$this->shouldThrow(DT\Exception\InvalidData::class)->during('extract', [new stdClass()]);
 	}
 
 	public function it_extracts_from_empty_iterable(
@@ -30,7 +32,7 @@ class IdentifiableValueListSpec extends ObjectBehavior
 	{
 		$this->beConstructedWith($valueStrategy, $typedValueIdentifier, $untypedValueIdentifier, null, null, null);
 		$this->extract([])->shouldBe([]);
-		$this->extract(new \ArrayObject())->shouldBe([]);
+		$this->extract(new ArrayObject())->shouldBe([]);
 	}
 
 	public function it_extracts_from_non_empty_iterable_using_value_strategy(

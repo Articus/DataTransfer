@@ -3,17 +3,20 @@ declare(strict_types=1);
 
 namespace spec\Articus\DataTransfer\MetadataProvider\Factory;
 
+use ArrayAccess;
 use Articus\DataTransfer as DT;
-use Interop\Container\ContainerInterface;
+use LogicException;
 use PhpSpec\ObjectBehavior;
+use Psr\Container\ContainerInterface;
 use Psr\SimpleCache\CacheInterface;
+use stdClass;
 
 /**
  * TODO add expected text for LogicExceptions
  */
 class AnnotationSpec extends ObjectBehavior
 {
-	public function it_gets_configuration_from_default_config_key(ContainerInterface $container, \ArrayAccess $config)
+	public function it_gets_configuration_from_default_config_key(ContainerInterface $container, ArrayAccess $config)
 	{
 		$configKey = DT\MetadataProvider\Annotation::class;
 		$container->get('config')->shouldBeCalledOnce()->willReturn($config);
@@ -24,7 +27,7 @@ class AnnotationSpec extends ObjectBehavior
 		$service->shouldBeAnInstanceOf(DT\MetadataProvider\Annotation::class);
 	}
 
-	public function it_gets_configuration_from_custom_config_key(ContainerInterface $container, \ArrayAccess $config)
+	public function it_gets_configuration_from_custom_config_key(ContainerInterface $container, ArrayAccess $config)
 	{
 		$configKey = 'test_config_key';
 		$container->get('config')->shouldBeCalledOnce()->willReturn($config);
@@ -36,7 +39,7 @@ class AnnotationSpec extends ObjectBehavior
 		$service->shouldBeAnInstanceOf(DT\MetadataProvider\Annotation::class);
 	}
 
-	public function it_constructs_itself_and_gets_configuration_from_custom_config_key(ContainerInterface $container, \ArrayAccess $config)
+	public function it_constructs_itself_and_gets_configuration_from_custom_config_key(ContainerInterface $container, ArrayAccess $config)
 	{
 		$configKey = 'test_config_key';
 		$container->get('config')->shouldBeCalledOnce()->willReturn($config);
@@ -45,19 +48,6 @@ class AnnotationSpec extends ObjectBehavior
 
 		$service = $this::__callStatic($configKey, [$container, '', null]);
 		$service->shouldBeAnInstanceOf(DT\MetadataProvider\Annotation::class);
-	}
-
-	public function it_throws_on_too_few_arguments_during_self_construct(ContainerInterface $container)
-	{
-		$configKey = 'test_config_key';
-		$error = new \InvalidArgumentException(\sprintf(
-			'To invoke %s with custom configuration key statically 3 arguments are required: container, service name and options.',
-			DT\MetadataProvider\Factory\Annotation::class
-		));
-
-		$this::shouldThrow($error)->during('__callStatic', [$configKey, []]);
-		$this::shouldThrow($error)->during('__callStatic', [$configKey, [$container]]);
-		$this::shouldThrow($error)->during('__callStatic', [$configKey, [$container, '']]);
 	}
 
 	public function it_creates_service_with_empty_configuration(ContainerInterface $container)
@@ -102,15 +92,15 @@ class AnnotationSpec extends ObjectBehavior
 		$container->get('config')->shouldBeCalledOnce()->willReturn($config);
 		$container->has($cacheServiceName)->shouldBeCalledOnce()->willReturn(true);
 		$container->get($cacheServiceName)->shouldBeCalledOnce()->willReturn($cache);
-		$this->shouldThrow(\LogicException::class)->during('__invoke', [$container, '']);
+		$this->shouldThrow(LogicException::class)->during('__invoke', [$container, '']);
 	}
 
 	public function it_throws_on_invalid_cache_configuration(ContainerInterface $container)
 	{
 		$config = [
-			DT\MetadataProvider\Annotation::class => ['cache' => new \stdClass()]
+			DT\MetadataProvider\Annotation::class => ['cache' => new stdClass()]
 		];
 		$container->get('config')->shouldBeCalledOnce()->willReturn($config);
-		$this->shouldThrow(\LogicException::class)->during('__invoke', [$container, '']);
+		$this->shouldThrow(LogicException::class)->during('__invoke', [$container, '']);
 	}
 }

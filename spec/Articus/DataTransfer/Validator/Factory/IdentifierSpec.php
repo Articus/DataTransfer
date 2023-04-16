@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace spec\Articus\DataTransfer\Validator\Factory;
 
-use Interop\Container\ContainerInterface;
-use PhpSpec\ObjectBehavior;
 use Articus\DataTransfer as DT;
+use PhpSpec\ObjectBehavior;
+use Psr\Container\ContainerInterface;
 
 class IdentifierSpec extends ObjectBehavior
 {
@@ -23,10 +23,5 @@ class IdentifierSpec extends ObjectBehavior
 		$service->shouldBeAnInstanceOf(DT\Validator\Identifier::class);
 		$service->shouldHaveProperty('loader', $loader);
 		$service->shouldHaveProperty('type', $type);
-	}
-
-	public function it_throws_on_no_type(ContainerInterface $container)
-	{
-		$this->shouldThrow(\LogicException::class)->during('__invoke', [$container, 'testName']);
 	}
 }

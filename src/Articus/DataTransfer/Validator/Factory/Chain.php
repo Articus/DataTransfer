@@ -3,30 +3,37 @@ declare(strict_types=1);
 
 namespace Articus\DataTransfer\Validator\Factory;
 
+use Articus\DataTransfer\Options as DTOptions;
 use Articus\DataTransfer\Validator;
-use Interop\Container\ContainerInterface;
-use Laminas\ServiceManager\Factory\FactoryInterface;
+use Articus\DataTransfer\Validator\Options;
+use Articus\PluginManager\PluginFactoryInterface;
+use Articus\PluginManager\PluginManagerInterface;
+use Psr\Container\ContainerInterface;
 
 /**
  * Default factory for Validator\Chain
  * @see Validator\Chain
  */
-class Chain implements FactoryInterface
+class Chain implements PluginFactoryInterface
 {
-	public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
+	public function __invoke(ContainerInterface $container, string $name, array $options = []): Validator\Chain
 	{
-		$linkDeclarations = $options['links'] ?? [];
+		$parsedOptions = new Options\Chain($options);
 		$validatorManager = $this->getValidatorManager($container);
 		$links = [];
-		foreach ($linkDeclarations as [$validatorName, $validatorOptions, $blocker])
+		foreach ($parsedOptions->links as $linkOptions)
 		{
-			$links[] = [$validatorManager->get($validatorName, $validatorOptions), $blocker];
+			$links[] = [$validatorManager($linkOptions->name, $linkOptions->options), $linkOptions->blocker];
 		}
 		return new Validator\Chain($links);
 	}
 
-	protected function getValidatorManager(ContainerInterface $container): Validator\PluginManager
+	/**
+	 * @param ContainerInterface $container
+	 * @return PluginManagerInterface<Validator\ValidatorInterface>
+	 */
+	protected function getValidatorManager(ContainerInterface $container): PluginManagerInterface
 	{
-		return $container->get(Validator\PluginManager::class);
+		return $container->get(DTOptions::DEFAULT_VALIDATOR_PLUGIN_MANAGER);
 	}
 }

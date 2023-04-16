@@ -9,14 +9,8 @@ namespace Articus\DataTransfer\Validator;
  */
 class TypeCompliant implements ValidatorInterface
 {
-	/**
-	 * @var ValidatorInterface
-	 */
-	protected $typeValidator;
+	protected ValidatorInterface $typeValidator;
 
-	/**
-	 * @param ValidatorInterface $typeValidator
-	 */
 	public function __construct(ValidatorInterface $typeValidator)
 	{
 		$this->typeValidator = $typeValidator;

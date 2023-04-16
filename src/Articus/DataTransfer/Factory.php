@@ -3,35 +3,30 @@ declare(strict_types=1);
 
 namespace Articus\DataTransfer;
 
-use Interop\Container\ContainerInterface;
-use Laminas\ServiceManager\Factory\FactoryInterface;
+use Articus\PluginManager\ConfigAwareFactoryTrait;
+use Articus\PluginManager\ServiceFactoryInterface;
+use Psr\Container\ContainerInterface;
 
 /**
  * Default factory for Service
  * @see Service
  */
-class Factory implements FactoryInterface
+class Factory implements ServiceFactoryInterface
 {
-	public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
+	use ConfigAwareFactoryTrait;
+
+	public function __construct(string $configKey = Service::class)
 	{
-		$metadataProvider = $this->getMetadataProvider($container);
-		$strategyManager = $this->getStrategyManager($container);
-		$validatorManager = $this->getValidatorManager($container);
-		return new Service($metadataProvider, $strategyManager, $validatorManager);
+		$this->configKey = $configKey;
 	}
 
-	protected function getMetadataProvider(ContainerInterface $container): ClassMetadataProviderInterface
+	public function __invoke(ContainerInterface $container, string $name): Service
 	{
-		return $container->get(ClassMetadataProviderInterface::class);
-	}
-
-	protected function getStrategyManager(ContainerInterface $container): Strategy\PluginManager
-	{
-		return $container->get(Strategy\PluginManager::class);
-	}
-
-	protected function getValidatorManager(ContainerInterface $container): Validator\PluginManager
-	{
-		return $container->get(Validator\PluginManager::class);
+		$options = new Options($this->getServiceConfig($container));
+		return new Service(
+			$container->get($options->metadataProvider),
+			$container->get($options->strategyPluginManager),
+			$container->get($options->validatorPluginManager)
+		);
 	}
 }

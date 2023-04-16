@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 namespace Articus\DataTransfer\PhpAttribute;
 
+use Attribute;
+
 /**
  * PHP attribute for declaring class field that should be hydrated and extracted
  */
-#[\Attribute(\Attribute::TARGET_PROPERTY | \Attribute::IS_REPEATABLE)]
+#[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class Data
 {
 	public function __construct(

@@ -8,8 +8,16 @@ use Articus\DataTransfer\ClassMetadataProviderInterface;
 use Articus\DataTransfer\FieldMetadataProviderInterface;
 use Articus\DataTransfer\Strategy;
 use Articus\DataTransfer\Validator;
+use Generator;
 use Laminas\Stdlib\FastPriorityQueue;
+use LogicException;
 use Psr\SimpleCache\CacheInterface;
+use ReflectionClass;
+use ReflectionProperty;
+use function array_keys;
+use function sprintf;
+use function str_replace;
+use function ucwords;
 
 /**
  * Provider that retrieves metadata from class PHP attributes
@@ -52,8 +60,6 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 
 	/**
 	 * @inheritDoc
-	 * @throws \Doctrine\Common\Annotations\AnnotationException
-	 * @throws \ReflectionException
 	 */
 	public function getClassStrategy(string $className, string $subset): array
 	{
@@ -61,15 +67,13 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 		$result = $this->classStrategies[$className][$subset] ?? null;
 		if ($result === null)
 		{
-			throw new \LogicException(\sprintf('No strategy for metadata subset "%s" of class %s', $subset, $className));
+			throw new LogicException(sprintf('No strategy for metadata subset "%s" of class %s', $subset, $className));
 		}
 		return $result;
 	}
 
 	/**
 	 * @inheritDoc
-	 * @throws \Doctrine\Common\Annotations\AnnotationException
-	 * @throws \ReflectionException
 	 */
 	public function getClassValidator(string $className, string $subset): array
 	{
@@ -77,15 +81,13 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 		$result = $this->classValidators[$className][$subset] ?? null;
 		if ($result === null)
 		{
-			throw new \LogicException(\sprintf('No validator for metadata subset "%s" of class %s', $subset, $className));
+			throw new LogicException(sprintf('No validator for metadata subset "%s" of class %s', $subset, $className));
 		}
 		return $result;
 	}
 
 	/**
 	 * @inheritDoc
-	 * @throws \Doctrine\Common\Annotations\AnnotationException
-	 * @throws \ReflectionException
 	 */
 	public function getClassFields(string $className, string $subset): iterable
 	{
@@ -93,15 +95,13 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 		$fields = $this->classFields[$className][$subset] ?? null;
 		if ($fields === null)
 		{
-			throw new \LogicException(\sprintf('No fields for metadata subset "%s" of class %s', $subset, $className));
+			throw new LogicException(sprintf('No fields for metadata subset "%s" of class %s', $subset, $className));
 		}
 		yield from $fields;
 	}
 
 	/**
 	 * @inheritDoc
-	 * @throws \Doctrine\Common\Annotations\AnnotationException
-	 * @throws \ReflectionException
 	 */
 	public function getFieldStrategy(string $className, string $subset, string $fieldName): array
 	{
@@ -109,15 +109,13 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 		$result = $this->fieldStrategies[$className][$subset][$fieldName] ?? null;
 		if ($result === null)
 		{
-			throw new \LogicException(\sprintf('No strategy for field %s in metadata subset "%s" of class %s', $fieldName, $subset, $className));
+			throw new LogicException(sprintf('No strategy for field %s in metadata subset "%s" of class %s', $fieldName, $subset, $className));
 		}
 		return $result;
 	}
 
 	/**
 	 * @inheritDoc
-	 * @throws \Doctrine\Common\Annotations\AnnotationException
-	 * @throws \ReflectionException
 	 */
 	public function getFieldValidator(string $className, string $subset, string $fieldName): array
 	{
@@ -125,16 +123,14 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 		$result = $this->fieldValidators[$className][$subset][$fieldName] ?? null;
 		if ($result === null)
 		{
-			throw new \LogicException(\sprintf('No validator for field %s in metadata subset "%s" of class %s', $fieldName, $subset, $className));
+			throw new LogicException(sprintf('No validator for field %s in metadata subset "%s" of class %s', $fieldName, $subset, $className));
 		}
 		return $result;
 	}
 
 	/**
 	 * Ascertains that metadata for specified class was loaded
-	 * @param string $className
-	 * @throws \Doctrine\Common\Annotations\AnnotationException
-	 * @throws \ReflectionException
+	 * @param class-string $className
 	 */
 	protected function ascertainMetadata(string $className): void
 	{
@@ -158,10 +154,8 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 
 	/**
 	 * Reads metadata for specified class from its annotations
-	 * @param string $className
+	 * @param class-string $className
 	 * @return array
-	 * @throws \Doctrine\Common\Annotations\AnnotationException
-	 * @throws \ReflectionException
 	 */
 	protected function loadMetadata(string $className): array
 	{
@@ -171,9 +165,9 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 		$fieldStrategies = [];
 		$fieldValidators = [];
 
-		$classReflection = new \ReflectionClass($className);
+		$classReflection = new ReflectionClass($className);
 		//Read property PHP attributes
-		$propertyFilter = \ReflectionProperty::IS_PUBLIC | \ReflectionProperty::IS_PROTECTED | \ReflectionProperty::IS_PRIVATE;
+		$propertyFilter = ReflectionProperty::IS_PUBLIC | ReflectionProperty::IS_PROTECTED | ReflectionProperty::IS_PRIVATE;
 		foreach ($classReflection->getProperties($propertyFilter) as $propertyReflection)
 		{
 			foreach ($this->processPhpAttributesForProperty($classReflection, $propertyReflection) as [$subset, $field, $strategy, $validator])
@@ -181,7 +175,7 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 				$fieldName = $field[0];
 				if (!empty($classFields[$subset][$fieldName]))
 				{
-					throw new \LogicException(\sprintf('Duplicate field "%s" declaration for subset %s of class %s', $fieldName, $subset, $className));
+					throw new LogicException(sprintf('Duplicate field "%s" declaration for subset %s of class %s', $fieldName, $subset, $className));
 				}
 				$classFields[$subset][$fieldName] = $field;
 				$fieldStrategies[$subset][$fieldName] = $strategy;
@@ -189,7 +183,7 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 			}
 		}
 		//Read class PHP attributes
-		$propertySubsets = \array_keys($classFields);
+		$propertySubsets = array_keys($classFields);
 		foreach ($this->processPhpAttributesForClass($classReflection, $propertySubsets) as [$subset, $strategy, $validator])
 		{
 			$classStrategies[$subset] = $strategy;
@@ -200,12 +194,12 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 	}
 
 	/**
-	 * @param \ReflectionClass $classReflection
+	 * @param ReflectionClass $classReflection
 	 * @param iterable $propertySubsetNames
-	 * @return \Generator tuples (<subset>, <strategy declaration>, <validator declaration>)
-	 * @psalm-return \Generator<array{0: string, 1: array{0: string, 1: null|array}, 2: array{0: string, 1: array}}>
+	 * @return Generator tuples (<subset>, <strategy declaration>, <validator declaration>)
+	 * @psalm-return Generator<array{0: string, 1: array{0: string, 1: null|array}, 2: array{0: string, 1: array}}>
 	 */
-	protected function processPhpAttributesForClass(\ReflectionClass $classReflection, iterable $propertySubsetNames): \Generator
+	protected function processPhpAttributesForClass(ReflectionClass $classReflection, iterable $propertySubsetNames): Generator
 	{
 		$className = $classReflection->getName();
 		/** @psalm-var array<string, array{0: array{0: string, 1: null|array}, 1: FastPriorityQueue<array{0: string, 1: array, 2: bool}>}> $subsets */
@@ -229,7 +223,7 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 					$subset = $subsets[$phpAttribute->subset] ?? $emptySubset();
 					if ($subset[0] !== null)
 					{
-						throw new \LogicException(\sprintf('Duplicate strategy PHP attribute for metadata subset "%s" of class %s', $phpAttribute->subset, $className));
+						throw new LogicException(sprintf('Duplicate strategy PHP attribute for metadata subset "%s" of class %s', $phpAttribute->subset, $className));
 					}
 					$subset[0] = [$phpAttribute->name, $phpAttribute->options];
 					$subsets[$phpAttribute->subset] = $subset;
@@ -247,7 +241,7 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 			$subset = $subsets[$propertySubsetName] ?? $emptySubset();
 			if ($subset[0] !== null)
 			{
-				throw new \LogicException(\sprintf('Excessive strategy PHP attribute for metadata subset "%s" of class %s', $phpAttribute->subset, $className));
+				throw new LogicException(sprintf('Excessive strategy PHP attribute for metadata subset "%s" of class %s', $propertySubsetName, $className));
 			}
 			$subset[0] = [Strategy\FieldData::class, ['type' => $className, 'subset' => $propertySubsetName]];
 			$subset[1]->insert([Validator\FieldData::class, ['type' => $className, 'subset' => $propertySubsetName], false], self::MAX_VALIDATOR_PRIORITY);
@@ -258,7 +252,7 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 		{
 			if ($strategy === null)
 			{
-				throw new \LogicException(\sprintf('No strategy PHP attribute for metadata subset "%s" of class %s', $subset, $className));
+				throw new LogicException(sprintf('No strategy PHP attribute for metadata subset "%s" of class %s', $subset, $className));
 			}
 			$validator = [Validator\Chain::class, ['links' => $validatorQueue->toArray()]];
 			yield [$subset, $strategy, $validator];
@@ -266,15 +260,14 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 	}
 
 	/**
-	 * @param \ReflectionClass $classReflection
-	 * @param \ReflectionProperty $propertyReflection
-	 * @return \Generator tuples (<subset>, <field declaration>, <strategy declaration>, <validator declaration>)
-	 * @psalm-return \Generator<array{0: string, 1: array{0: string, 1: null|array{0: string, 2: bool}, 2: null|array{0: string, 2: bool}}, 2: array{0: string, 1: null|array}, 3: array{0: string, 1: array}}>
-	 * @throws \ReflectionException
+	 * @param ReflectionClass $classReflection
+	 * @param ReflectionProperty $propertyReflection
+	 * @return Generator tuples (<subset>, <field declaration>, <strategy declaration>, <validator declaration>)
+	 * @psalm-return Generator<array{0: string, 1: array{0: string, 1: null|array{0: string, 2: bool}, 2: null|array{0: string, 2: bool}}, 2: array{0: string, 1: null|array}, 3: array{0: string, 1: array}}>
 	 */
-	protected function processPhpAttributesForProperty(\ReflectionClass $classReflection, \ReflectionProperty $propertyReflection): \Generator
+	protected function processPhpAttributesForProperty(ReflectionClass $classReflection, ReflectionProperty $propertyReflection): Generator
 	{
-		/** @psalm-var array<string, array{0: array{0: string, 1: null|array{0: string, 2: bool}, 2: null|array{0: string, 2: bool}}, 1: array{0: string, 1: null|array}, 2: FastPriorityQueue }}> $subsets */
+		/** @psalm-var array<string, array{0: array{0: string, 1: null|array{0: string, 2: bool}, 2: null|array{0: string, 2: bool}}, 1: array{0: string, 1: null|array}, 2: FastPriorityQueue}> $subsets */
 		/** @var array|array[][]|FastPriorityQueue[][] $subsets */
 		$subsets = [];
 		$emptySubset = function()
@@ -295,7 +288,7 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 					$subset = $subsets[$phpAttribute->subset] ?? $emptySubset();
 					if ($subset[0] !== null)
 					{
-						throw new \LogicException(\sprintf(
+						throw new LogicException(sprintf(
 							'Duplicate data PHP attribute for property %s in metadata subset "%s" of class %s',
 							$propertyReflection->getName(), $phpAttribute->subset, $classReflection->getName()
 						));
@@ -307,7 +300,7 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 					];
 					if (!$phpAttribute->nullable)
 					{
-						$subset[2]->insert([Validator\NotNull::class, null, true], self::MAX_VALIDATOR_PRIORITY);
+						$subset[2]->insert([Validator\NotNull::class, [], true], self::MAX_VALIDATOR_PRIORITY);
 					}
 					$subsets[$phpAttribute->subset] = $subset;
 					break;
@@ -315,7 +308,7 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 					$subset = $subsets[$phpAttribute->subset] ?? $emptySubset();
 					if ($subset[1] !== null)
 					{
-						throw new \LogicException(\sprintf(
+						throw new LogicException(sprintf(
 							'Duplicate strategy PHP attribute for property %s in metadata subset "%s" of class %s',
 							$propertyReflection->getName(), $phpAttribute->subset, $classReflection->getName()
 						));
@@ -335,26 +328,25 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 		{
 			if ($field === null)
 			{
-				throw new \LogicException(\sprintf(
+				throw new LogicException(sprintf(
 					'No data PHP attribute for property %s in metadata subset "%s" of class %s',
 					$propertyReflection->getName(), $subset, $classReflection->getName()
 				));
 			}
-			$strategy = $strategy ?? [Strategy\Whatever::class, null];
+			$strategy = $strategy ?? [Strategy\Whatever::class, []];
 			$validator = [Validator\Chain::class, ['links' => $validatorQueue->toArray()]];
 			yield [$subset, $field, $strategy, $validator];
 		}
 	}
 
 	/**
-	 * @param \ReflectionClass $classReflection
-	 * @param \ReflectionProperty $propertyReflection
+	 * @param ReflectionClass $classReflection
+	 * @param ReflectionProperty $propertyReflection
 	 * @param DTA\Data $phpAttribute
 	 * @return null|array information about getter - tuple (<name of property or method>, <flag if getter is method>)
 	 * @psalm-return null|array{0: string, 1: bool}
-	 * @throws \ReflectionException
 	 */
-	protected function calculatePropertyGetter(\ReflectionClass $classReflection, \ReflectionProperty $propertyReflection, DTA\Data $phpAttribute): ?array
+	protected function calculatePropertyGetter(ReflectionClass $classReflection, ReflectionProperty $propertyReflection, DTA\Data $phpAttribute): null|array
 	{
 		$result = null;
 		if ($phpAttribute->getter !== '')
@@ -370,7 +362,7 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 				}
 				else
 				{
-					$name = 'get' . \str_replace('_', '', \ucwords($propertyReflection->getName(), '_'));
+					$name = 'get' . str_replace('_', '', ucwords($propertyReflection->getName(), '_'));
 				}
 			}
 			//Validate method
@@ -378,21 +370,21 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 			{
 				if (!$classReflection->hasMethod($name))
 				{
-					throw new \LogicException(
-						\sprintf('Invalid metadata for %s: no getter %s.', $classReflection->getName(), $name)
+					throw new LogicException(
+						sprintf('Invalid metadata for %s: no getter %s.', $classReflection->getName(), $name)
 					);
 				}
 				$getterReflection = $classReflection->getMethod($name);
 				if (!$getterReflection->isPublic())
 				{
-					throw new \LogicException(
-						\sprintf('Invalid metadata for %s: getter %s is not public.', $classReflection->getName(), $name)
+					throw new LogicException(
+						sprintf('Invalid metadata for %s: getter %s is not public.', $classReflection->getName(), $name)
 					);
 				}
 				if ($getterReflection->getNumberOfRequiredParameters() > 0)
 				{
-					throw new \LogicException(
-						\sprintf('Invalid metadata for %s: getter %s should not require parameters.', $classReflection->getName(), $name)
+					throw new LogicException(
+						sprintf('Invalid metadata for %s: getter %s should not require parameters.', $classReflection->getName(), $name)
 					);
 				}
 			}
@@ -402,14 +394,13 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 	}
 
 	/**
-	 * @param \ReflectionClass $classReflection
-	 * @param \ReflectionProperty $propertyReflection
+	 * @param ReflectionClass $classReflection
+	 * @param ReflectionProperty $propertyReflection
 	 * @param DTA\Data $phpAttribute
 	 * @return null|array information about setter - tuple (<name of property or method>, <flag if setter is method>)
 	 * @psalm-return null|array{0: string, 1: bool}
-	 * @throws \ReflectionException
 	 */
-	protected function calculatePropertySetter(\ReflectionClass $classReflection, \ReflectionProperty $propertyReflection, DTA\Data $phpAttribute): ?array
+	protected function calculatePropertySetter(ReflectionClass $classReflection, ReflectionProperty $propertyReflection, DTA\Data $phpAttribute): null|array
 	{
 		$result = null;
 		if ($phpAttribute->setter !== '')
@@ -425,7 +416,7 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 				}
 				else
 				{
-					$name = 'set' . \str_replace('_', '', \ucwords($propertyReflection->getName(), '_'));
+					$name = 'set' . str_replace('_', '', ucwords($propertyReflection->getName(), '_'));
 				}
 			}
 			//Validate method
@@ -433,27 +424,27 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 			{
 				if (!$classReflection->hasMethod($name))
 				{
-					throw new \LogicException(
-						\sprintf('Invalid metadata for %s: no setter %s.', $classReflection->getName(), $name)
+					throw new LogicException(
+						sprintf('Invalid metadata for %s: no setter %s.', $classReflection->getName(), $name)
 					);
 				}
 				$setterReflection = $classReflection->getMethod($name);
 				if (!$setterReflection->isPublic())
 				{
-					throw new \LogicException(
-						\sprintf('Invalid metadata for %s: setter %s is not public.', $classReflection->getName(), $name)
+					throw new LogicException(
+						sprintf('Invalid metadata for %s: setter %s is not public.', $classReflection->getName(), $name)
 					);
 				}
 				if ($setterReflection->getNumberOfParameters() < 1)
 				{
-					throw new \LogicException(
-						\sprintf('Invalid metadata for %s: setter %s should accept at least one parameter.', $classReflection->getName(), $name)
+					throw new LogicException(
+						sprintf('Invalid metadata for %s: setter %s should accept at least one parameter.', $classReflection->getName(), $name)
 					);
 				}
 				if ($setterReflection->getNumberOfRequiredParameters() > 1)
 				{
-					throw new \LogicException(
-						\sprintf('Invalid metadata for %s: setter %s requires too many parameters.', $classReflection->getName(), $name)
+					throw new LogicException(
+						sprintf('Invalid metadata for %s: setter %s requires too many parameters.', $classReflection->getName(), $name)
 					);
 				}
 			}

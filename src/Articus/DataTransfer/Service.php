@@ -1,5 +1,10 @@
 <?php
+declare(strict_types=1);
+
 namespace Articus\DataTransfer;
+
+use Articus\PluginManager\PluginManagerInterface;
+use function get_class;
 
 /**
  * Service that performs data transfer.
@@ -7,30 +12,27 @@ namespace Articus\DataTransfer;
  */
 class Service
 {
-	/**
-	 * @var ClassMetadataProviderInterface
-	 */
-	protected $metadataProvider;
+	protected ClassMetadataProviderInterface $metadataProvider;
 
 	/**
-	 * @var Strategy\PluginManager
+	 * @var PluginManagerInterface<Strategy\StrategyInterface>
 	 */
-	protected $strategyManager;
+	protected PluginManagerInterface $strategyManager;
 
 	/**
-	 * @var Validator\PluginManager
+	 * @var PluginManagerInterface<Validator\ValidatorInterface>
 	 */
-	protected $validatorManager;
+	protected PluginManagerInterface $validatorManager;
 
 	/**
 	 * @param ClassMetadataProviderInterface $metadataProvider
-	 * @param Strategy\PluginManager $strategyManager
-	 * @param Validator\PluginManager $validatorManager
+	 * @param PluginManagerInterface<Strategy\StrategyInterface> $strategyManager
+	 * @param PluginManagerInterface<Validator\ValidatorInterface> $validatorManager
 	 */
 	public function __construct(
 		ClassMetadataProviderInterface $metadataProvider,
-		Strategy\PluginManager $strategyManager,
-		Validator\PluginManager $validatorManager
+		PluginManagerInterface $strategyManager,
+		PluginManagerInterface $validatorManager
 	)
 	{
 		$this->metadataProvider = $metadataProvider;
@@ -87,7 +89,7 @@ class Service
 	 * @param string $toSubset name of the subset to limit data hydrated to destination
 	 * @return array list of violations found during data validation
 	 */
-	public function transferTypedData($from, &$to, string $fromSubset = '', string $toSubset = ''): array
+	public function transferTypedData(object $from, object &$to, string $fromSubset = '', string $toSubset = ''): array
 	{
 		$fromStrategy = $this->getTypedDataStrategy($from, $fromSubset);
 		$toStrategy = $this->getTypedDataStrategy($to, $toSubset);
@@ -103,7 +105,7 @@ class Service
 	 * @param string $subset name of the subset to limit data hydrated to destination
 	 * @return array list of violations found during data validation
 	 */
-	public function transferToTypedData($untypedData, &$typedData, string $subset = ''): array
+	public function transferToTypedData($untypedData, object &$typedData, string $subset = ''): array
 	{
 		$strategy = $this->getTypedDataStrategy($typedData, $subset);
 		$validator = $this->getTypedDataValidator($typedData, $subset);
@@ -134,7 +136,7 @@ class Service
 	 * @return mixed extracted untyped data
 	 * @throws Exception\InvalidData
 	 */
-	public function extractFromTypedData($typedData, string $subset = '')
+	public function extractFromTypedData(object $typedData, string $subset = '')
 	{
 		$strategy = $this->getTypedDataStrategy($typedData, $subset);
 		return $strategy->extract($typedData);
@@ -146,13 +148,9 @@ class Service
 	 * @param string $subset
 	 * @return Strategy\StrategyInterface
 	 */
-	public function getTypedDataStrategy($typedData, string $subset = ''): Strategy\StrategyInterface
+	public function getTypedDataStrategy(object $typedData, string $subset = ''): Strategy\StrategyInterface
 	{
-		if (!\is_object($typedData))
-		{
-			throw new \LogicException(\sprintf('Typed data should be object, not %s.', \gettype($typedData)));
-		}
-		return $this->strategyManager->get(...$this->metadataProvider->getClassStrategy(\get_class($typedData), $subset));
+		return ($this->strategyManager)(...$this->metadataProvider->getClassStrategy(get_class($typedData), $subset));
 	}
 
 	/**
@@ -161,12 +159,8 @@ class Service
 	 * @param string $subset
 	 * @return Validator\ValidatorInterface
 	 */
-	public function getTypedDataValidator($typedData, string $subset = ''): Validator\ValidatorInterface
+	public function getTypedDataValidator(object $typedData, string $subset = ''): Validator\ValidatorInterface
 	{
-		if (!\is_object($typedData))
-		{
-			throw new \LogicException(\sprintf('Typed data should be object, not %s.', \gettype($typedData)));
-		}
-		return $this->validatorManager->get(...$this->metadataProvider->getClassValidator(\get_class($typedData), $subset));
+		return ($this->validatorManager)(...$this->metadataProvider->getClassValidator(get_class($typedData), $subset));
 	}
 }

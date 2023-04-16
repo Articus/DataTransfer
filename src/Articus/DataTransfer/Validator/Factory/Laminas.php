@@ -4,14 +4,13 @@ declare(strict_types=1);
 namespace Articus\DataTransfer\Validator\Factory;
 
 use Articus\DataTransfer\Validator;
-use Interop\Container\ContainerInterface;
 use Laminas\ServiceManager\Factory\AbstractFactoryInterface;
 use Laminas\Validator\ValidatorPluginManager;
+use Psr\Container\ContainerInterface;
 
 /**
- * Abstract factory that allows to use Laminas validators via Validator\PluginManager
+ * Abstract factory that allows to use Laminas validators
  * @see Validator\Laminas
- * @see Validator\PluginManager
  * @see ValidatorPluginManager
  */
 class Laminas implements AbstractFactoryInterface

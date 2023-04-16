@@ -6,6 +6,15 @@ namespace Articus\DataTransfer\Strategy;
 use Articus\DataTransfer\Exception;
 use Articus\DataTransfer\Utility;
 use Articus\DataTransfer\Validator;
+use InvalidArgumentException;
+use stdClass;
+use function array_key_exists;
+use function array_keys;
+use function get_class;
+use function gettype;
+use function is_iterable;
+use function is_object;
+use function sprintf;
 
 /**
  * Configurable strategy to deal with maps of complex identifiable values.
@@ -15,9 +24,8 @@ class IdentifiableValueMap implements StrategyInterface
 {
 	/**
 	 * Internal strategy to perform data transfer for map items when needed
-	 * @var StrategyInterface
 	 */
-	protected $valueStrategy;
+	protected StrategyInterface $valueStrategy;
 
 	/**
 	 * A way to calculate identifier of typed data for map item
@@ -53,9 +61,8 @@ class IdentifiableValueMap implements StrategyInterface
 
 	/**
 	 * Flag if strategy should extract stdClass instance insteadof associative array
-	 * @var bool
 	 */
-	protected $extractStdClass;
+	protected bool $extractStdClass;
 
 	public function __construct(
 		StrategyInterface $valueStrategy,
@@ -81,17 +88,17 @@ class IdentifiableValueMap implements StrategyInterface
 	 */
 	public function extract($from)
 	{
-		if (!(\is_iterable($from) || ($from instanceof \stdClass)))
+		if (!(is_iterable($from) || ($from instanceof stdClass)))
 		{
 			throw new Exception\InvalidData(
 				Exception\InvalidData::DEFAULT_VIOLATION,
-				new \InvalidArgumentException(\sprintf(
+				new InvalidArgumentException(sprintf(
 					'Extraction can be done only from iterable or stdClass, not %s',
-					\is_object($from) ? \get_class($from) : \gettype($from)
+					is_object($from) ? get_class($from) : gettype($from)
 				))
 			);
 		}
-		$result = ($this->extractStdClass ? new \stdClass() : []);
+		$result = ($this->extractStdClass ? new stdClass() : []);
 		$map = new Utility\MapAccessor($result);
 		foreach ($from as $key => $value)
 		{
@@ -114,23 +121,23 @@ class IdentifiableValueMap implements StrategyInterface
 	 */
 	public function hydrate($from, &$to): void
 	{
-		if (!(\is_iterable($from) || ($from instanceof \stdClass)))
+		if (!(is_iterable($from) || ($from instanceof stdClass)))
 		{
 			throw new Exception\InvalidData(
 				Exception\InvalidData::DEFAULT_VIOLATION,
-				new \InvalidArgumentException(\sprintf(
+				new InvalidArgumentException(sprintf(
 					'Hydration can be done only from iterable or stdClass, not %s',
-					\is_object($from) ? \get_class($from) : \gettype($from)
+					is_object($from) ? get_class($from) : gettype($from)
 				))
 			);
 		}
-		if (!(\is_iterable($to) || ($to instanceof \stdClass)))
+		if (!(is_iterable($to) || ($to instanceof stdClass)))
 		{
 			throw new Exception\InvalidData(
 				Exception\InvalidData::DEFAULT_VIOLATION,
-				new \InvalidArgumentException(\sprintf(
+				new InvalidArgumentException(sprintf(
 					'Hydration can be done only to iterable or stdClass, not %s',
-					\is_object($to) ? \get_class($to) : \gettype($to)
+					is_object($to) ? get_class($to) : gettype($to)
 				))
 			);
 		}
@@ -142,7 +149,7 @@ class IdentifiableValueMap implements StrategyInterface
 		{
 			try
 			{
-				if (\array_key_exists($fromKey, $toValues) && (($this->typedValueIdentifier)($toValues[$fromKey]) === ($this->untypedValueIdentifier)($fromValue)))
+				if (array_key_exists($fromKey, $toValues) && (($this->typedValueIdentifier)($toValues[$fromKey]) === ($this->untypedValueIdentifier)($fromValue)))
 				{
 					$this->valueStrategy->hydrate($fromValue, $toValues[$fromKey]);
 					$hydratedKeys[$fromKey] = true;
@@ -163,7 +170,7 @@ class IdentifiableValueMap implements StrategyInterface
 		//Remove destination items absent in source
 		if ($this->typedValueRemover !== null)
 		{
-			foreach (\array_keys($toValues) as $toKey)
+			foreach (array_keys($toValues) as $toKey)
 			{
 				if (!($hydratedKeys[$toKey] ?? false))
 				{
@@ -178,13 +185,13 @@ class IdentifiableValueMap implements StrategyInterface
 	 */
 	public function merge($from, &$to): void
 	{
-		if (!(\is_iterable($from) || ($from instanceof \stdClass)))
+		if (!(is_iterable($from) || ($from instanceof stdClass)))
 		{
 			throw new Exception\InvalidData(
 				Exception\InvalidData::DEFAULT_VIOLATION,
-				new \InvalidArgumentException(\sprintf(
+				new InvalidArgumentException(sprintf(
 					'Merge can be done only from iterable or stdClass, not %s',
-					\is_object($from) ? \get_class($from) : \gettype($from)
+					is_object($from) ? get_class($from) : gettype($from)
 				))
 			);
 		}
@@ -193,9 +200,9 @@ class IdentifiableValueMap implements StrategyInterface
 		{
 			throw new Exception\InvalidData(
 				Exception\InvalidData::DEFAULT_VIOLATION,
-				new \InvalidArgumentException(\sprintf(
+				new InvalidArgumentException(sprintf(
 					'Merge can be done only to iterable or stdClass, not %s',
-					\is_object($to) ? \get_class($to) : \gettype($to)
+					is_object($to) ? get_class($to) : gettype($to)
 				))
 			);
 		}
@@ -207,7 +214,7 @@ class IdentifiableValueMap implements StrategyInterface
 		{
 			try
 			{
-				if (\array_key_exists($fromKey, $toValues) && (($this->untypedValueIdentifier)($toValues[$fromKey]) === ($this->untypedValueIdentifier)($fromValue)))
+				if (array_key_exists($fromKey, $toValues) && (($this->untypedValueIdentifier)($toValues[$fromKey]) === ($this->untypedValueIdentifier)($fromValue)))
 				{
 					$this->valueStrategy->merge($fromValue, $toValues[$fromKey]);
 					$mergedKeys[$fromKey] = true;
@@ -229,7 +236,7 @@ class IdentifiableValueMap implements StrategyInterface
 		//Remove destination items absent in source
 		if ($this->typedValueRemover !== null)
 		{
-			foreach (\array_keys($toValues) as $toKey)
+			foreach (array_keys($toValues) as $toKey)
 			{
 				if (!($mergedKeys[$toKey] ?? false))
 				{
@@ -239,7 +246,7 @@ class IdentifiableValueMap implements StrategyInterface
 		}
 	}
 	/**
-	 * @param iterable|\stdClass $map
+	 * @param iterable|stdClass $map
 	 * @return array
 	 */
 	protected function referenceValues(&$map): array

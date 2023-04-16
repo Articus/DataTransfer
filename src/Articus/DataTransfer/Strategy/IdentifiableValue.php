@@ -12,9 +12,8 @@ class IdentifiableValue implements StrategyInterface
 {
 	/**
 	 * Internal strategy to perform data transfer when needed
-	 * @var StrategyInterface
 	 */
-	protected $valueStrategy;
+	protected StrategyInterface $valueStrategy;
 
 	/**
 	 * A way to calculate identifier of typed data

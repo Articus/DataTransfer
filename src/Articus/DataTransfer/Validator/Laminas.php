@@ -10,14 +10,8 @@ use Laminas\Validator\ValidatorInterface as LaminasValidator;
  */
 class Laminas implements ValidatorInterface
 {
-	/**
-	 * @var LaminasValidator
-	 */
-	protected $laminasValidator;
+	protected LaminasValidator $laminasValidator;
 
-	/**
-	 * @param LaminasValidator $laminasValidator
-	 */
 	public function __construct(LaminasValidator $laminasValidator)
 	{
 		$this->laminasValidator = $laminasValidator;

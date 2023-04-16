@@ -5,6 +5,7 @@ namespace spec\Articus\DataTransfer\Validator;
 
 use Articus\DataTransfer as DT;
 use PhpSpec\ObjectBehavior;
+use stdClass;
 
 class IdentifierSpec extends ObjectBehavior
 {
@@ -42,7 +43,7 @@ class IdentifierSpec extends ObjectBehavior
 		$this->validate(true)->shouldBe($violations);
 		$this->validate(123.456)->shouldBe($violations);
 		$this->validate([])->shouldBe($violations);
-		$this->validate(new \stdClass())->shouldBe($violations);
+		$this->validate(new stdClass())->shouldBe($violations);
 	}
 
 	public function it_denies_integer_identifier_without_value(DT\IdentifiableValueLoader $loader)

@@ -8,15 +8,12 @@ namespace Articus\DataTransfer\Utility;
  */
 class PropertyAccessor
 {
-	/**
-	 * @var object
-	 */
-	protected $object;
+	protected object $object;
 
 	/**
 	 * @param object $object object which properties you want to access
 	 */
-	public function __construct(&$object)
+	public function __construct(object &$object)
 	{
 		$this->object = &$object;
 	}

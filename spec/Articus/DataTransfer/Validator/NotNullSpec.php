@@ -5,6 +5,7 @@ namespace spec\Articus\DataTransfer\Validator;
 
 use Articus\DataTransfer as DT;
 use PhpSpec\ObjectBehavior;
+use stdClass;
 
 class NotNullSpec extends ObjectBehavior
 {
@@ -23,6 +24,6 @@ class NotNullSpec extends ObjectBehavior
 		$this->validate(0.0)->shouldBe([]);
 		$this->validate('')->shouldBe([]);
 		$this->validate([])->shouldBe([]);
-		$this->validate(new \stdClass())->shouldBe([]);
+		$this->validate(new stdClass())->shouldBe([]);
 	}
 }

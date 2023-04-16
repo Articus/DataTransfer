@@ -9,16 +9,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - php: '7.1'
-            has_unique_composer: true
-            has_unique_dependencies: true
-            has_unique_phpspec_tests: true
-          - php: '7.2'
-            has_unique_dependencies: true
-            has_unique_phpspec_tests: true
-          - php: '7.3'
-            has_unique_dependencies: true
-            has_unique_phpspec_tests: true
           - php: '7.4'
             has_unique_dependencies: true
             has_unique_phpspec_tests: true
@@ -31,10 +21,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Use unique Composer
-        if: matrix.has_unique_composer
-        run: cp ./composer.phar.${{ matrix.php }} ./composer.phar
 
       - name: Use unique composer.lock
         if: matrix.has_unique_dependencies

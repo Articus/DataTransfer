@@ -4,14 +4,16 @@ declare(strict_types=1);
 namespace spec\Articus\DataTransfer;
 
 use Articus\DataTransfer as DT;
+use Articus\PluginManager\PluginManagerInterface;
 use PhpSpec\ObjectBehavior;
+use function get_class;
 
 class ServiceSpec extends ObjectBehavior
 {
 	public function it_returns_strategy_for_typed_data(
 		DT\ClassMetadataProviderInterface $metadataProvider,
-		DT\Strategy\PluginManager $strategyManager,
-		DT\Validator\PluginManager $validatorManager,
+		PluginManagerInterface $strategyManager,
+		PluginManagerInterface $validatorManager,
 		$typedData,
 		DT\Strategy\StrategyInterface $strategy
 	)
@@ -19,30 +21,17 @@ class ServiceSpec extends ObjectBehavior
 		$strategyDeclaration = ['qwer', ['asdf' => 123]];
 		$subset = 'test';
 
-		$metadataProvider->getClassStrategy(\get_class($typedData->getWrappedObject()), $subset)->shouldBeCalledOnce()->willReturn($strategyDeclaration);
-		$strategyManager->get(...$strategyDeclaration)->shouldBeCalledOnce()->willReturn($strategy);
+		$metadataProvider->getClassStrategy(get_class($typedData->getWrappedObject()), $subset)->shouldBeCalledOnce()->willReturn($strategyDeclaration);
+		$strategyManager->__invoke(...$strategyDeclaration)->shouldBeCalledOnce()->willReturn($strategy);
 
 		$this->beConstructedWith($metadataProvider, $strategyManager, $validatorManager);
 		$this->getTypedDataStrategy($typedData, $subset)->shouldBe($strategy);
 	}
 
-	public function it_throws_when_data_for_strategy_is_not_object(
-		DT\ClassMetadataProviderInterface $metadataProvider,
-		DT\Strategy\PluginManager $strategyManager,
-		DT\Validator\PluginManager $validatorManager
-	)
-	{
-		$typedData = 1;
-		$subset = 'test';
-
-		$this->beConstructedWith($metadataProvider, $strategyManager, $validatorManager);
-		$this->shouldThrow(\LogicException::class)->during('getTypedDataStrategy', [$typedData, $subset]);
-	}
-
 	public function it_returns_validator_for_typed_data(
 		DT\ClassMetadataProviderInterface $metadataProvider,
-		DT\Strategy\PluginManager $strategyManager,
-		DT\Validator\PluginManager $validatorManager,
+		PluginManagerInterface $strategyManager,
+		PluginManagerInterface $validatorManager,
 		$typedData,
 		DT\Validator\ValidatorInterface $validator
 	)
@@ -50,23 +39,10 @@ class ServiceSpec extends ObjectBehavior
 		$validatorDeclaration = ['qwer', ['asdf' => 123]];
 		$subset = 'test';
 
-		$metadataProvider->getClassValidator(\get_class($typedData->getWrappedObject()), $subset)->shouldBeCalledOnce()->willReturn($validatorDeclaration);
-		$validatorManager->get(...$validatorDeclaration)->shouldBeCalledOnce()->willReturn($validator);
+		$metadataProvider->getClassValidator(get_class($typedData->getWrappedObject()), $subset)->shouldBeCalledOnce()->willReturn($validatorDeclaration);
+		$validatorManager->__invoke(...$validatorDeclaration)->shouldBeCalledOnce()->willReturn($validator);
 
 		$this->beConstructedWith($metadataProvider, $strategyManager, $validatorManager);
 		$this->getTypedDataValidator($typedData, $subset)->shouldBe($validator);
-	}
-
-	public function it_throws_when_data_for_validator_is_not_object(
-		DT\ClassMetadataProviderInterface $metadataProvider,
-		DT\Strategy\PluginManager $strategyManager,
-		DT\Validator\PluginManager $validatorManager
-	)
-	{
-		$typedData = 1;
-		$subset = 'test';
-
-		$this->beConstructedWith($metadataProvider, $strategyManager, $validatorManager);
-		$this->shouldThrow(\LogicException::class)->during('getTypedDataValidator', [$typedData, $subset]);
 	}
 }

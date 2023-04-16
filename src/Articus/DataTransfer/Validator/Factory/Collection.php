@@ -3,35 +3,32 @@ declare(strict_types=1);
 
 namespace Articus\DataTransfer\Validator\Factory;
 
+use Articus\DataTransfer\Options as DTOptions;
 use Articus\DataTransfer\Validator;
-use Interop\Container\ContainerInterface;
-use Laminas\ServiceManager\Factory\FactoryInterface;
+use Articus\DataTransfer\Validator\Options;
+use Articus\PluginManager\PluginFactoryInterface;
+use Articus\PluginManager\PluginManagerInterface;
+use Psr\Container\ContainerInterface;
 
 /**
  * Default factory for Validator\Collection
  * @see Validator\Collection
  */
-class Collection implements FactoryInterface
+class Collection implements PluginFactoryInterface
 {
-	public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
+	public function __invoke(ContainerInterface $container, string $name, array $options = []): Validator\Collection
 	{
-		$validators = $options['validators'] ?? [];
-		$links = [];
-		foreach ($validators as $index => $validator)
-		{
-			$name = $validator['name'] ?? null;
-			if ($name === null)
-			{
-				throw new \LogicException(\sprintf('Invalid options "validators": no name at index "%s".', $index));
-			}
-			$links[] = [$name, $validator['options'] ?? null, $validator['blocker'] ?? false];
-		}
-		$itemValidator = $this->getValidatorManager($container)->get(Validator\Chain::class, ['links' => $links]);
+		$parsedOptions = new Options\Collection($options);
+		$itemValidator = $this->getValidatorManager($container)(Validator\Chain::class, ['links' => $parsedOptions->validators]);
 		return new Validator\Collection($itemValidator);
 	}
 
-	protected function getValidatorManager(ContainerInterface $container): Validator\PluginManager
+	/**
+	 * @param ContainerInterface $container
+	 * @return PluginManagerInterface<Validator\ValidatorInterface>
+	 */
+	protected function getValidatorManager(ContainerInterface $container): PluginManagerInterface
 	{
-		return $container->get(Validator\PluginManager::class);
+		return $container->get(DTOptions::DEFAULT_VALIDATOR_PLUGIN_MANAGER);
 	}
 }

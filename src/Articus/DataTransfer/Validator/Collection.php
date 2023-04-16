@@ -3,6 +3,13 @@ declare(strict_types=1);
 
 namespace Articus\DataTransfer\Validator;
 
+use stdClass;
+use function get_class;
+use function gettype;
+use function is_iterable;
+use function is_object;
+use function sprintf;
+
 /**
  * Validator that checks if data is a collection of valid items.
  * "Collection" means something to iterate over - array, stdClass or Traversable.
@@ -13,14 +20,8 @@ class Collection implements ValidatorInterface
 	public const INVALID = 'collectionInvalid';
 	public const INVALID_INNER = 'collectionInvalidInner';
 
-	/**
-	 * @var ValidatorInterface
-	 */
-	protected $itemValidator;
+	protected ValidatorInterface $itemValidator;
 
-	/**
-	 * @param ValidatorInterface $itemValidator
-	 */
 	public function __construct(ValidatorInterface $itemValidator)
 	{
 		$this->itemValidator = $itemValidator;
@@ -34,7 +35,7 @@ class Collection implements ValidatorInterface
 		$result = [];
 		if ($data !== null)
 		{
-			if (\is_iterable($data) || ($data instanceof \stdClass))
+			if (is_iterable($data) || ($data instanceof stdClass))
 			{
 				foreach ($data as $key => $item)
 				{
@@ -47,8 +48,8 @@ class Collection implements ValidatorInterface
 			}
 			else
 			{
-				$result[self::INVALID] = \sprintf(
-					'Invalid data: expecting iterable collection, not %s.', \is_object($data) ? \get_class($data) : \gettype($data)
+				$result[self::INVALID] = sprintf(
+					'Invalid data: expecting iterable collection, not %s.', is_object($data) ? get_class($data) : gettype($data)
 				);
 			}
 		}

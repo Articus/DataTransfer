@@ -3,9 +3,11 @@ declare(strict_types=1);
 
 namespace spec\Articus\DataTransfer\Strategy;
 
-use spec\Example;
+use ArrayObject;
 use Articus\DataTransfer as DT;
 use PhpSpec\ObjectBehavior;
+use spec\Example;
+use stdClass;
 
 class IdentifiableValueMapSpec extends ObjectBehavior
 {
@@ -29,8 +31,8 @@ class IdentifiableValueMapSpec extends ObjectBehavior
 	{
 		$this->beConstructedWith($valueStrategy, $typedValueIdentifier, $untypedValueIdentifier, null, null, null, false);
 		$this->extract([])->shouldBe([]);
-		$this->extract(new \stdClass())->shouldBe([]);
-		$this->extract(new \ArrayObject())->shouldBe([]);
+		$this->extract(new stdClass())->shouldBe([]);
+		$this->extract(new ArrayObject())->shouldBe([]);
 	}
 
 	public function it_extracts_empty_stdclass_from_empty_source(
@@ -41,9 +43,9 @@ class IdentifiableValueMapSpec extends ObjectBehavior
 	{
 		$this->beConstructedWith($valueStrategy, $typedValueIdentifier, $untypedValueIdentifier, null, null, null, true);
 
-		$this->extract([])->shouldBeLike(new \stdClass());
-		$this->extract(new \stdClass())->shouldBeLike(new \stdClass());
-		$this->extract(new \ArrayObject())->shouldBeLike(new \stdClass);
+		$this->extract([])->shouldBeLike(new stdClass());
+		$this->extract(new stdClass())->shouldBeLike(new stdClass());
+		$this->extract(new ArrayObject())->shouldBeLike(new stdClass);
 	}
 
 	public function it_extracts_non_empty_array_from_non_empty_source_using_value_strategy(
@@ -57,7 +59,7 @@ class IdentifiableValueMapSpec extends ObjectBehavior
 			'test2' => 'asd',
 			'test3' => 'zxc',
 		];
-		$sourceStdClass = new \stdClass();
+		$sourceStdClass = new stdClass();
 		$sourceStdClass->test1 = 'rty';
 		$sourceStdClass->test2 = 'fgh';
 		$sourceStdClass->test3 = 'vbn';
@@ -89,7 +91,7 @@ class IdentifiableValueMapSpec extends ObjectBehavior
 			222 => 'asd',
 			333 => 'zxc',
 		];
-		$sourceStdClass = new \stdClass();
+		$sourceStdClass = new stdClass();
 		$sourceStdClass->{111} = 'rty';
 		$sourceStdClass->{222} = 'fgh';
 		$sourceStdClass->{333} = 'vbn';
@@ -121,11 +123,11 @@ class IdentifiableValueMapSpec extends ObjectBehavior
 			'test2' => 'asd',
 			'test3' => 'zxc',
 		];
-		$sourceStdClass = new \stdClass();
+		$sourceStdClass = new stdClass();
 		$sourceStdClass->test1 = 'rty';
 		$sourceStdClass->test2 = 'fgh';
 		$sourceStdClass->test3 = 'vbn';
-		$destination = new \stdClass();
+		$destination = new stdClass();
 		$destination->test1 = 123;
 		$destination->test2 = 456;
 		$destination->test3 = 789;
@@ -152,11 +154,11 @@ class IdentifiableValueMapSpec extends ObjectBehavior
 			222 => 'asd',
 			333 => 'zxc',
 		];
-		$sourceStdClass = new \stdClass();
+		$sourceStdClass = new stdClass();
 		$sourceStdClass->{111} = 'rty';
 		$sourceStdClass->{222} = 'fgh';
 		$sourceStdClass->{333} = 'vbn';
-		$destination = new \stdClass();
+		$destination = new stdClass();
 		$destination->{111} = 123;
 		$destination->{222} = 456;
 		$destination->{333} = 789;

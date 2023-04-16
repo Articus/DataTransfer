@@ -1,89 +1,87 @@
 <?php
 declare(strict_types=1);
 
-namespace spec\Articus\DataTransfer\Strategy;
-
 use Articus\DataTransfer as DT;
 
-\describe(DT\Strategy\Identifier::class, function ()
+describe(DT\Strategy\Identifier::class, function ()
 {
-	\afterEach(function ()
+	afterEach(function ()
 	{
-		\Mockery::close();
+		Mockery::close();
 	});
-	\describe('->hydrate', function ()
+	describe('->hydrate', function ()
 	{
-		\it('hydrates from null', function ()
+		it('hydrates from null', function ()
 		{
-			$loader = \mock(DT\IdentifiableValueLoader::class);
+			$loader = mock(DT\IdentifiableValueLoader::class);
 			$type = 'test';
 			$source = null;
-			$destination = \mock();
+			$destination = mock();
 
 			$strategy = new DT\Strategy\Identifier($loader, $type);
 			$strategy->hydrate($source, $destination);
-			\expect($destination)->toBeNull();
+			expect($destination)->toBeNull();
 		});
-		\it('hydrates from identifier to null', function ()
+		it('hydrates from identifier to null', function ()
 		{
-			$loader = \mock(DT\IdentifiableValueLoader::class);
+			$loader = mock(DT\IdentifiableValueLoader::class);
 			$type = 'test';
 			$source = 123;
 			$destination = null;
-			$newDestination = \mock();
+			$newDestination = mock();
 
 			$loader->shouldReceive('get')->with($type, $source)->andReturn($newDestination)->once();
 
 			$strategy = new DT\Strategy\Identifier($loader, $type);
 			$strategy->hydrate($source, $destination);
-			\expect($destination)->toBe($newDestination);
+			expect($destination)->toBe($newDestination);
 		});
-		\it('hydrates from identifier to value with same identifier', function ()
+		it('hydrates from identifier to value with same identifier', function ()
 		{
-			$loader = \mock(DT\IdentifiableValueLoader::class);
+			$loader = mock(DT\IdentifiableValueLoader::class);
 			$type = 'test';
 			$source = 123;
-			$destination = \mock();
+			$destination = mock();
 			$newDestination = $destination;
 
 			$loader->shouldReceive('identify')->with($type, $destination)->andReturn($source)->once();
 
 			$strategy = new DT\Strategy\Identifier($loader, $type);
 			$strategy->hydrate($source, $destination);
-			\expect($destination)->toBe($newDestination);
+			expect($destination)->toBe($newDestination);
 		});
-		\it('hydrates from identifier to value with different identifier', function ()
+		it('hydrates from identifier to value with different identifier', function ()
 		{
-			$loader = \mock(DT\IdentifiableValueLoader::class);
+			$loader = mock(DT\IdentifiableValueLoader::class);
 			$type = 'test';
 			$source = 123;
-			$destination = \mock();
-			$newDestination = \mock();
+			$destination = mock();
+			$newDestination = mock();
 
 			$loader->shouldReceive('identify')->with($type, $destination)->andReturn(456)->once();
 			$loader->shouldReceive('get')->with($type, $source)->andReturn($newDestination);
 
 			$strategy = new DT\Strategy\Identifier($loader, $type);
 			$strategy->hydrate($source, $destination);
-			\expect($destination)->toBe($newDestination);
+			expect($destination)->toBe($newDestination);
 		});
 	});
-	\describe('->merge', function ()
+	describe('->merge', function ()
 	{
-		\it('merges from null', function ()
+		it('merges from null', function ()
 		{
-			$loader = \mock(DT\IdentifiableValueLoader::class);
+			$loader = mock(DT\IdentifiableValueLoader::class);
 			$type = 'test';
 			$source = null;
 			$destination = 456;
 
 			$strategy = new DT\Strategy\Identifier($loader, $type);
 			$strategy->merge($source, $destination);
-			\expect($destination)->toBeNull();
+			expect($destination)->toBeNull();
 		});
-		\it('merges from integer', function ()
+		it('merges from integer', function ()
 		{
-			$loader = \mock(DT\IdentifiableValueLoader::class);
+			$loader = mock(DT\IdentifiableValueLoader::class);
 			$type = 'test';
 			$source = 123;
 			$destination = null;
@@ -92,11 +90,11 @@ use Articus\DataTransfer as DT;
 
 			$strategy = new DT\Strategy\Identifier($loader, $type);
 			$strategy->merge($source, $destination);
-			\expect($destination)->toBe($source);
+			expect($destination)->toBe($source);
 		});
-		\it('merges from string', function ()
+		it('merges from string', function ()
 		{
-			$loader = \mock(DT\IdentifiableValueLoader::class);
+			$loader = mock(DT\IdentifiableValueLoader::class);
 			$type = 'test';
 			$source = 'abc';
 			$destination = null;
@@ -105,7 +103,7 @@ use Articus\DataTransfer as DT;
 
 			$strategy = new DT\Strategy\Identifier($loader, $type);
 			$strategy->merge($source, $destination);
-			\expect($destination)->toBe($source);
+			expect($destination)->toBe($source);
 		});
 	});
 });

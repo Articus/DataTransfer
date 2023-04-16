@@ -6,6 +6,13 @@ namespace spec\Matcher;
 use PhpSpec\Exception\Example\FailureException;
 use PhpSpec\Matcher\Matcher;
 use PhpSpec\Wrapper\DelayedCall;
+use ReflectionClass;
+use function count;
+use function get_class;
+use function is_object;
+use function is_string;
+use function sprintf;
+use function var_export;
 
 /**
  * Allows to check value of non-public properties
@@ -21,7 +28,7 @@ class PropertyValue implements Matcher
 	 */
 	public function supports(string $name, $subject, array $arguments): bool
 	{
-		return ($name === 'haveProperty') && \is_object($subject) && (2 == \count($arguments)) && \is_string($arguments[0]);
+		return ($name === 'haveProperty') && is_object($subject) && (2 == count($arguments)) && is_string($arguments[0]);
 	}
 
 	public function getPriority(): int
@@ -34,12 +41,12 @@ class PropertyValue implements Matcher
 		[$propertyName, $expectedPropertyValue, $actualPropertyValue] = $this->processProperty($subject, $arguments);
 		if ($actualPropertyValue !== $expectedPropertyValue)
 		{
-			throw new FailureException(\sprintf(
+			throw new FailureException(sprintf(
 				'Expected "%s" property value of %s instance to be %s, but got %s.',
 				$propertyName,
-				\get_class($subject),
-				\var_export($expectedPropertyValue, true),
-				\var_export($actualPropertyValue, true)
+				get_class($subject),
+				var_export($expectedPropertyValue, true),
+				var_export($actualPropertyValue, true)
 			));
 		}
 		return null;
@@ -50,26 +57,20 @@ class PropertyValue implements Matcher
 		[$propertyName, $expectedPropertyValue, $actualPropertyValue] = $this->processProperty($subject, $arguments);
 		if ($actualPropertyValue === $expectedPropertyValue)
 		{
-			throw new FailureException(\sprintf(
+			throw new FailureException(sprintf(
 				'Did not expect "%s" property value of %s instance to be %s, but got one.',
 				$propertyName,
-				\get_class($subject),
-				\var_export($expectedPropertyValue, true)
+				get_class($subject),
+				var_export($expectedPropertyValue, true)
 			));
 		}
 		return null;
 	}
 
-	/**
-	 * @param object $subject
-	 * @param array $arguments
-	 * @return array
-	 * @throws \ReflectionException
-	 */
-	protected function processProperty($subject, array $arguments): array
+	protected function processProperty(object $subject, array $arguments): array
 	{
 		[$propertyName, $expectedPropertyValue] = $arguments;
-		$classReflection = new \ReflectionClass($subject);
+		$classReflection = new ReflectionClass($subject);
 		$propertyReflection = $classReflection->getProperty($propertyName);
 		$propertyReflection->setAccessible(true);
 		$actualPropertyValue = $propertyReflection->getValue($subject);

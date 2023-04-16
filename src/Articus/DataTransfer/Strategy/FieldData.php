@@ -6,27 +6,26 @@ namespace Articus\DataTransfer\Strategy;
 use Articus\DataTransfer\Exception;
 use Articus\DataTransfer\Utility;
 use Articus\DataTransfer\Validator;
+use InvalidArgumentException;
+use stdClass;
+use function get_class;
+use function gettype;
+use function is_object;
+use function sprintf;
 
 /**
  * Strategy for object of specific type that can be treated as field set described by type metadata
  */
 class FieldData implements StrategyInterface
 {
-	/**
-	 * @var string
-	 */
-	protected $type;
+	protected string $type;
 
 	/**
 	 * @psalm-var iterable<array{0: string, 1: null|array{0: string, 1: bool}, 2: null|array{0: string, 1: bool}, 3: StrategyInterface}>
-	 * @var iterable
 	 */
-	protected $typeFields;
+	protected iterable $typeFields;
 
-	/**
-	 * @var bool
-	 */
-	protected $extractStdClass;
+	protected bool $extractStdClass;
 
 	/**
 	 * @param string $type
@@ -49,14 +48,14 @@ class FieldData implements StrategyInterface
 		{
 			throw new Exception\InvalidData(
 				Exception\InvalidData::DEFAULT_VIOLATION,
-				new \InvalidArgumentException(\sprintf(
+				new InvalidArgumentException(sprintf(
 					'Extraction can be done only from %s, not %s',
-					$this->type, \is_object($from) ? \get_class($from) : \gettype($from)
+					$this->type, is_object($from) ? get_class($from) : gettype($from)
 				))
 			);
 		}
 
-		$result = ($this->extractStdClass) ? new \stdClass() : [];
+		$result = ($this->extractStdClass) ? new stdClass() : [];
 		$map = new Utility\MapAccessor($result);
 		$object = new Utility\PropertyAccessor($from);
 		foreach ($this->typeFields as [$fieldName, $getter, $setter, $strategy])
@@ -90,9 +89,9 @@ class FieldData implements StrategyInterface
 		{
 			throw new Exception\InvalidData(
 				Exception\InvalidData::DEFAULT_VIOLATION,
-				new \InvalidArgumentException(\sprintf(
+				new InvalidArgumentException(sprintf(
 					'Hydration can be done only from key-value map, not %s',
-					\is_object($from) ? \get_class($from) : \gettype($from)
+					is_object($from) ? get_class($from) : gettype($from)
 				))
 			);
 		}
@@ -100,9 +99,9 @@ class FieldData implements StrategyInterface
 		{
 			throw new Exception\InvalidData(
 				Exception\InvalidData::DEFAULT_VIOLATION,
-				new \InvalidArgumentException(\sprintf(
+				new InvalidArgumentException(sprintf(
 					'Hydration can be done only to %s, not %s',
-					$this->type, \is_object($to) ? \get_class($to) : \gettype($to)
+					$this->type, is_object($to) ? get_class($to) : gettype($to)
 				))
 			);
 		}
@@ -138,9 +137,9 @@ class FieldData implements StrategyInterface
 		{
 			throw new Exception\InvalidData(
 				Exception\InvalidData::DEFAULT_VIOLATION,
-				new \InvalidArgumentException(\sprintf(
+				new InvalidArgumentException(sprintf(
 					'Merge can be done only for key-value map, not %s',
-					\is_object($from) ? \get_class($from) : \gettype($from)
+					is_object($from) ? get_class($from) : gettype($from)
 				))
 			);
 		}
@@ -149,9 +148,9 @@ class FieldData implements StrategyInterface
 		{
 			throw new Exception\InvalidData(
 				Exception\InvalidData::DEFAULT_VIOLATION,
-				new \InvalidArgumentException(\sprintf(
+				new InvalidArgumentException(sprintf(
 					'Merge can be done only into key-value map, not %s',
-					\is_object($to) ? \get_class($to) : \gettype($to)
+					is_object($to) ? get_class($to) : gettype($to)
 				))
 			);
 		}

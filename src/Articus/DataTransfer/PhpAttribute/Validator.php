@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 namespace Articus\DataTransfer\PhpAttribute;
 
+use Attribute;
+
 /**
  * PHP attribute for validation rule of class value or class field value after extraction
  */
-#[\Attribute(\Attribute::TARGET_CLASS | \Attribute::TARGET_PROPERTY | \Attribute::IS_REPEATABLE)]
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class Validator
 {
 	public function __construct(
@@ -17,7 +19,7 @@ class Validator
 		/**
 		 * Options that should be passed to PluginManager::get
 		 */
-		public null|array $options = null,
+		public array $options = [],
 		/**
 		 * Priority in which validator should be executed
 		 */
