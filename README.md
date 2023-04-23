@@ -29,22 +29,23 @@ I finally decided to make it a separate library. Hopefully, it will be useful fo
 
 Just add `"articus/data-transfer"` to your [composer.json](https://getcomposer.org/doc/04-schema.md#require) and check [packages suggested by the library](https://getcomposer.org/doc/04-schema.md#suggest) for extra dependencies of optional components you may want to use.
 
-> *Note* - library has [Laminas Service Manager](https://docs.laminas.dev/laminas-servicemanager/) as direct dependency but only because of [plugin managers](https://docs.laminas.dev/laminas-servicemanager/plugin-managers/). So you can use this library with any PSR-11 container you like.  
- 
 ## How to use?
 
-Library provides a single service `Articus\DataTransfer\Service` that allows transferring data in various ways. So first of all you need to register it in your PSR-11 container. Here is a sample configuration for [Laminas Service Manager](https://docs.laminas.dev/laminas-servicemanager/) (example is in YAML just for readability):
+Library provides a single service `Articus\DataTransfer\Service` that allows transferring data in various ways. So first of all you need to register it in your PSR-11 container. You can use any PSR-11 implementation you like, but integration with [Laminas Service Manager](https://docs.laminas.dev/laminas-servicemanager/) has slightly more features (to be precise - utilization of [plugin managers](https://docs.laminas.dev/laminas-servicemanager/plugin-managers/) and supports for [Laminas validators](https://docs.laminas.dev/laminas-validator/)). Here are two sample configurations:
 
-```YAML
-# Register required services in container
+- for [Laminas Service Manager](https://docs.laminas.dev/laminas-servicemanager/):
+```PHP
+// Full example configuration in YAML just for readability
+$configContent = <<<'CONFIG'
+# Required container services
 dependencies:
   factories:
     # Service to inject wherever you need data transfer
     Articus\DataTransfer\Service: Articus\DataTransfer\Factory
     # ..and its dependencies
     Articus\DataTransfer\MetadataProvider\Annotation: Articus\DataTransfer\MetadataProvider\Factory\Annotation
-    Articus\DataTransfer\Strategy\PluginManager: Articus\DataTransfer\Strategy\Factory\PluginManager
-    Articus\DataTransfer\Validator\PluginManager: Articus\DataTransfer\Validator\Factory\PluginManager
+    Articus\DataTransfer\Strategy\PluginManager: Articus\DataTransfer\Strategy\Factory\LaminasPluginManager
+    Articus\DataTransfer\Validator\PluginManager: Articus\DataTransfer\Validator\Factory\LaminasPluginManager
     # Optional - only if you want to use validators from laminas/laminas-validator
     Laminas\Validator\ValidatorPluginManager: Laminas\Validator\ValidatorPluginManagerFactory
   # Default metadata provider service allows to get metadata both for classes and for class fields so two aliases for single service
@@ -60,19 +61,93 @@ Articus\DataTransfer\MetadataProvider\Annotation:
   # ... or use existing service implementing Psr\SimpleCache\CacheInterface (PSR-16)
   #cache: MyMetadataCache
 
-# Configure strategy plugin manager (see Articus\DataTransfer\Strategy\PluginManager for details)
+# Configure strategy plugin manager using options supported by Laminas\ServiceManager\AbstractPluginManager
 Articus\DataTransfer\Strategy\PluginManager:
   invokables:
     MySampleStrategy: My\SampleStrategy
 
-# Configure validator plugin manager (see Articus\DataTransfer\Validator\PluginManager for details)
+# Configure validator plugin manager using options supported by Laminas\ServiceManager\AbstractPluginManager
 Articus\DataTransfer\Validator\PluginManager:
   invokables:
     MySampleValidator: My\SampleValidator
-  # Optional - only if you want to use validators from laminas/laminas-validator
-  abstract_factories:
-    - Articus\DataTransfer\Validator\Factory\Laminas
-  
+
+CONFIG;
+$config = yaml_parse($configContent);
+
+$container = new Laminas\ServiceManager\ServiceManager($config['dependencies']);
+$container->setService('config', $config);
+
+/** @var Articus\DataTransfer\Service $service */
+$service = $container->get(Articus\DataTransfer\Service::class);
+```
+- for [Symfony Dependency Injection](https://symfony.com/doc/current/components/dependency_injection.html):
+```PHP
+<?php
+require_once __DIR__ . '/vendor/autoload.php';
+// Full example configuration in YAML just for readability
+$configContent = <<<'CONFIG'
+# Required container services
+dependencies:
+  factories:
+    # Service to inject wherever you need data transfer
+    Articus\DataTransfer\Service: Articus\DataTransfer\Factory
+    # ..and its dependencies
+    Articus\DataTransfer\MetadataProvider\Annotation: Articus\DataTransfer\MetadataProvider\Factory\Annotation
+    Articus\DataTransfer\Strategy\PluginManager: Articus\DataTransfer\Strategy\Factory\SimplePluginManager
+    Articus\DataTransfer\Validator\PluginManager: Articus\DataTransfer\Validator\Factory\SimplePluginManager
+  # Default metadata provider service allows to get metadata both for classes and for class fields so two aliases for single service
+  aliases:
+    Articus\DataTransfer\ClassMetadataProviderInterface: Articus\DataTransfer\MetadataProvider\Annotation
+    Articus\DataTransfer\FieldMetadataProviderInterface: Articus\DataTransfer\MetadataProvider\Annotation
+
+# Configure metadata provider
+Articus\DataTransfer\MetadataProvider\Annotation:
+  # Configure directory to store cached class metadata
+  cache:
+    directory: ./data
+  # ... or use existing service implementing Psr\SimpleCache\CacheInterface (PSR-16)
+  #cache: MyMetadataCache
+
+# Configure strategy plugin manager, check Articus\PluginManager\Options\Simple for supported options
+Articus\DataTransfer\Strategy\PluginManager:
+  invokables:
+    MySampleStrategy: My\SampleStrategy
+
+# Configure validator plugin manager, check Articus\PluginManager\Options\Simple for supported options
+Articus\DataTransfer\Validator\PluginManager:
+  invokables:
+    MySampleValidator: My\SampleValidator
+
+CONFIG;
+$config = yaml_parse($configContent);
+
+$container = new Symfony\Component\DependencyInjection\ContainerBuilder();
+$containerRef = new Symfony\Component\DependencyInjection\Reference('service_container');
+foreach ($config['dependencies']['factories'] as $serviceName => $factoryClass)
+{
+	$container->register($factoryClass);
+	$container->register($serviceName)
+		->setFactory(new Symfony\Component\DependencyInjection\Reference($factoryClass))
+		->setArguments([$containerRef, $serviceName])
+		->setPublic(true)
+	;
+}
+foreach ($config['dependencies']['aliases'] as $alias => $serviceName)
+{
+	$container->setAlias($alias, $serviceName)->setPublic(true);
+}
+// Just to reduce sample code size - there should be a dedicated factory class for normal usage
+$configFactory = new class ($config)
+{
+	protected ArrayAccess $config;
+	public function __construct(array $config) { $this->config = new ArrayObject($config); }
+	public function getConfig(): ArrayAccess { return $this->config; }
+};
+$container->register('config', ArrayAccess::class)->setFactory([$configFactory, 'getConfig'])->setPublic(true);
+$container->compile();
+
+/** @var Articus\DataTransfer\Service $service */
+$service = $container->get(Articus\DataTransfer\Service::class);
 ```
 
 That is the only requirement to use `Articus\DataTransfer\Service::transfer` method that provides the most explicit and fine-grained control over data transfer.
@@ -83,7 +158,7 @@ If you provide some additional metadata for classes that you would like to use w
 - `Articus\DataTransfer\Service::transferFromTypedData`
 - `Articus\DataTransfer\Service::extractFromTypedData`     
 
-Currently, the default way to declare metadata shown in code examples across this documentation is via [Doctrine Annotations](https://www.doctrine-project.org/projects/annotations.html). If your project uses PHP 8 you may declare metadata via [attributes](https://www.php.net/manual/en/language.attributes.overview.php) instead (just switch from `Articus\DataTransfer\MetadataProvider\Annotation` to `Articus\DataTransfer\MetadataProvider\PhpAttribute`). And you can create your own implementation for `Articus\DataTransfer\ClassMetadataProviderInterface` if you want to get metadata from another source.
+Currently, the default way to declare metadata shown in code examples across this documentation is via [Doctrine Annotations](https://www.doctrine-project.org/projects/annotations.html). If your project uses PHP 8+ you may declare metadata via [attributes](https://www.php.net/manual/en/language.attributes.overview.php) instead (just switch from `Articus\DataTransfer\MetadataProvider\Annotation` to `Articus\DataTransfer\MetadataProvider\PhpAttribute`). And you can create your own implementation for `Articus\DataTransfer\ClassMetadataProviderInterface` if you want to get metadata from another source.
 
 Metadata consists of two parts:
 - strategy - `Articus\DataTransfer\Strategy\StrategyInterface` implementation that knows how **extract**, **merge** and **hydrate** class objects
@@ -108,9 +183,9 @@ use Articus\DataTransfer\Annotation as DTA;
  * @DTA\Validator(name="MySampleValidator3", subset="several-validators")
  * @DTA\Validator(name="MySampleValidator1", priority=2, subset="several-validators")
  *
- * Strategies and validators are constructed via plugin managers from laminas/laminas-servicemanager,
+ * Strategies and validators are constructed via plugin managers from articus/plugin-manager,
  * so you may pass options to their factories.
- * Check Articus\DataTransfer\Strategy\PluginManager and Articus\DataTransfer\Validator\PluginManager for details.
+ * Check Articus\DataTransfer\Strategy\Factory\SimplePluginManager and Articus\DataTransfer\Validator\Factory\SimplePluginManager for details.
  * @DTA\Strategy(name="MySampleStrategy", options={"test":123}, subset="with-options")
  * @DTA\Validator(name="MySampleValidator", options={"test":123}, subset="with-options")
  */
@@ -233,7 +308,7 @@ class Sample
 }
 ```
 
-Same as for class metadata there may be several subsets for property metadata and [Doctrine Annotations](https://www.doctrine-project.org/projects/annotations.html) is the default way to declare property metadata. If your project uses PHP 8 you may declare property metadata via [attributes](https://www.php.net/manual/en/language.attributes.overview.php) instead (just switch from `Articus\DataTransfer\MetadataProvider\Annotation` to `Articus\DataTransfer\MetadataProvider\PhpAttribute`). And you can create your own implementation for `Articus\DataTransfer\FieldMetadataProviderInterface` if you want to use another metadata source.  
+Same as for class metadata there may be several subsets for property metadata and [Doctrine Annotations](https://www.doctrine-project.org/projects/annotations.html) is the default way to declare property metadata. If your project uses PHP 8+ you may declare property metadata via [attributes](https://www.php.net/manual/en/language.attributes.overview.php) instead (just switch from `Articus\DataTransfer\MetadataProvider\Annotation` to `Articus\DataTransfer\MetadataProvider\PhpAttribute`). And you can create your own implementation for `Articus\DataTransfer\FieldMetadataProviderInterface` if you want to use another metadata source.  
     
 ## Enjoy!
 I really hope that this library will be useful for someone except me. 
