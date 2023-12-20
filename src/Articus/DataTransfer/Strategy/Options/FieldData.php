@@ -10,7 +10,7 @@ use function sprintf;
 class FieldData
 {
 	/**
-	 * Name of teh class where transfer metadata  is declared
+	 * Name of the class where transfer metadata  is declared
 	 * @var class-string
 	 */
 	public string $type;
