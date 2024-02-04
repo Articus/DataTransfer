@@ -32,6 +32,13 @@ class SimplePluginManager extends PM\Factory\Simple
 				'object' => 'Object',
 				'objectArray' => 'ObjectArray',
 			],
+			'shares' => [
+				Strategy\Whatever::class => true,
+				Strategy\FieldData::class => true,
+				Strategy\Identifier::class => true,
+				'Object' => true,
+				'ObjectArray' => true,
+			],
 		];
 
 		return array_merge_recursive($defaultConfig, parent::getServiceConfig($container));

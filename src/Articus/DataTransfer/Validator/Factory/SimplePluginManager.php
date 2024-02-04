@@ -36,6 +36,15 @@ class SimplePluginManager extends PM\Factory\Simple
 				'TypeCompliant' => Validator\TypeCompliant::class,
 				'typeCompliant' => Validator\TypeCompliant::class,
 			],
+			'shares' => [
+				Validator\NotNull::class => true,
+				Validator\Whatever::class => true,
+				Validator\Chain::class => true,
+				Validator\Collection::class => true,
+				Validator\FieldData::class => true,
+				Validator\Identifier::class => true,
+				Validator\TypeCompliant::class => true,
+			],
 		];
 
 		return array_merge_recursive($defaultConfig, parent::getServiceConfig($container));
