@@ -3,12 +3,16 @@ declare(strict_types=1);
 
 namespace spec\Matcher;
 
+use LogicException;
 use PhpSpec\Exception\Example\FailureException;
 use PhpSpec\Matcher\Matcher;
 use PhpSpec\Wrapper\DelayedCall;
 use ReflectionClass;
 use function count;
+use function explode;
 use function get_class;
+use function implode;
+use function is_array;
 use function is_object;
 use function is_string;
 use function sprintf;
@@ -69,11 +73,25 @@ class PropertyValue implements Matcher
 
 	protected function processProperty(object $subject, array $arguments): array
 	{
-		[$propertyName, $expectedPropertyValue] = $arguments;
-		$classReflection = new ReflectionClass($subject);
-		$propertyReflection = $classReflection->getProperty($propertyName);
-		$propertyReflection->setAccessible(true);
-		$actualPropertyValue = $propertyReflection->getValue($subject);
+		[$propertyNameOrPath, $expectedPropertyValue] = $arguments;
+		$propertyPath = is_array($propertyNameOrPath) ? $propertyNameOrPath : explode('.', $propertyNameOrPath);
+		$propertyName = implode('.', $propertyPath);
+		$actualPropertyValue = $subject;
+		foreach ($propertyPath as $index => $propertyPathStep)
+		{
+			if (!is_object($actualPropertyValue))
+			{
+				throw new LogicException(sprintf('Can not get property %s (%s) from non object', $propertyPathStep, $index));
+			}
+			$classReflection = new ReflectionClass($actualPropertyValue);
+			if (!$classReflection->hasProperty($propertyPathStep))
+			{
+				throw new LogicException(sprintf('Class %s does not have property %s (%s)', $classReflection->getName(), $propertyPathStep, $index));
+			}
+			$propertyReflection = $classReflection->getProperty($propertyPathStep);
+			$propertyReflection->setAccessible(true);
+			$actualPropertyValue = $propertyReflection->getValue($actualPropertyValue);
+		}
 		return [$propertyName, $expectedPropertyValue, $actualPropertyValue];
 	}
 }

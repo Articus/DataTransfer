@@ -6,6 +6,7 @@ namespace Articus\DataTransfer\MetadataProvider;
 use Articus\DataTransfer\Annotation as DTA;
 use Articus\DataTransfer\ClassMetadataProviderInterface;
 use Articus\DataTransfer\FieldMetadataProviderInterface;
+use Articus\DataTransfer\MetadataCache\MetadataCacheInterface;
 use Articus\DataTransfer\Strategy;
 use Articus\DataTransfer\Validator;
 use Doctrine\Common\Annotations\AnnotationReader;
@@ -27,7 +28,7 @@ class Annotation implements ClassMetadataProviderInterface, FieldMetadataProvide
 {
 	const MAX_VALIDATOR_PRIORITY = 10000;
 
-	protected CacheInterface $cache;
+	protected MetadataCacheInterface $cache;
 
 	/**
 	 * @psalm-var array<string, array<string, array{0: string, 1: array}>>
@@ -54,7 +55,7 @@ class Annotation implements ClassMetadataProviderInterface, FieldMetadataProvide
 	 */
 	protected array $fieldValidators = [];
 
-	public function __construct(CacheInterface $cache)
+	public function __construct(MetadataCacheInterface $cache)
 	{
 		$this->cache = $cache;
 	}

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Articus\DataTransfer\MetadataProvider;
 
+use Articus\DataTransfer\MetadataCache\MetadataCacheInterface;
 use Articus\DataTransfer\PhpAttribute as DTA;
 use Articus\DataTransfer\ClassMetadataProviderInterface;
 use Articus\DataTransfer\FieldMetadataProviderInterface;
@@ -26,7 +27,7 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 {
 	const MAX_VALIDATOR_PRIORITY = 10000;
 
-	protected CacheInterface $cache;
+	protected MetadataCacheInterface $cache;
 
 	/**
 	 * @psalm-var array<string, array<string, array{0: string, 1: array}>>
@@ -53,7 +54,7 @@ class PhpAttribute implements ClassMetadataProviderInterface, FieldMetadataProvi
 	 */
 	protected array $fieldValidators = [];
 
-	public function __construct(CacheInterface $cache)
+	public function __construct(MetadataCacheInterface $cache)
 	{
 		$this->cache = $cache;
 	}

@@ -11,6 +11,7 @@ use PhpSpec\ObjectBehavior;
 use Psr\Container\ContainerInterface;
 use Psr\SimpleCache\CacheInterface;
 use stdClass;
+use function realpath;
 use const PHP_MAJOR_VERSION;
 
 /**
@@ -65,18 +66,21 @@ class PhpAttributeSpec extends ObjectBehavior
 		$container->get('config')->shouldBeCalledOnce()->willReturn([]);
 		$service = $this->__invoke($container, '');
 		$service->shouldBeAnInstanceOf(DT\MetadataProvider\PhpAttribute::class);
-		$service->shouldHavePropertyOfType('cache', DT\Cache\MetadataFilePerClass::class);
+		$service->shouldHavePropertyOfType('cache', DT\MetadataCache\FilePerClass::class);
+		$service->shouldHaveProperty('cache.directory', null);
 	}
 
 	public function it_creates_service_with_cache_configuration(ContainerInterface $container)
 	{
+		$directory = 'data/cache';
 		$config = [
-			DT\MetadataProvider\Annotation::class => ['cache' => ['directory' => 'data/cache']]
+			DT\MetadataProvider\PhpAttribute::class => ['cache' => ['directory' => $directory]]
 		];
 		$container->get('config')->shouldBeCalledOnce()->willReturn($config);
 		$service = $this->__invoke($container, '');
 		$service->shouldBeAnInstanceOf(DT\MetadataProvider\PhpAttribute::class);
-		$service->shouldHavePropertyOfType('cache', DT\Cache\MetadataFilePerClass::class);
+		$service->shouldHavePropertyOfType('cache', DT\MetadataCache\FilePerClass::class);
+		$service->shouldHaveProperty('cache.directory', realpath($directory));
 	}
 
 	public function it_creates_service_with_cache_from_container(ContainerInterface $container, CacheInterface $cache)
@@ -90,7 +94,8 @@ class PhpAttributeSpec extends ObjectBehavior
 		$container->get($cacheServiceName)->shouldBeCalledOnce()->willReturn($cache);
 		$service = $this->__invoke($container, '');
 		$service->shouldBeAnInstanceOf(DT\MetadataProvider\PhpAttribute::class);
-		$service->shouldHaveProperty('cache', $cache);
+		$service->shouldHavePropertyOfType('cache', DT\MetadataCache\Psr16::class);
+		$service->shouldHaveProperty('cache.cache', $cache);
 	}
 
 	public function it_throws_on_invalid_cache_service_in_container(ContainerInterface $container, $cache)

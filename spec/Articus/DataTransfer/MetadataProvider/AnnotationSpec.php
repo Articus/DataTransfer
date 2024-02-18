@@ -6,7 +6,6 @@ namespace spec\Articus\DataTransfer\MetadataProvider;
 use Articus\DataTransfer as DT;
 use LogicException;
 use PhpSpec\ObjectBehavior;
-use Psr\SimpleCache\CacheInterface;
 use spec\Example;
 
 /**
@@ -16,7 +15,7 @@ use spec\Example;
  */
 class AnnotationSpec extends ObjectBehavior
 {
-	public function it_throws_if_there_is_no_class_metadata(CacheInterface $cache)
+	public function it_throws_if_there_is_no_class_metadata(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\NoClassMetadata::class;
 		$subset = '';
@@ -33,7 +32,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, 'test']);
 	}
 
-	public function it_returns_cached_class_strategy(CacheInterface $cache)
+	public function it_returns_cached_class_strategy(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = 'test\Class';
 		$subset = 'testSubset';
@@ -51,7 +50,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassStrategy($className, $subset)->shouldBe($strategy);
 	}
 
-	public function it_returns_class_strategy(CacheInterface $cache)
+	public function it_returns_class_strategy(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassStrategy::class;
 		$subset = '';
@@ -71,7 +70,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassStrategy($className, $subset)->shouldBe($strategy);
 	}
 
-	public function it_returns_class_strategy_with_options(CacheInterface $cache)
+	public function it_returns_class_strategy_with_options(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassStrategyWithOptions::class;
 		$subset = '';
@@ -91,7 +90,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassStrategy($className, $subset)->shouldBe($strategy);
 	}
 
-	public function it_returns_class_strategy_with_specified_subset(CacheInterface $cache)
+	public function it_returns_class_strategy_with_specified_subset(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassStrategiesWithSubsets::class;
 		$subset1 = 'testSubset1';
@@ -113,7 +112,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassStrategy($className, $subset1)->shouldBe($strategy1);
 	}
 
-	public function it_throws_if_there_is_no_class_strategy_with_specified_subset(CacheInterface $cache)
+	public function it_throws_if_there_is_no_class_strategy_with_specified_subset(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassStrategy::class;
 		$subset = '';
@@ -133,7 +132,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->shouldThrow(LogicException::class)->during('getClassStrategy', [$className, $unknownSubset]);
 	}
 
-	public function it_throws_if_there_are_several_class_strategies_with_same_subset(CacheInterface $cache)
+	public function it_throws_if_there_are_several_class_strategies_with_same_subset(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassStrategiesWithSameSubset::class;
 		$subset = 'testSubset';
@@ -145,7 +144,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->shouldThrow(LogicException::class)->during('getClassValidator', [$className, $subset]);
 	}
 
-	public function it_returns_cached_class_validator(CacheInterface $cache)
+	public function it_returns_cached_class_validator(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = 'test\Class';
 		$subset = 'testSubset';
@@ -163,7 +162,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassValidator($className, $subset)->shouldBe($validator);
 	}
 
-	public function it_returns_empty_class_validator(CacheInterface $cache)
+	public function it_returns_empty_class_validator(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassStrategy::class;
 		$subset = '';
@@ -183,7 +182,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassValidator($className, $subset)->shouldBe($validator);
 	}
 
-	public function it_returns_class_validator(CacheInterface $cache)
+	public function it_returns_class_validator(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassValidator::class;
 		$subset = '';
@@ -203,7 +202,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassValidator($className, $subset)->shouldBe($validator);
 	}
 
-	public function it_returns_class_validator_with_options(CacheInterface $cache)
+	public function it_returns_class_validator_with_options(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassValidatorWithOptions::class;
 		$subset = '';
@@ -223,7 +222,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassValidator($className, $subset)->shouldBe($validator);
 	}
 
-	public function it_returns_blocking_class_validator(CacheInterface $cache)
+	public function it_returns_blocking_class_validator(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\BlockingClassValidator::class;
 		$subset = '';
@@ -243,7 +242,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassValidator($className, $subset)->shouldBe($validator);
 	}
 
-	public function it_returns_class_validator_with_specified_subset(CacheInterface $cache)
+	public function it_returns_class_validator_with_specified_subset(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassValidatorsWithSubsets::class;
 		$subset1 = 'testSubset1';
@@ -267,7 +266,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassValidator($className, $subset1)->shouldBe($validator1);
 	}
 
-	public function it_returns_class_validators_with_same_subset_sorted_according_priority(CacheInterface $cache)
+	public function it_returns_class_validators_with_same_subset_sorted_according_priority(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassValidatorsWithSameSubset::class;
 		$subset = '';
@@ -296,7 +295,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassValidator($className, $subset)->shouldBe($validator);
 	}
 
-	public function it_throws_on_class_validator_without_class_strategy(CacheInterface $cache)
+	public function it_throws_on_class_validator_without_class_strategy(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassValidatorWithoutClassStrategy::class;
 		$subset = '';
@@ -308,7 +307,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->shouldThrow(LogicException::class)->during('getClassValidator', [$className, $subset]);
 	}
 
-	public function it_returns_cached_class_field(CacheInterface $cache)
+	public function it_returns_cached_class_field(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = 'test\Class';
 		$subset = 'testSubset';
@@ -326,7 +325,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
 	}
 
-	public function it_returns_class_field_for_public_property(CacheInterface $cache)
+	public function it_returns_class_field_for_public_property(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\PublicClassField::class;
 		$subset = '';
@@ -349,7 +348,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
 	}
 
-	public function it_returns_class_field_for_protected_property(CacheInterface $cache)
+	public function it_returns_class_field_for_protected_property(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ProtectedClassField::class;
 		$subset = '';
@@ -372,7 +371,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
 	}
 
-	public function it_returns_class_field_for_private_property(CacheInterface $cache)
+	public function it_returns_class_field_for_private_property(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\PrivateClassField::class;
 		$subset = '';
@@ -395,7 +394,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
 	}
 
-	public function it_returns_class_field_with_name(CacheInterface $cache)
+	public function it_returns_class_field_with_name(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassFieldWithName::class;
 		$subset = '';
@@ -418,7 +417,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
 	}
 
-	public function it_throws_on_class_fields_with_same_name(CacheInterface $cache)
+	public function it_throws_on_class_fields_with_same_name(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassFieldsWithSameName::class;
 		$subset = '';
@@ -433,7 +432,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
-	public function it_returns_nullable_class_field(CacheInterface $cache)
+	public function it_returns_nullable_class_field(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\NullableClassField::class;
 		$subset = '';
@@ -456,7 +455,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
 	}
 
-	public function it_returns_class_field_with_getter(CacheInterface $cache)
+	public function it_returns_class_field_with_getter(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassFieldWithGetter::class;
 		$subset = '';
@@ -479,7 +478,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
 	}
 
-	public function it_returns_class_field_without_getter(CacheInterface $cache)
+	public function it_returns_class_field_without_getter(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassFieldWithoutGetter::class;
 		$subset = '';
@@ -502,7 +501,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
 	}
 
-	public function it_throws_on_class_field_with_absent_getter(CacheInterface $cache)
+	public function it_throws_on_class_field_with_absent_getter(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassFieldWithAbsentGetter::class;
 		$subset = '';
@@ -517,7 +516,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
-	public function it_throws_on_class_field_with_nonpublic_getter(CacheInterface $cache)
+	public function it_throws_on_class_field_with_nonpublic_getter(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassFieldWithNonpublicGetter::class;
 		$subset = '';
@@ -532,7 +531,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
-	public function it_throws_on_class_field_with_getter_that_requires_parameter(CacheInterface $cache)
+	public function it_throws_on_class_field_with_getter_that_requires_parameter(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassFieldWithGetterThatRequiresParameter::class;
 		$subset = '';
@@ -547,7 +546,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
-	public function it_returns_class_field_with_setter(CacheInterface $cache)
+	public function it_returns_class_field_with_setter(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassFieldWithSetter::class;
 		$subset = '';
@@ -570,7 +569,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
 	}
 
-	public function it_returns_class_field_without_setter(CacheInterface $cache)
+	public function it_returns_class_field_without_setter(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassFieldWithoutSetter::class;
 		$subset = '';
@@ -593,7 +592,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassFields($className, $subset)->shouldIterateAs($fields);
 	}
 
-	public function it_throws_on_class_field_with_absent_setter(CacheInterface $cache)
+	public function it_throws_on_class_field_with_absent_setter(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassFieldWithAbsentSetter::class;
 		$subset = '';
@@ -608,7 +607,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
-	public function it_throws_on_class_field_with_nonpublic_setter(CacheInterface $cache)
+	public function it_throws_on_class_field_with_nonpublic_setter(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassFieldWithNonpublicSetter::class;
 		$subset = '';
@@ -623,7 +622,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
-	public function it_throws_on_class_field_with_setter_that_has_no_parameters(CacheInterface $cache)
+	public function it_throws_on_class_field_with_setter_that_has_no_parameters(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassFieldWithSetterThatHasNoParameters::class;
 		$subset = '';
@@ -638,7 +637,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
-	public function it_throws_on_class_field_with_setter_that_requires_two_parameters(CacheInterface $cache)
+	public function it_throws_on_class_field_with_setter_that_requires_two_parameters(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassFieldWithSetterThatRequiresTwoParameters::class;
 		$subset = '';
@@ -653,7 +652,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
-	public function it_returns_class_field_with_specified_subset(CacheInterface $cache)
+	public function it_returns_class_field_with_specified_subset(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassFieldWithSubsets::class;
 		$subset1 = 'subset1';
@@ -697,7 +696,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassFields($className, $subset1)->shouldIterateAs($fields1);
 	}
 
-	public function it_throws_if_property_has_several_class_fields_with_same_subset(CacheInterface $cache)
+	public function it_throws_if_property_has_several_class_fields_with_same_subset(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassFieldsWithSameSubsetForSameProperty::class;
 		$subset = '';
@@ -712,7 +711,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
-	public function it_returns_cached_field_strategy(CacheInterface $cache)
+	public function it_returns_cached_field_strategy(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = 'test\Class';
 		$subset = 'testSubset';
@@ -731,7 +730,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getFieldStrategy($className, $subset, $fieldName)->shouldBe($fieldStrategy);
 	}
 
-	public function it_returns_default_field_strategy(CacheInterface $cache)
+	public function it_returns_default_field_strategy(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\PublicClassField::class;
 		$subset = '';
@@ -754,7 +753,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getFieldStrategy($className, $subset, $fieldName)->shouldBe($fieldStrategy);
 	}
 
-	public function it_returns_field_strategy(CacheInterface $cache)
+	public function it_returns_field_strategy(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\FieldStrategy::class;
 		$subset = '';
@@ -777,7 +776,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getFieldStrategy($className, $subset, $fieldName)->shouldBe($fieldStrategy);
 	}
 
-	public function it_returns_field_strategy_with_options(CacheInterface $cache)
+	public function it_returns_field_strategy_with_options(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\FieldStrategyWithOptions::class;
 		$subset = '';
@@ -800,7 +799,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getFieldStrategy($className, $subset, $fieldName)->shouldBe($fieldStrategy);
 	}
 
-	public function it_returns_field_strategy_with_specified_subset(CacheInterface $cache)
+	public function it_returns_field_strategy_with_specified_subset(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\FieldStrategiesWithSubsets::class;
 		$subset1 = 'subset1';
@@ -842,7 +841,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getFieldStrategy($className, $subset1, $fieldName)->shouldBe($fieldStrategy1);
 	}
 
-	public function it_throws_if_property_has_several_field_strategies_with_same_subset(CacheInterface $cache)
+	public function it_throws_if_property_has_several_field_strategies_with_same_subset(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\FieldStrategiesWithSameSubsetForSameProperty::class;
 		$subset = '';
@@ -857,7 +856,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
-	public function it_throws_if_property_has_field_strategy_but_is_not_class_field(CacheInterface $cache)
+	public function it_throws_if_property_has_field_strategy_but_is_not_class_field(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\FieldStrategyWithoutClassField::class;
 		$subset = '';
@@ -872,7 +871,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
-	public function it_returns_cached_field_validator(CacheInterface $cache)
+	public function it_returns_cached_field_validator(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = 'test\Class';
 		$subset = 'testSubset';
@@ -891,7 +890,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getFieldValidator($className, $subset, $fieldName)->shouldBe($fieldValidator);
 	}
 
-	public function it_returns_default_field_validator_for_not_nullable_field(CacheInterface $cache)
+	public function it_returns_default_field_validator_for_not_nullable_field(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\PublicClassField::class;
 		$subset = '';
@@ -914,7 +913,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getFieldValidator($className, $subset, $fieldName)->shouldBe($fieldValidator);
 	}
 
-	public function it_returns_empty_field_validator_for_nullable_field(CacheInterface $cache)
+	public function it_returns_empty_field_validator_for_nullable_field(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\NullableClassField::class;
 		$subset = '';
@@ -937,7 +936,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getFieldValidator($className, $subset, $fieldName)->shouldBe($fieldValidator);
 	}
 
-	public function it_returns_field_validator(CacheInterface $cache)
+	public function it_returns_field_validator(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\FieldValidator::class;
 		$subset = '';
@@ -963,7 +962,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getFieldValidator($className, $subset, $fieldName)->shouldBe($fieldValidator);
 	}
 
-	public function it_returns_field_validator_with_options(CacheInterface $cache)
+	public function it_returns_field_validator_with_options(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\FieldValidatorWithOptions::class;
 		$subset = '';
@@ -989,7 +988,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getFieldValidator($className, $subset, $fieldName)->shouldBe($fieldValidator);
 	}
 
-	public function it_returns_blocking_field_validator(CacheInterface $cache)
+	public function it_returns_blocking_field_validator(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\BlockingFieldValidator::class;
 		$subset = '';
@@ -1015,7 +1014,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getFieldValidator($className, $subset, $fieldName)->shouldBe($fieldValidator);
 	}
 
-	public function it_returns_field_validator_with_specified_subset(CacheInterface $cache)
+	public function it_returns_field_validator_with_specified_subset(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\FieldValidatorsWithSubsets::class;
 		$subset1 = 'subset1';
@@ -1063,7 +1062,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getFieldValidator($className, $subset1, $fieldName)->shouldBe($fieldValidator1);
 	}
 
-	public function it_returns_field_validators_with_same_subset_sorted_according_priority(CacheInterface $cache)
+	public function it_returns_field_validators_with_same_subset_sorted_according_priority(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\FieldValidatorsWithSameSubset::class;
 		$subset = '';
@@ -1095,7 +1094,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getFieldValidator($className, $subset, $fieldName)->shouldBe($fieldValidator);
 	}
 
-	public function it_throws_if_property_has_field_validator_but_is_not_class_field(CacheInterface $cache)
+	public function it_throws_if_property_has_field_validator_but_is_not_class_field(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\FieldValidatorWithoutClassField::class;
 		$subset = '';
@@ -1110,7 +1109,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
-	public function it_returns_default_class_strategy_if_there_is_class_field(CacheInterface $cache)
+	public function it_returns_default_class_strategy_if_there_is_class_field(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\PublicClassField::class;
 		$subset = '';
@@ -1132,7 +1131,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassStrategy($className, $subset)->shouldBe($strategy);
 	}
 
-	public function it_returns_default_class_validator_if_there_is_class_field(CacheInterface $cache)
+	public function it_returns_default_class_validator_if_there_is_class_field(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\PublicClassField::class;
 		$subset = '';
@@ -1154,7 +1153,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->getClassValidator($className, $subset)->shouldBe($validator);
 	}
 
-	public function it_throws_if_there_is_class_strategy_and_there_is_class_field(CacheInterface $cache)
+	public function it_throws_if_there_is_class_strategy_and_there_is_class_field(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassFieldWithClassStrategy::class;
 		$subset = '';
@@ -1169,7 +1168,7 @@ class AnnotationSpec extends ObjectBehavior
 		$this->shouldThrow(LogicException::class)->during('getFieldValidator', [$className, $subset, $fieldName]);
 	}
 
-	public function it_returns_class_validators_and_default_class_validator_if_there_is_class_field(CacheInterface $cache)
+	public function it_returns_class_validators_and_default_class_validator_if_there_is_class_field(DT\MetadataCache\MetadataCacheInterface $cache)
 	{
 		$className = Example\DTO\ClassFieldWithClassValidator::class;
 		$subset = '';

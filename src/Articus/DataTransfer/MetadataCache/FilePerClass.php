@@ -1,12 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace Articus\DataTransfer\Cache;
+namespace Articus\DataTransfer\MetadataCache;
 
 use Closure;
 use InvalidArgumentException;
-use LogicException;
-use Psr\SimpleCache\CacheInterface;
 use function array_push;
 use function chmod;
 use function explode;
@@ -29,10 +27,9 @@ use const DIRECTORY_SEPARATOR;
 use const PATHINFO_DIRNAME;
 
 /**
- * Incomplete implementation of PSR-16 optimized to store metadata.
  * Metadata for class \My\CustomClass is stored as plain PHP array in file <directory>/My/CustomClass.metadata.php
  */
-class MetadataFilePerClass implements CacheInterface
+class FilePerClass implements MetadataCacheInterface
 {
 	/**
 	 * Root folder to store metadata
@@ -67,19 +64,19 @@ class MetadataFilePerClass implements CacheInterface
 	/**
 	 * @inheritDoc
 	 */
-	public function get($key, $default = null)
+	public function get(string $className): ?array
 	{
-		$result = $default;
+		$result = null;
 		if ($this->directory !== null)
 		{
-			$filename = $this->getFilename($this->directory, $key);
+			$filename = $this->getFilename($this->directory, $className);
 			// note: error suppression is still faster than `file_exists`, `is_file` and `is_readable`
 			set_error_handler(self::$emptyErrorHandler);
-			$value = include $filename;
+			$metadata = include $filename;
 			restore_error_handler();
-			if (is_array($value))
+			if (is_array($metadata))
 			{
-				$result = $value;
+				$result = $metadata;
 			}
 		}
 		return $result;
@@ -88,70 +85,27 @@ class MetadataFilePerClass implements CacheInterface
 	/**
 	 * @inheritDoc
 	 */
-	public function set($key, $value, $ttl = null)
+	public function set(string $className, array $metadata): bool
 	{
 		$result = false;
-		if (($this->directory !== null) && is_array($value) && ($ttl === null))
+		if ($this->directory !== null)
 		{
-			$filename = $this->getFilename($this->directory, $key);
-			$content  = sprintf('<?php return %s;', var_export($value, true));
+			$filename = $this->getFilename($this->directory, $className);
+			$content  = sprintf('<?php return %s;', var_export($metadata, true));
 			$result = $this->writeFile($filename, $content);
 		}
 		return $result;
 	}
 
 	/**
-	 * @inheritDoc
+	 * @param string $directory
+	 * @param class-string $className
+	 * @return string
 	 */
-	public function delete($key)
-	{
-		throw new LogicException('Not implemented');
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function clear()
-	{
-		throw new LogicException('Not implemented');
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function getMultiple($keys, $default = null)
-	{
-		throw new LogicException('Not implemented');
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function setMultiple($values, $ttl = null)
-	{
-		throw new LogicException('Not implemented');
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function deleteMultiple($keys)
-	{
-		throw new LogicException('Not implemented');
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function has($key)
-	{
-		throw new LogicException('Not implemented');
-	}
-
-	protected function getFilename(string $directory, string $key): string
+	protected function getFilename(string $directory, string $className): string
 	{
 		$pathParts = [$directory];
-		array_push($pathParts, ...explode('\\', $key));
+		array_push($pathParts, ...explode('\\', $className));
 		return implode(DIRECTORY_SEPARATOR, $pathParts) . '.metadata.php';
 	}
 

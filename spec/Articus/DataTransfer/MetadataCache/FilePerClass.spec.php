@@ -5,20 +5,19 @@ use Articus\DataTransfer as DT;
 use spec\Example;
 use spec\Utility\GlobalFunctionMock;
 
-describe(DT\Cache\MetadataFilePerClass::class, function ()
+describe(DT\MetadataCache\FilePerClass::class, function ()
 {
 	context('null as cache folder', function ()
 	{
-		it('always gets default value', function ()
+		it('always gets null', function ()
 		{
-			$cache = new DT\Cache\MetadataFilePerClass(null);
-			$defaultValue = mock();
-			expect($cache->get('test', $defaultValue))->toBe($defaultValue);
+			$cache = new DT\MetadataCache\FilePerClass(null);
+			expect($cache->get('test'))->toBeNull();
 		});
 		it('never sets value to cache', function ()
 		{
-			$cache = new DT\Cache\MetadataFilePerClass(null);
-			expect($cache->set('test', mock()))->toBe(false);
+			$cache = new DT\MetadataCache\FilePerClass(null);
+			expect($cache->set('test', ['test' => 123]))->toBe(false);
 		});
 	});
 	context('string as cache folder', function ()
@@ -63,7 +62,7 @@ CACHE_CONTENT;
 		});
 		it('creates cache folder', function ()
 		{
-			$cache = new DT\Cache\MetadataFilePerClass($this->cacheFolder);
+			$cache = new DT\MetadataCache\FilePerClass($this->cacheFolder);
 			expect(is_dir($this->cacheFolder))->toBe(true);
 		});
 		it('throws if cache folder does not exists and can not be created', function ()
@@ -72,10 +71,7 @@ CACHE_CONTENT;
 			GlobalFunctionMock::stub('is_dir')->with($this->cacheFolder)->andReturn(false);
 			GlobalFunctionMock::stub('mkdir')->with($this->cacheFolder, 0775, true)->andReturn(false);
 			$exception = new InvalidArgumentException(sprintf('The directory "%s" does not exist and could not be created.', $this->cacheFolder));
-			expect(function ()
-			{
-				$cache = new DT\Cache\MetadataFilePerClass($this->cacheFolder);
-			})->toThrow($exception);
+			expect(fn () => new DT\MetadataCache\FilePerClass($this->cacheFolder))->toThrow($exception);
 		});
 		it('throws if cache folder exists but is not writable', function ()
 		{
@@ -84,16 +80,12 @@ CACHE_CONTENT;
 			GlobalFunctionMock::stub('mkdir')->with($this->cacheFolder, 0775, true)->andReturn(true);
 			GlobalFunctionMock::stub('is_writable')->with($this->cacheFolder)->andReturn(false);
 			$exception = new InvalidArgumentException(sprintf('The directory "%s" is not writable.', $this->cacheFolder));
-			expect(function ()
-			{
-				$cache = new DT\Cache\MetadataFilePerClass($this->cacheFolder);
-			})->toThrow($exception);
+			expect(fn () => new DT\MetadataCache\FilePerClass($this->cacheFolder))->toThrow($exception);
 		});
-		it('gets default value if cache is empty', function ()
+		it('gets null if cache is empty', function ()
 		{
-			$cache = new DT\Cache\MetadataFilePerClass($this->cacheFolder);
-			$defaultValue = mock();
-			expect($cache->get($this->cacheKey, $defaultValue))->toBe($defaultValue);
+			$cache = new DT\MetadataCache\FilePerClass($this->cacheFolder);
+			expect($cache->get($this->cacheKey))->toBeNull();
 		});
 		it('gets cached value stored in file', function ()
 		{
@@ -101,18 +93,8 @@ CACHE_CONTENT;
 			expect(mkdir($folder, 0777, true))->toBe(true);
 			expect(file_put_contents($this->cacheFile, $this->cacheContent))->not->toBe(false);
 
-			$cache = new DT\Cache\MetadataFilePerClass($this->cacheFolder);
+			$cache = new DT\MetadataCache\FilePerClass($this->cacheFolder);
 			expect($cache->get($this->cacheKey))->toBe($this->cacheData);
-		});
-		it('does not set value to cache if value is not array', function ()
-		{
-			$cache = new DT\Cache\MetadataFilePerClass($this->cacheFolder);
-			expect($cache->set($this->cacheKey, new stdClass()))->toBe(false);
-		});
-		it('does not set value to cache if value has TTL', function ()
-		{
-			$cache = new DT\Cache\MetadataFilePerClass($this->cacheFolder);
-			expect($cache->set($this->cacheKey, [], 1))->toBe(false);
 		});
 		it('does not set value to cache if it can not save value to temporary file', function ()
 		{
@@ -126,7 +108,7 @@ CACHE_CONTENT;
 				}
 			)->andReturn($temporaryFilename);
 			GlobalFunctionMock::stub('file_put_contents')->with($temporaryFilename, $this->cacheContent)->andReturn(false);
-			$cache = new DT\Cache\MetadataFilePerClass($this->cacheFolder);
+			$cache = new DT\MetadataCache\FilePerClass($this->cacheFolder);
 			expect($cache->set($this->cacheKey, $this->cacheData))->toBe(false);
 		});
 		it('does not set value to cache if it can not move temporary file to permanent location', function ()
@@ -149,44 +131,15 @@ CACHE_CONTENT;
 				}
 			)->andReturn(false);
 			GlobalFunctionMock::stub('unlink')->with($temporaryFilename)->andReturn(true);
-			$cache = new DT\Cache\MetadataFilePerClass($this->cacheFolder);
+			$cache = new DT\MetadataCache\FilePerClass($this->cacheFolder);
 			expect($cache->set($this->cacheKey, $this->cacheData))->toBe(false);
 		});
 		it('sets value to cache by storing in file', function ()
 		{
-			$cache = new DT\Cache\MetadataFilePerClass($this->cacheFolder);
+			$cache = new DT\MetadataCache\FilePerClass($this->cacheFolder);
 			expect($cache->set($this->cacheKey, $this->cacheData))->toBe(true);
 			expect(file_exists($this->cacheFile))->toBe(true);
 			expect(file_get_contents($this->cacheFile))->toBe($this->cacheContent);
-		});
-		it('throws on PSR-16 methods that are not needed for metadata provider', function ()
-		{
-			$exception = new LogicException('Not implemented');
-			$cache = new DT\Cache\MetadataFilePerClass($this->cacheFolder);
-			expect(function () use ($cache)
-			{
-				$cache->has($this->cacheKey);
-			})->toThrow($exception);
-			expect(function () use ($cache)
-			{
-				$cache->delete($this->cacheKey);
-			})->toThrow($exception);
-			expect(function () use ($cache)
-			{
-				$cache->clear();
-			})->toThrow($exception);
-			expect(function () use ($cache)
-			{
-				$cache->getMultiple([$this->cacheKey]);
-			})->toThrow($exception);
-			expect(function () use ($cache)
-			{
-				$cache->setMultiple([$this->cacheKey => $this->cacheData]);
-			})->toThrow($exception);
-			expect(function () use ($cache)
-			{
-				$cache->deleteMultiple([$this->cacheKey]);
-			})->toThrow($exception);
 		});
 	});
 });
