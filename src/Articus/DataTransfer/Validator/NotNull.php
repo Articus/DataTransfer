@@ -9,7 +9,7 @@ namespace Articus\DataTransfer\Validator;
  */
 class NotNull implements ValidatorInterface
 {
-	const INVALID = 'notNull';
+	public const INVALID = 'notNull';
 
 	/**
 	 * @inheritDoc
