@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Articus\DataTransfer\Validator;
 
+use Articus\DataTransfer\Exception;
 use function is_string;
 
 /**
@@ -44,11 +45,18 @@ class SerializableValue implements ValidatorInterface
 		{
 			if (is_string($data))
 			{
-				$value = ($this->unserializer)($data);
-				$valueViolations = $this->valueValidator->validate($value);
-				if (!empty($valueViolations))
+				try
 				{
-					$result[self::INVALID_INNER] = $valueViolations;
+					$value = ($this->unserializer)($data);
+					$valueViolations = $this->valueValidator->validate($value);
+					if (!empty($valueViolations))
+					{
+						$result[self::INVALID_INNER] = $valueViolations;
+					}
+				}
+				catch (Exception\InvalidData $e)
+				{
+					$result[self::INVALID_INNER] = $e->getViolations();
 				}
 			}
 			else

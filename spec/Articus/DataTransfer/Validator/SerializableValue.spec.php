@@ -33,6 +33,20 @@ describe(DT\Validator\SerializableValue::class, function ()
 			expect($validator->validate([]))->toBe($error);
 			expect($validator->validate(new stdClass()))->toBe($error);
 		});
+		it('denies invalid string', function ()
+		{
+			$data = 'some data';
+			$dataError = ['aaa' => 111];
+			$error = [DT\Validator\SerializableValue::INVALID_INNER => $dataError];
+			$exception = new DT\Exception\InvalidData($dataError);
+			$valueValidator = mock(DT\Validator\ValidatorInterface::class);
+			$unserializer = mock(Example\InvokableInterface::class);
+
+			$unserializer->shouldReceive('__invoke')->with($data)->andThrow($exception)->once();
+
+			$validator = new DT\Validator\SerializableValue($valueValidator, $unserializer);
+			expect($validator->validate($data))->toBe($error);
+		});
 		it('denies string with invalid serialized value', function ()
 		{
 			$data = 'some data';
