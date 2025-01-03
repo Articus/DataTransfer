@@ -37,7 +37,7 @@
     "phpspec/phpspec": "^5.1|^6.1|^7.0",
     "friends-of-phpspec/phpspec-code-coverage": "*",
     "phpunit/php-code-coverage": "^9.2",
-    "kahlan/kahlan": "^5.0",
+    "kahlan/kahlan": "^6.0",
     "mockery/mockery": "^1.3"
   },
   "autoload": {
